@@ -1,0 +1,8 @@
+/build/
+/wctl
+/toggle
+/test
+/webtest
+/*.csv
+/*.txt
+/*.log
