@@ -29,6 +29,7 @@
 using namespace std;
 
 pthread_t			tidTxCmd;
+pthread_t			tidWebListener;
 int					pid_fd = -1;
 char				szAppName[256];
 
@@ -194,6 +195,21 @@ void * txCmdThread(void * pArgs)
 		** Sleep for the remaining 900ms...
 		*/
 		usleep(900000L);
+	}
+
+	return NULL;
+}
+
+void * webListenerThread(void * pArgs)
+{
+	bool			go = true;
+
+	WebConnector & web = WebConnector::getInstance();
+
+	while (go) {
+		web.listen();
+
+		usleep(1000L);
 	}
 
 	return NULL;
@@ -439,8 +455,20 @@ int main(int argc, char *argv[])
 		log.logInfo("Thread txCmdThread() created successfully");
 	}
 
-	web.listen();
+	err = pthread_create(&tidWebListener, NULL, &webListenerThread, NULL);
 
+	if (err != 0) {
+		log.logError("ERROR! Can't create webListenerThread() :[%s]", strerror(err));
+		return -1;
+	}
+	else {
+		log.logInfo("Thread webListenerThread() created successfully");
+	}
+
+	while (1) {
+		sleep(5);
+	}
+	
 	log.logInfo("Cleaning up and exiting!");
 	
 	port.closePort();
