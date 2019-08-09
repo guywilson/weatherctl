@@ -177,21 +177,30 @@ static void post(const char * pszHost, const int port, const char * pszPath, cha
 
 WebConnector::WebConnector()
 {
+}
+
+void WebConnector::setConfigLocation(char * pszConfigFile)
+{
+	strcpy(this->szConfigFile, pszConfigFile);
+
 	queryConfig();
-	setupListener();
 }
 
 void WebConnector::queryConfig()
 {
-	FILE *		fptr;
-	char *		pszToken;
-	char *		config = NULL;
-	int			fileLength = 0;
-	int			bytesRead = 0;
+	FILE *			fptr;
+	char *			pszToken;
+	char *			config = NULL;
+	int				fileLength = 0;
+	int				bytesRead = 0;
+	const char *	tokens = "#=\n\r ";
 
-	fptr = fopen("./webconfig.cfg", "rt");
+	Logger & log = Logger::getInstance();
+
+	fptr = fopen(this->szConfigFile, "rt");
 
 	if (fptr == NULL) {
+		log.logError("Failed to open config file %s", this->szConfigFile);
 		throw new Exception("ERROR reading config");
 	}
 
@@ -216,35 +225,55 @@ void WebConnector::queryConfig()
 
 	fclose(fptr);
 
-	pszToken = strtok(config, "=\n\r ");
+	log.logInfo("Read %d bytes from config file %s", bytesRead, this->szConfigFile);
+
+	pszToken = strtok(config, tokens);
 
 	while (pszToken != NULL) {
-		if (strcmp(pszToken, "host") == 0) {
-			pszToken = strtok(NULL, "=\n\r ");
-
+		if (strcmp(pszToken, "web.host") == 0) {
+			pszToken = strtok(NULL, tokens);
 			strcpy(this->szHost, pszToken);
+
+			log.logDebug("Got web.host as %s", this->szHost);
 		}
-		else if (strcmp(pszToken, "port") == 0) {
-			pszToken = strtok(NULL, "=\n\r ");
+		else if (strcmp(pszToken, "web.port") == 0) {
+			pszToken = strtok(NULL, tokens);
 
 			this->port = atoi(pszToken);
+
+			log.logDebug("Got web.port as %d", this->port);
 		}
-		else if (strcmp(pszToken, "basepath") == 0) {
-			pszToken = strtok(NULL, "=\n\r ");
+		else if (strcmp(pszToken, "web.basepath") == 0) {
+			pszToken = strtok(NULL, tokens);
 
 			strcpy(this->szBasePath, pszToken);
+
+			log.logDebug("Got web.basepath as %s", this->szBasePath);
 		}
-		else if (strcmp(pszToken, "listenport") == 0) {
-			pszToken = strtok(NULL, "=\n\r ");
+		else if (strcmp(pszToken, "admin.listenport") == 0) {
+			pszToken = strtok(NULL, tokens);
 
 			strcpy(this->szListenPort, pszToken);
+
+			log.logDebug("Got admin.listenport as %s", this->szListenPort);
+		}
+		else if (strcmp(pszToken, "admin.docroot") == 0) {
+			pszToken = strtok(NULL, tokens);
+
+			strcpy(this->szDocRoot, pszToken);
+
+			log.logDebug("Got admin.docroot as %s", this->szDocRoot);
 		}
 		else {
-			pszToken = strtok(NULL, "=\n\r ");
+			pszToken = strtok(NULL, tokens);
+
+			log.logDebug("Got token '%s'", pszToken);
 		}
 	}
 
 	free(config);
+
+	this->isConfigured = true;
 }
 
 void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity)
@@ -254,6 +283,11 @@ void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemp
 
 	CurrentTime time;
 	Logger & log = Logger::getInstance();
+
+	if (!this->isConfigured) {
+		strcpy(this->szConfigFile, "./webconfig.cfg");
+		queryConfig();
+	}
 
 	sprintf(
 		szBody,
@@ -272,7 +306,7 @@ void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemp
 	log.logDebug("Finished post to %s", szWebPath);
 }
 
-void WebConnector::setupListener()
+void WebConnector::listen()
 {
 	Logger & log = Logger::getInstance();
 
@@ -289,11 +323,6 @@ void WebConnector::setupListener()
 	log.logInfo("Bound default handler...");
 
 	mg_set_protocol_http_websocket(connection);
-}
-
-void WebConnector::listen()
-{
-	Logger & log = Logger::getInstance();
 
 	log.logInfo("Listening...");
 

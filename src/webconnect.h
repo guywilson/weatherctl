@@ -90,10 +90,14 @@ public:
 	}
 
 private:
+	char			szConfigFile[256];
 	char			szHost[256];
 	int				port;
 	char			szListenPort[8];
 	char			szBasePath[128];
+	char			szDocRoot[256];
+
+	bool			isConfigured = false;
 
 	struct mg_mgr			mgr;
 	struct mg_connection *	connection;
@@ -101,9 +105,10 @@ private:
 	WebConnector();
 
 	void		queryConfig();
-	void		setupListener();
 
 public:
+	void		setConfigLocation(char * pszConfigFile);
+
 	void		postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity);
 	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));
 	void		listen();
@@ -113,6 +118,9 @@ public:
 	}
 	int			getPort() {
 		return this->port;
+	}
+	char *		getDocRoot() {
+		return this->szDocRoot;
 	}
 };
 

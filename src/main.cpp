@@ -307,6 +307,7 @@ void printUsage(char * pszAppName)
 	printf("   -h/?             Print this help\n");
 	printf("   -port device     Serial port device\n");
 	printf("   -baud baudrate   Serial port baud rate\n");
+	printf("   -cfg configfile  Specify the cfg file, default is ./webconfig.cfg\n");
 	printf("   -d               Daemonise this application\n");
 	printf("   -log  filename   Write logs to the file\n");
 	printf("   -lock filename   PID lock file (only applicable with -d option))\n");
@@ -319,6 +320,7 @@ int main(int argc, char *argv[])
 	char			szBaud[8];
 	char *			pszLockFileName = NULL;
 	char *			pszLogFileName = NULL;
+	char *			pszConfigFileName = NULL;
 	int				i;
 	bool			isDaemonised = false;
 
@@ -342,7 +344,15 @@ int main(int argc, char *argv[])
 				else if (strcmp(&argv[i][1], "log") == 0) {
 					pszLogFileName = strdup(&argv[++i][0]);
 				}
+				else if (strcmp(&argv[i][1], "cfg") == 0) {
+					pszConfigFileName = strdup(&argv[++i][0]);
+				}
 				else if (argv[i][1] == 'h' || argv[i][1] == '?') {
+					printUsage(szAppName);
+					return 0;
+				}
+				else {
+					printf("Unknown argument '%s'", &argv[i][0]);
 					printUsage(szAppName);
 					return 0;
 				}
@@ -405,6 +415,14 @@ int main(int argc, char *argv[])
 
 	log.logInfo("Opened serial port...");
 
+	WebConnector & web = WebConnector::getInstance();
+
+	web.setConfigLocation(pszConfigFileName);
+
+	web.registerHandler("/avr/cmd", avrViewHandler);
+	web.registerHandler("/avr/cmd/post", avrCommandHandler);
+	web.registerHandler("/css", cssHandler);
+
 	/*
 	 * Start threads...
 	 */
@@ -419,12 +437,6 @@ int main(int argc, char *argv[])
 	else {
 		log.logInfo("Thread txCmdThread() created successfully");
 	}
-
-	WebConnector & web = WebConnector::getInstance();
-
-	web.registerHandler("/avr/cmd", avrViewHandler);
-	web.registerHandler("/avr/cmd/post", avrCommandHandler);
-	web.registerHandler("/css", cssHandler);
 
 	web.listen();
 
