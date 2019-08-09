@@ -230,33 +230,11 @@ void handleSignal(int sigNum)
     exit(0);
 }
 
-int daemonise(char * pszAppName, char * pszPidFileName)
+int daemonise(char * pszAppName, char * pszPidFileName, char * pszLogFileName)
 {
 	pid_t pid = 0;
-	int fd;
 
 	/* Fork off the parent process */
-	pid = fork();
-
-	/* An error occurred */
-	if (pid < 0) {
-		exit(EXIT_FAILURE);
-	}
-
-	/* Success: Let the parent terminate */
-	if (pid > 0) {
-		exit(EXIT_SUCCESS);
-	}
-
-	/* On success: The child process becomes session leader */
-	if (setsid() < 0) {
-		exit(EXIT_FAILURE);
-	}
-
-	/* Ignore signal sent from child to parent process */
-	signal(SIGCHLD, SIG_IGN);
-
-	/* Fork off for the second time*/
 	pid = fork();
 
 	/* An error occurred */
@@ -272,19 +250,33 @@ int daemonise(char * pszAppName, char * pszPidFileName)
 	/* Set new file permissions */
 	umask(0);
 
+	/*
+	** Open logs...
+	*/
+	openlog(pszAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
+	syslog(LOG_INFO, "Started %s", pszAppName);
+
+	Logger & log = Logger::getInstance();
+	log.initLogger(pszLogFileName, LOG_LEVEL);
+
+	/* On success: The child process becomes session leader */
+	if (setsid() < 0) {
+		exit(EXIT_FAILURE);
+	}
+
 	/* Change the working directory to the root directory */
 	/* or another appropriated directory */
 	chdir("/");
 
-	/* Close all open file descriptors */
-	for (fd = sysconf(_SC_OPEN_MAX); fd > 0; fd--) {
-		close(fd);
-	}
+	/* Ignore signal sent from child to parent process */
+	signal(SIGCHLD, SIG_IGN);
 
-	/* Reopen stdin (fd = 0), stdout (fd = 1), stderr (fd = 2) */
-	stdin = fopen("/dev/null", "r");
-	stdout = fopen("/dev/null", "w+");
-	stderr = fopen("/dev/null", "w+");
+	/*
+	** Close these, as they aren't required...
+	*/
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
 
 	/* Try to write PID of daemon to lockfile */
 	if (pszPidFileName != NULL)
@@ -325,7 +317,7 @@ int main(int argc, char *argv[])
 {
 	char			szPort[128];
 	char			szBaud[8];
-	char			szLockFileName[256];
+	char *			pszLockFileName = NULL;
 	char *			pszLogFileName = NULL;
 	int				i;
 	bool			isDaemonised = false;
@@ -345,7 +337,7 @@ int main(int argc, char *argv[])
 					isDaemonised = true;
 				}
 				else if (strcmp(&argv[i][1], "lock") == 0) {
-					strcpy(szLockFileName, &argv[++i][0]);
+					pszLockFileName = strdup(&argv[++i][0]);
 				}
 				else if (strcmp(&argv[i][1], "log") == 0) {
 					pszLogFileName = strdup(&argv[++i][0]);
@@ -362,14 +354,22 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	openlog(szAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
-	syslog(LOG_INFO, "Started %s", szAppName);
-
 	Logger & log = Logger::getInstance();
-	log.initLogger(pszLogFileName, LOG_LEVEL);
-
+	
 	if (isDaemonised) {
-		daemonise(szAppName, szLockFileName);
+		if (daemonise(szAppName, pszLockFileName, pszLogFileName) < 0) {
+			printf("Error daemonising the process, exiting...\n\n");
+			exit(-1);
+		}
+	}
+	else {
+		/*
+		** Daemonise mode will initialise the logs, otherwise do it here...
+		*/
+		openlog(szAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
+		syslog(LOG_INFO, "Started %s", szAppName);
+
+		log.initLogger(pszLogFileName, LOG_LEVEL);
 	}
 
 	/*
