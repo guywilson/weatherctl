@@ -23,8 +23,8 @@
 #include "views.h"
 #include "logger.h"
 
-#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
-//#define SERIAL_EMULATION
+#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL | LOG_LEVEL_DEBUG
+#define SERIAL_EMULATION
 
 using namespace std;
 
@@ -202,15 +202,12 @@ void * txCmdThread(void * pArgs)
 
 void * webListenerThread(void * pArgs)
 {
-	bool			go = true;
-
 	WebConnector & web = WebConnector::getInstance();
+	Logger & log = Logger::getInstance();
 
-	while (go) {
-		web.listen();
+	web.listen();
 
-		usleep(1000L);
-	}
+	log.logInfo("web.listen returned...");
 
 	return NULL;
 }
@@ -468,7 +465,7 @@ int main(int argc, char *argv[])
 	while (1) {
 		sleep(5);
 	}
-	
+
 	log.logInfo("Cleaning up and exiting!");
 	
 	port.closePort();

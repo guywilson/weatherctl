@@ -181,9 +181,10 @@ WebConnector::WebConnector()
 
 void WebConnector::setConfigLocation(char * pszConfigFile)
 {
-	strcpy(this->szConfigFile, pszConfigFile);
-
-	queryConfig();
+	if (pszConfigFile != NULL) {
+		strcpy(this->szConfigFile, pszConfigFile);
+		queryConfig();
+	}
 }
 
 void WebConnector::queryConfig()
@@ -286,11 +287,6 @@ void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemp
 	CurrentTime time;
 	Logger & log = Logger::getInstance();
 
-	if (!this->isConfigured) {
-		strcpy(this->szConfigFile, "./webconfig.cfg");
-		queryConfig();
-	}
-
 	sprintf(
 		szBody,
 		"{\n\t\"time\": \"%s\",\n\t\"save\": \"%s\",\n\t\"temperature\": \"%s\",\n\t\"pressure\": \"%s\",\n\t\"humidity\": \"%s\"\n}",
@@ -311,6 +307,11 @@ void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemp
 void WebConnector::initListener()
 {
 	Logger & log = Logger::getInstance();
+
+	if (!this->isConfigured) {
+		strcpy(this->szConfigFile, "./webconfig.cfg");
+		queryConfig();
+	}
 
 	mg_mgr_init(&mgr, NULL);
 
