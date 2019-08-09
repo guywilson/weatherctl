@@ -108,6 +108,7 @@ private:
 
 public:
 	void		setConfigLocation(char * pszConfigFile);
+	void		initListener();
 
 	void		postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity);
 	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));

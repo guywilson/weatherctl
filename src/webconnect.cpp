@@ -211,6 +211,7 @@ void WebConnector::queryConfig()
 	config = (char *)malloc(fileLength);
 
 	if (config == NULL) {
+		log.logError("Failed to alocate %d bytes for config file %s", fileLength, this->szConfigFile);
 		throw new Exception("Failed to allocate memory for config.");
 	}
 
@@ -220,6 +221,7 @@ void WebConnector::queryConfig()
 	bytesRead = fread(config, 1, fileLength, fptr);
 
 	if (bytesRead != fileLength) {
+		log.logError("Read %d bytes, but config file %s is %d bytes long", bytesRead, this->szConfigFile, fileLength);
 		throw new Exception("Failed to read in config file.");
 	}
 
@@ -306,7 +308,7 @@ void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemp
 	log.logDebug("Finished post to %s", szWebPath);
 }
 
-void WebConnector::listen()
+void WebConnector::initListener()
 {
 	Logger & log = Logger::getInstance();
 
@@ -317,12 +319,18 @@ void WebConnector::listen()
 	connection = mg_bind(&mgr, szListenPort, nullHandler);
 
 	if (connection == NULL) {
+		log.logError("Failed to bind to port %s", szListenPort);
 		throw new Exception("Faled to bind to address");
 	}
 
 	log.logInfo("Bound default handler...");
 
 	mg_set_protocol_http_websocket(connection);
+}
+
+void WebConnector::listen()
+{
+	Logger & log = Logger::getInstance();
 
 	log.logInfo("Listening...");
 

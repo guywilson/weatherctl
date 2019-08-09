@@ -418,6 +418,7 @@ int main(int argc, char *argv[])
 	WebConnector & web = WebConnector::getInstance();
 
 	web.setConfigLocation(pszConfigFileName);
+	web.initListener();
 
 	web.registerHandler("/avr/cmd", avrViewHandler);
 	web.registerHandler("/avr/cmd/post", avrCommandHandler);
