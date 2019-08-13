@@ -69,6 +69,25 @@ int Logger::logMessage(int logLevel, bool addCR, const char * fmt, va_list args)
             strcpy(buffer, "[");
             strcat(buffer, currentTime.getTimeStamp());
             strcat(buffer, "] ");
+
+            switch (logLevel) {
+                case LOG_LEVEL_DEBUG:
+                    strcat(buffer, "[DBG]");
+                    break;
+
+                case LOG_LEVEL_INFO:
+                    strcat(buffer, "[INF]");
+                    break;
+
+                case LOG_LEVEL_ERROR:
+                    strcat(buffer, "[ERR]");
+                    break;
+
+                case LOG_LEVEL_FATAL:
+                    strcat(buffer, "[FTL]");
+                    break;
+            }
+
             strcat(buffer, fmt);
             strcat(buffer, "\n");
         }
