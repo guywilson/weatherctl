@@ -15,34 +15,32 @@
 class PostData
 {
 private:
-	char *			pszBody = NULL;
-	char *			pszPath = NULL;
+	char 			szTemperature[20];
+	char			szPressure[20];
+	char			szHumidity[20];
+	bool			doSave = false;
 	const char *	type;
 
 public:
 	PostData() {
 	}
 
-	PostData(const char * type, char * path, char * body) : PostData() {
-		setPath(path);
-		setBody(body);
+	PostData(const char * type, bool doSave, char * pszTemperature, char * pszPressure, char * pszHumidity) : PostData() {
+		strncpy(this->szTemperature, pszTemperature, sizeof(this->szTemperature));
+		strncpy(this->szPressure, pszPressure, sizeof(this->szPressure));
+		strncpy(this->szHumidity, pszHumidity, sizeof(this->szHumidity));
 
+		this->doSave = doSave;
 		this->type = type;
 	}
 
 	void		clean() {
-		if (this->pszBody != NULL) {
-			free(this->pszBody);
-			this->pszBody = NULL;
-		}
-		if (this->pszPath != NULL) {
-			free(this->pszPath);
-			this->pszPath = NULL;
-		}
+		memset(this->szTemperature, 0, sizeof(this->szTemperature));
+		memset(this->szPressure, 0, sizeof(this->szPressure));
+		memset(this->szHumidity, 0, sizeof(this->szHumidity));
 	}
 
 	~PostData() {
-		printf("In PostData destructor...\n");
 		clean();
 	}
 
@@ -52,31 +50,29 @@ public:
 	void			setType(const char * type) {
 		this->type = type;
 	}
-	char *		getBody() {
-		return this->pszBody;
+	bool		isDoSave() {
+		return this->doSave;
 	}
-	void		setBody(char * body) {
-		this->pszBody = (char *)malloc(strlen(body));
-
-		if (this->pszBody == NULL) {
-			throw new Exception("Failed to allocate memeory for post data");
-		}
-
-		memcpy(this->pszBody, body, strlen(body));
-		this->pszBody[strlen(body)] = 0;
+	void		setDoSave(bool doSave) {
+		this->doSave = doSave;
 	}
-	char *		getPath() {
-		return this->pszPath;
+	char *		getTemperature() {
+		return this->szTemperature;
 	}
-	void		setPath(char * path) {
-		this->pszPath = (char *)malloc(strlen(path));
-
-		if (this->pszPath == NULL) {
-			throw new Exception("Failed to allocate memeory for post data");
-		}
-
-		memcpy(this->pszPath, path, strlen(path));
-		this->pszPath[strlen(path)] = 0;
+	void		setTemperature(char * pszTemperature) {
+		strncpy(this->szTemperature, pszTemperature, sizeof(this->szTemperature));
+	}
+	char *		getPressure() {
+		return this->szPressure;
+	}
+	void		setPressure(char * pszPressure) {
+		strncpy(this->szPressure, pszPressure, sizeof(this->szPressure));
+	}
+	char *		getHumidity() {
+		return this->szHumidity;
+	}
+	void		setHumidity(char * pszHumidity) {
+		strncpy(this->szHumidity, pszHumidity, sizeof(this->szHumidity));
 	}
 };
 

@@ -14,7 +14,6 @@ extern "C" {
 #include "exception.h"
 #include "webconnect.h"
 #include "currenttime.h"
-#include "csvhelper.h"
 #include "logger.h"
 
 using namespace std;
@@ -179,8 +178,6 @@ void processResponse(uint8_t * response, int responseLength)
 
 	CurrentTime 		time;
 
-	WebConnector & web = WebConnector::getInstance();
-
 	QueueMgr & qmgr = QueueMgr::getInstance();
 	RxFrame * pFrame = new RxFrame(response, responseLength);
 
@@ -213,30 +210,18 @@ void processResponse(uint8_t * response, int responseLength)
 
 				log.logDebug("Got AVG data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
 
-				try {
-					web.postTPH(WEB_PATH_AVG, avgSave, &szTemperature[2], &szPressure[2], &szHumidity[2]);
-					avgCount++;
+				qmgr.pushWebPost(new PostData("AVG", avgSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
+				avgCount++;
 
-					/*
-					* Save every 20 minutes...
-					*/
-					if (avgCount < (AVG_MSGS_PER_MIN * 20)) {
-						avgSave = false;
-					}
-					else {
-						avgSave = true;
-						avgCount = 0;
-					}
+				/*
+				* Save every 20 minutes...
+				*/
+				if (avgCount < (AVG_MSGS_PER_MIN * 20)) {
+					avgSave = false;
 				}
-				catch (Exception * e) {
-					log.logError("Caught exception posting to web server: %s", e->getMessage().c_str());
-					log.logError("Writing to local CSV instead");
-
-					vector<string> avgRecord = {time.getTimeStamp(), "AVG", &szTemperature[2], &szPressure[2], &szHumidity[2]};
-
-					CSVHelper & csvAvg = CSVHelper::getInstance();
-
-					csvAvg.writeRecord(5, avgRecord);
+				else {
+					avgSave = true;
+					avgCount = 0;
 				}
 				break;
 
@@ -252,25 +237,13 @@ void processResponse(uint8_t * response, int responseLength)
 
 				log.logDebug("Got MAX data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
 
-				try {
-					if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
-						maxSave = true;
-					}
-
-					web.postTPH(WEB_PATH_MAX, maxSave, &szTemperature[2], &szPressure[2], &szHumidity[2]);
-
-					maxSave = false;
+				if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
+					maxSave = true;
 				}
-				catch (Exception * e) {
-					log.logError("Caught exception posting to web server: %s", e->getMessage().c_str());
-					log.logError("Writing to local CSV instead");
 
-					vector<string> maxRecord = {time.getTimeStamp(), "MAX", &szTemperature[2], &szPressure[2], &szHumidity[2]};
+				qmgr.pushWebPost(new PostData("MAX", maxSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
 
-					CSVHelper & csvMax = CSVHelper::getInstance();
-
-					csvMax.writeRecord(5, maxRecord);
-				}
+				maxSave = false;
 				break;
 
 			case RX_RSP_MIN_TPH:
@@ -285,25 +258,13 @@ void processResponse(uint8_t * response, int responseLength)
 
 				log.logDebug("Got MIN data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
 
-				try {
-					if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
-						minSave = true;
-					}
-
-					web.postTPH(WEB_PATH_MIN, minSave, &szTemperature[2], &szPressure[2], &szHumidity[2]);
-
-					minSave = false;
+				if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
+					minSave = true;
 				}
-				catch (Exception * e) {
-					log.logError("Caught exception posting to web server: %s", e->getMessage().c_str());
-					log.logError("Writing to local CSV instead");
 
-					vector<string> minRecord = {time.getTimeStamp(), "MIN", &szTemperature[2], &szPressure[2], &szHumidity[2]};
+				qmgr.pushWebPost(new PostData("MIN", minSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
 
-					CSVHelper & csvMin = CSVHelper::getInstance();
-
-					csvMin.writeRecord(5, minRecord);
-				}
+				minSave = false;
 				break;
 
 			case RX_RSP_RESET_MINMAX_TPH:

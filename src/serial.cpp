@@ -30,7 +30,7 @@ static void _build_response_frame(char * data, int dataLength)
 	int					i;
 
 	emulated_rsp_buffer[0] = MSG_CHAR_START;
-	emulated_rsp_buffer[1] = (uint8_t)dataLength + 2;
+	emulated_rsp_buffer[1] = (uint8_t)dataLength + 3;
 	emulated_rsp_buffer[2] = emulated_cmd_buffer[2];
 	emulated_rsp_buffer[3] = (emulated_cmd_buffer[3] << 4);
 	emulated_rsp_buffer[4] = MSG_CHAR_ACK;

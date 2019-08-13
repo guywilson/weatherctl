@@ -20,6 +20,7 @@
 #include "currenttime.h"
 #include "mongoose.h"
 #include "webconnect.h"
+#include "csvhelper.h"
 #include "views.h"
 #include "logger.h"
 
@@ -30,6 +31,7 @@ using namespace std;
 
 pthread_t			tidTxCmd;
 pthread_t			tidWebListener;
+pthread_t			tidWebPost;
 int					pid_fd = -1;
 char				szAppName[256];
 
@@ -208,6 +210,77 @@ void * webListenerThread(void * pArgs)
 	web.listen();
 
 	log.logInfo("web.listen returned...");
+
+	return NULL;
+}
+
+void * webPostThread(void * pArgs)
+{
+	bool go = true;
+
+	QueueMgr & qmgr = QueueMgr::getInstance();
+	WebConnector & web = WebConnector::getInstance();
+	Logger & log = Logger::getInstance();
+
+	CurrentTime time;
+
+	while (go) {
+		if (!qmgr.isWebPostQueueEmpty()) {
+			PostData * pPostData = qmgr.popWebPost();
+
+			try {
+				if (strcmp(pPostData->getType(), "AVG") == 0) {
+					log.logDebug("Posting AVG data...");
+
+					web.postTPH(
+						WEB_PATH_AVG, 
+						pPostData->isDoSave(), 
+						pPostData->getTemperature(), 
+						pPostData->getPressure(), 
+						pPostData->getHumidity());
+				}
+				else if (strcmp(pPostData->getType(), "MAX") == 0) {
+					log.logDebug("Posting MAX data...");
+					
+					web.postTPH(
+						WEB_PATH_MAX, 
+						pPostData->isDoSave(), 
+						pPostData->getTemperature(), 
+						pPostData->getPressure(), 
+						pPostData->getHumidity());
+				}
+				else if (strcmp(pPostData->getType(), "MIN") == 0) {
+					log.logDebug("Posting MIN data...");
+					
+					web.postTPH(
+						WEB_PATH_MIN, 
+						pPostData->isDoSave(), 
+						pPostData->getTemperature(), 
+						pPostData->getPressure(), 
+						pPostData->getHumidity());
+				}
+			}
+			catch (Exception * e) {
+				log.logError("Caught exception posting to web server: %s", e->getMessage().c_str());
+				log.logError("Writing to local CSV instead");
+
+				vector<string> record = {
+					time.getTimeStamp(), 
+					pPostData->getType(), 
+					pPostData->getTemperature(), 
+					pPostData->getPressure(), 
+					pPostData->getHumidity()};
+
+				CSVHelper & csvAvg = CSVHelper::getInstance();
+
+				csvAvg.writeRecord(5, record);
+			}
+
+			delete pPostData;
+		}
+
+		sleep(1);
+	}
 
 	return NULL;
 }
@@ -460,6 +533,16 @@ int main(int argc, char *argv[])
 	}
 	else {
 		log.logInfo("Thread webListenerThread() created successfully");
+	}
+
+	err = pthread_create(&tidWebPost, NULL, &webPostThread, NULL);
+
+	if (err != 0) {
+		log.logError("ERROR! Can't create webPostThread() :[%s]", strerror(err));
+		return -1;
+	}
+	else {
+		log.logInfo("Thread webPostThread() created successfully");
 	}
 
 	while (1) {
