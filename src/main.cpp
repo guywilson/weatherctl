@@ -449,23 +449,25 @@ int main(int argc, char *argv[])
 
 	if (isDaemonised) {
 		log.logInfo("Starting daemon...");
-		
+
 		do {
 			pid = fork();
 		}
 		while ((pid == -1) && (errno == EAGAIN));
 
-		/* An error occurred */
 		if (pid < 0) {
+			log.logError("Forking daemon failed...");
 			exit(EXIT_FAILURE);
 		}
 		if (pid > 0) {
+			log.logInfo("Exiting child process...");
 			exit(EXIT_SUCCESS);
 		}
 
 		sid = setsid();
 		
 		if(sid < 0) {
+			log.logError("Failed calling setsid()...");
 			exit(EXIT_FAILURE);
 		}
 
@@ -475,6 +477,7 @@ int main(int argc, char *argv[])
 		umask(0);
 
 		if((chdir("/") == -1)) {
+			log.logError("Failed changing directory");
 			exit(EXIT_FAILURE);
 		}
 
@@ -490,12 +493,12 @@ int main(int argc, char *argv[])
 			pid_fd = open(pszLockFileName, O_RDWR|O_CREAT, 0640);
 
 			if (pid_fd < 0) {
-				/* Can't open lockfile */
+				log.logError("Failed to open lock file...");
 				exit(EXIT_FAILURE);
 			}
 
 			if (lockf(pid_fd, F_TLOCK, 0) < 0) {
-				/* Can't lock file */
+				log.logError("Failed to lock file...");
 				exit(EXIT_FAILURE);
 			}
 
