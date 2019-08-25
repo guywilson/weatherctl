@@ -24,8 +24,8 @@
 #include "views.h"
 #include "logger.h"
 
-#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
-//#define SERIAL_EMULATION
+#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL | LOG_LEVEL_DEBUG
+#define SERIAL_EMULATION
 
 using namespace std;
 
@@ -318,48 +318,36 @@ void handleSignal(int sigNum)
 
 int daemonise(char * pszAppName, char * pszPidFileName, char * pszLogFileName)
 {
-	pid_t pid = 0;
+    pid_t		pid;
+	pid_t		sid;
 
-	/* Fork off the parent process */
-	pid = fork();
+    do {
+        pid = fork();
+    } while ((pid == -1) && (errno == EAGAIN));
 
 	/* An error occurred */
 	if (pid < 0) {
 		exit(EXIT_FAILURE);
 	}
-
-	/* Success: Let the parent terminate */
 	if (pid > 0) {
 		exit(EXIT_SUCCESS);
 	}
 
-	/* Set new file permissions */
-	umask(0);
-
-	/*
-	** Open logs...
-	*/
-	openlog(pszAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
-	syslog(LOG_INFO, "Started %s", pszAppName);
-
-	Logger & log = Logger::getInstance();
-	log.initLogger(pszLogFileName, LOG_LEVEL);
-
-	/* On success: The child process becomes session leader */
-	if (setsid() < 0) {
+	sid = setsid();
+	
+	if(sid < 0) {
 		exit(EXIT_FAILURE);
 	}
 
-	/* Change the working directory to the root directory */
-	/* or another appropriated directory */
-	chdir("/");
-
-	/* Ignore signal sent from child to parent process */
 	signal(SIGCHLD, SIG_IGN);
+	signal(SIGHUP, SIG_IGN);    
+	
+	umask(0);
 
-	/*
-	** Close these, as they aren't required...
-	*/
+	if((chdir("/") == -1)) {
+		exit(EXIT_FAILURE);
+	}
+
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
@@ -409,6 +397,8 @@ int main(int argc, char *argv[])
 	char *			pszConfigFileName = NULL;
 	int				i;
 	bool			isDaemonised = false;
+	pid_t			pid;
+	pid_t			sid;
 
 	strcpy(szAppName, argv[0]);
 
@@ -452,20 +442,69 @@ int main(int argc, char *argv[])
 
 	Logger & log = Logger::getInstance();
 	
-	if (isDaemonised) {
-		if (daemonise(szAppName, pszLockFileName, pszLogFileName) < 0) {
-			printf("Error daemonising the process, exiting...\n\n");
-			exit(-1);
-		}
-	}
-	else {
-		/*
-		** Daemonise mode will initialise the logs, otherwise do it here...
-		*/
-		openlog(szAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
-		syslog(LOG_INFO, "Started %s", szAppName);
+	openlog(szAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
+	syslog(LOG_INFO, "Started %s", szAppName);
 
-		log.initLogger(pszLogFileName, LOG_LEVEL);
+	log.initLogger(pszLogFileName, LOG_LEVEL);
+
+	if (isDaemonised) {
+		log.logInfo("Starting daemon...");
+		
+		do {
+			pid = fork();
+		}
+		while ((pid == -1) && (errno == EAGAIN));
+
+		/* An error occurred */
+		if (pid < 0) {
+			exit(EXIT_FAILURE);
+		}
+		if (pid > 0) {
+			exit(EXIT_SUCCESS);
+		}
+
+		sid = setsid();
+		
+		if(sid < 0) {
+			exit(EXIT_FAILURE);
+		}
+
+		signal(SIGCHLD, SIG_IGN);
+		signal(SIGHUP, SIG_IGN);    
+		
+		umask(0);
+
+		if((chdir("/") == -1)) {
+			exit(EXIT_FAILURE);
+		}
+
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		close(STDERR_FILENO);
+
+		/* Try to write PID of daemon to lockfile */
+		if (pszLockFileName != NULL)
+		{
+			char str[256];
+
+			pid_fd = open(pszLockFileName, O_RDWR|O_CREAT, 0640);
+
+			if (pid_fd < 0) {
+				/* Can't open lockfile */
+				exit(EXIT_FAILURE);
+			}
+
+			if (lockf(pid_fd, F_TLOCK, 0) < 0) {
+				/* Can't lock file */
+				exit(EXIT_FAILURE);
+			}
+
+			/* Get current PID */
+			sprintf(str, "%d\n", getpid());
+
+			/* Write PID to lockfile */
+			write(pid_fd, str, strlen(str));
+		}
 	}
 
 	/*
