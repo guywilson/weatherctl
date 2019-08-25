@@ -24,8 +24,8 @@
 #include "views.h"
 #include "logger.h"
 
-#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL | LOG_LEVEL_DEBUG
-#define SERIAL_EMULATION
+#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
+//#define SERIAL_EMULATION
 
 using namespace std;
 
@@ -316,64 +316,6 @@ void handleSignal(int sigNum)
     exit(0);
 }
 
-int daemonise(char * pszAppName, char * pszPidFileName, char * pszLogFileName)
-{
-    pid_t		pid;
-	pid_t		sid;
-
-    do {
-        pid = fork();
-    } while ((pid == -1) && (errno == EAGAIN));
-
-	/* An error occurred */
-	if (pid < 0) {
-		exit(EXIT_FAILURE);
-	}
-	if (pid > 0) {
-		exit(EXIT_SUCCESS);
-	}
-
-	sid = setsid();
-	
-	if(sid < 0) {
-		exit(EXIT_FAILURE);
-	}
-
-	signal(SIGCHLD, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);    
-	
-	umask(0);
-
-	if((chdir("/") == -1)) {
-		exit(EXIT_FAILURE);
-	}
-
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-
-	/* Try to write PID of daemon to lockfile */
-	if (pszPidFileName != NULL)
-	{
-		char str[256];
-		pid_fd = open(pszPidFileName, O_RDWR|O_CREAT, 0640);
-		if (pid_fd < 0) {
-			/* Can't open lockfile */
-			exit(EXIT_FAILURE);
-		}
-		if (lockf(pid_fd, F_TLOCK, 0) < 0) {
-			/* Can't lock file */
-			exit(EXIT_FAILURE);
-		}
-		/* Get current PID */
-		sprintf(str, "%d\n", getpid());
-		/* Write PID to lockfile */
-		write(pid_fd, str, strlen(str));
-	}
-
-	return 0;
-}
-
 void printUsage(char * pszAppName)
 {
 	printf("\n Usage: %s [OPTIONS]\n\n", pszAppName);
@@ -493,7 +435,7 @@ int main(int argc, char *argv[])
 			pid_fd = open(pszLockFileName, O_RDWR|O_CREAT, 0640);
 
 			if (pid_fd < 0) {
-				log.logError("Failed to open lock file...");
+				log.logError("Failed to open lock file %s", pszLockFileName);
 				exit(EXIT_FAILURE);
 			}
 
