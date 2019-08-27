@@ -89,6 +89,7 @@ private:
 	char			szConfigFile[256];
 	char			szHost[256];
 	int				port;
+	bool			isSecure = false;
 	char			szListenPort[8];
 	char			szBasePath[128];
 	char			szDocRoot[256];

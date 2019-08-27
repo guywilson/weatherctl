@@ -140,6 +140,13 @@ void WebConnector::queryConfig()
 
 			log.logDebug("Got web.basepath as %s", this->szBasePath);
 		}
+		else if (strcmp(pszToken, "web.issecure") == 0) {
+			pszToken = strtok(NULL, tokens);
+
+			this->isSecure = (strcmp(pszToken, "yes") == 0 || strcmp(pszToken, "true") == 0) ? true : false;
+
+			log.logDebug("Got web.issecure as %s", pszToken);
+		}
 		else if (strcmp(pszToken, "admin.listenport") == 0) {
 			pszToken = strtok(NULL, tokens);
 
@@ -183,7 +190,7 @@ void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemp
 		pszPressure,
 		pszHumidity);
 
-	sprintf(szWebPath, "http://%s:%d%s%s", this->getHost(), this->getPort(), this->szBasePath, pszPathSuffix);
+	sprintf(szWebPath, "%s://%s:%d%s%s", (this->isSecure ? "https" : "http"), this->getHost(), this->getPort(), this->szBasePath, pszPathSuffix);
 
 	log.logDebug("Posting to %s [%s]", szWebPath, szBody);
     mg_connect_http(
