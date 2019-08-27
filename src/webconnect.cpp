@@ -190,7 +190,14 @@ void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemp
 		pszPressure,
 		pszHumidity);
 
-	sprintf(szWebPath, "%s://%s:%d%s%s", (this->isSecure ? "https" : "http"), this->getHost(), this->getPort(), this->szBasePath, pszPathSuffix);
+	sprintf(
+		szWebPath, 
+		"%s://%s:%d%s%s", 
+		(this->isSecure ? "https" : "http"), 
+		this->getHost(), 
+		this->getPort(), 
+		this->szBasePath, 
+		pszPathSuffix);
 
 	log.logDebug("Posting to %s [%s]", szWebPath, szBody);
     mg_connect_http(
