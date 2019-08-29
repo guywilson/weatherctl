@@ -1,7 +1,7 @@
 # weatherctl
 Weather Station Controller
 
-Runs on a Raspberry Pi, talks to the Arduino running avrw via serial over USB. Written in C++, runs as a daemon process in the background.
+Runs on a Raspberry Pi, talks to the Arduino running avrw via serial over USB. Written in C++, and compiled using g++ on the Raspberry Pi. Can run as a daemon process in the background (with the -d opton).
 
 ```
 Usage:
