@@ -17,12 +17,12 @@ Options:
 
 Acts as the master device to the Arduino running the AVRWeather code, it sends a request over the serial port every second, which could be one of the following commands, to which the Arduino responds:
 
-. Get current TPH (Temperature, Pressure & Humidity)
-. Get minimum TPH
-. Get maximum TPH
-. Reset min/max values
-. Disable WDT reset (for Arduino watchdog testing) - will reset the Arduino device
-. Ping
+- Get current TPH (Temperature, Pressure & Humidity)
+- Get minimum TPH
+- Get maximum TPH
+- Reset min/max values
+- Disable WDT reset (for Arduino watchdog testing) - will reset the Arduino device
+- Ping
 
 Every 20 seconds, wctl performs an HTTP POST to the web server running the weathersite code, as configured in the configuration file.
 
