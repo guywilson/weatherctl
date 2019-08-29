@@ -3,6 +3,7 @@ Weather Station Controller
 
 Runs on a Raspberry Pi, talks to the Arduino running avrw via serial over USB. Written in C++, runs as a daemon process in the background.
 
+'''
 Usage:
   wctl [options]
   
@@ -14,6 +15,7 @@ Options:
   -log  <log file>      Absolute path to the log file
   -lock <lock file>     Absolute path to the PID lock file (prevents the daemon being loaded twice)
   -h/?                  Displays usage info
+'''
 
 Acts as the master device to the Arduino running the AVRWeather code, it sends a request over the serial port every second, which could be one of the following commands, to which the Arduino responds:
 
