@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <curl/curl.h>
 
 #include "mongoose.h"
 #include "exception.h"
@@ -93,8 +94,11 @@ private:
 	char			szListenPort[8];
 	char			szBasePath[128];
 	char			szDocRoot[256];
+	char			szCurlError[CURL_ERROR_SIZE];
 
 	bool			isConfigured = false;
+
+	CURL *			pCurl;
 
 	struct mg_mgr			mgr;
 	struct mg_connection *	connection;
@@ -104,10 +108,12 @@ private:
 	void		queryConfig();
 
 public:
+	~WebConnector();
+	
 	void		setConfigLocation(char * pszConfigFile);
 	void		initListener();
 
-	void		postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity);
+	int			postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity);
 	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));
 	void		listen();
 

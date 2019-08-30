@@ -75,7 +75,7 @@ $(BUILD)/mongoose.o: $(SOURCE)/mongoose.c
 	$(C) $(CFLAGS) $(MGFLAGS) -o $(BUILD)/mongoose.o $(SOURCE)/mongoose.c
 
 $(WCTL): $(OBJFILES)
-	$(LINKER) -lpthread -lgpioc -lstdc++ -o $(WCTL) $(OBJFILES)
+	$(LINKER) -lpthread -lgpioc -lpq -lcurl -lstdc++ -o $(WCTL) $(OBJFILES)
 
 $(TOGGLERST): $(SOURCE)/toggle.c
 	$(C) -Wall -lgpioc -o $(TOGGLERST) $(SOURCE)/toggle.c

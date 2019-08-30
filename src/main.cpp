@@ -12,6 +12,7 @@
 #include <time.h>
 #include <signal.h>
 #include <syslog.h>
+#include <libpq-fe.h>
 
 #include "serial.h"
 #include "exception.h"
@@ -34,6 +35,82 @@ pthread_t			tidWebListener;
 pthread_t			tidWebPost;
 int					pid_fd = -1;
 char				szAppName[256];
+
+int insertTPHRecord(const char * pszHost, const char * pszDbName, PostData * pPostData)
+{
+	char				szConnection[128];
+	PGconn *			dbConnection;
+	PGresult *			queryResult;
+	const char *		pszInsertTemplate;
+	char				szInsertStr[128];
+
+	Logger log = Logger::getInstance();
+
+	sprintf(
+		szConnection, 
+		"host=%s port=5432 dbname=%s password=password", 
+		pszHost, 
+		pszDbName);
+
+	dbConnection = PQconnectdb(szConnection);
+
+	if (PQstatus(dbConnection) != CONNECTION_OK) {
+		log.logError("Cannot connect to remote database [%s]", PQerrorMessage(dbConnection));
+		PQfinish(dbConnection);
+		return -1;
+	}
+
+	queryResult = PQexec(dbConnection, "BEGIN");
+
+	log.logInfo("Opened DB transaction");
+
+	if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
+		log.logError("Error beginning transaction [%s]", PQerrorMessage(dbConnection));
+		PQclear(queryResult);
+		PQfinish(dbConnection);
+		return -1;
+	}
+
+	PQclear(queryResult);
+
+	CurrentTime time;
+
+	pszInsertTemplate= "INSERT INTO TPH (TS, TYPE, TEMPERATURE, PRESSURE, HUMIDITY) VALUES ('%s', '%s', %s, %s, %s)";
+
+	sprintf(
+		szInsertStr, 
+		pszInsertTemplate, 
+		time.getTimeStamp(), 
+		pPostData->getType(), 
+		pPostData->getTemperature(), 
+		pPostData->getPressure(), 
+		pPostData->getHumidity());
+
+	queryResult = PQexec(dbConnection, szInsertStr);
+
+	if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
+		log.logError("Error issuing INSERT statement [%s]", PQerrorMessage(dbConnection));
+		PQclear(queryResult);
+		PQfinish(dbConnection);
+		return -1;
+	}
+	else {
+		log.logInfo("Successfully INSERTed record to database.");
+	}
+
+	PQclear(queryResult);
+
+	queryResult = PQexec(dbConnection, "END");
+	PQclear(queryResult);
+
+	log.logInfo("Closed DB transaction");
+
+	PQfinish(dbConnection);
+
+	log.logInfo("PQfinish()");
+
+	return 0;
+}
 
 void * txCmdThread(void * pArgs)
 {
@@ -216,6 +293,7 @@ void * webListenerThread(void * pArgs)
 
 void * webPostThread(void * pArgs)
 {
+	int rtn = 0;
 	bool go = true;
 
 	QueueMgr & qmgr = QueueMgr::getInstance();
@@ -228,41 +306,40 @@ void * webPostThread(void * pArgs)
 		if (!qmgr.isWebPostQueueEmpty()) {
 			PostData * pPostData = qmgr.popWebPost();
 
-			try {
-				if (strcmp(pPostData->getType(), "AVG") == 0) {
-					log.logDebug("Posting AVG data...");
+			if (strcmp(pPostData->getType(), "AVG") == 0) {
+				log.logDebug("Posting AVG data...");
 
-					web.postTPH(
-						WEB_PATH_AVG, 
-						pPostData->isDoSave(), 
-						pPostData->getTemperature(), 
-						pPostData->getPressure(), 
-						pPostData->getHumidity());
-				}
-				else if (strcmp(pPostData->getType(), "MAX") == 0) {
-					log.logDebug("Posting MAX data...");
-					
-					web.postTPH(
-						WEB_PATH_MAX, 
-						pPostData->isDoSave(), 
-						pPostData->getTemperature(), 
-						pPostData->getPressure(), 
-						pPostData->getHumidity());
-				}
-				else if (strcmp(pPostData->getType(), "MIN") == 0) {
-					log.logDebug("Posting MIN data...");
-					
-					web.postTPH(
-						WEB_PATH_MIN, 
-						pPostData->isDoSave(), 
-						pPostData->getTemperature(), 
-						pPostData->getPressure(), 
-						pPostData->getHumidity());
-				}
+				rtn = web.postTPH(
+					WEB_PATH_AVG, 
+					pPostData->isDoSave(), 
+					pPostData->getTemperature(), 
+					pPostData->getPressure(), 
+					pPostData->getHumidity());
 			}
-			catch (Exception * e) {
-				log.logError("Caught exception posting to web server: %s", e->getMessage().c_str());
-				log.logError("Writing to local CSV instead");
+			else if (strcmp(pPostData->getType(), "MAX") == 0) {
+				log.logDebug("Posting MAX data...");
+				
+				rtn = web.postTPH(
+					WEB_PATH_MAX, 
+					pPostData->isDoSave(), 
+					pPostData->getTemperature(), 
+					pPostData->getPressure(), 
+					pPostData->getHumidity());
+			}
+			else if (strcmp(pPostData->getType(), "MIN") == 0) {
+				log.logDebug("Posting MIN data...");
+				
+				rtn = web.postTPH(
+					WEB_PATH_MIN, 
+					pPostData->isDoSave(), 
+					pPostData->getTemperature(), 
+					pPostData->getPressure(), 
+					pPostData->getHumidity());
+			}
+
+			if (rtn < 0) {
+				log.logError("Error posting to web server");
+				log.logInfo("Writing to local CSV instead, you will need to reconcile later...");
 
 				vector<string> record = {
 					time.getTimeStamp(), 
@@ -271,10 +348,15 @@ void * webPostThread(void * pArgs)
 					pPostData->getPressure(), 
 					pPostData->getHumidity()};
 
-				CSVHelper & csvAvg = CSVHelper::getInstance();
+				CSVHelper & csv = CSVHelper::getInstance();
 
-				csvAvg.writeRecord(5, record);
+				csv.writeRecord(5, record);
 			}
+			else {
+				log.logInfo("Successfully posted to server");
+			}
+
+			rtn = 0;
 
 			delete pPostData;
 		}

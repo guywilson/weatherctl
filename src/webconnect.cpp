@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <curl/curl.h>
 
 #include "exception.h"
 #include "currenttime.h"
@@ -64,6 +65,20 @@ static void nullHandler(struct mg_connection * connection, int event, void * p)
 
 WebConnector::WebConnector()
 {
+	this->pCurl = curl_easy_init();
+
+	if (this->pCurl == NULL) {
+		curl_easy_cleanup(pCurl);
+		throw new Exception("Error initialising curl");
+	}
+
+	curl_easy_setopt(pCurl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+	curl_easy_setopt(pCurl, CURLOPT_ERRORBUFFER, this->szCurlError);
+}
+
+WebConnector::~WebConnector()
+{
+	curl_easy_cleanup(this->pCurl);
 }
 
 void WebConnector::setConfigLocation(char * pszConfigFile)
@@ -173,10 +188,11 @@ void WebConnector::queryConfig()
 	this->isConfigured = true;
 }
 
-void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity)
+int WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity)
 {
 	char				szBody[128];
 	char				szWebPath[256];
+	CURLcode			result;
 
 	CurrentTime time;
 	Logger & log = Logger::getInstance();
@@ -200,13 +216,21 @@ void WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemp
 		pszPathSuffix);
 
 	log.logDebug("Posting to %s [%s]", szWebPath, szBody);
-    mg_connect_http(
-                &mgr, 
-                nullHandler, 
-                szWebPath, 
-                "Content-Type: application/json\r\n", 
-                szBody);
+
+	curl_easy_setopt(pCurl, CURLOPT_URL, szWebPath);
+	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(szBody));
+	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, szBody);
+
+	result = curl_easy_perform(pCurl);
+
+	if (result != CURLE_OK) {
+		log.logError("Failed to post to %s - Curl error [%s]", szWebPath, this->szCurlError);
+		return -1;
+	}
+
 	log.logDebug("Finished post to %s", szWebPath);
+
+	return 0;
 }
 
 void WebConnector::initListener()
