@@ -33,22 +33,20 @@ using namespace std;
 pthread_t			tidTxCmd;
 pthread_t			tidWebListener;
 pthread_t			tidWebPost;
-int					pid_fd = -1;
-char				szAppName[256];
+PGconn *			dbConnection;
 
 int insertTPHRecord(const char * pszHost, const char * pszDbName, PostData * pPostData)
 {
 	char				szConnection[128];
-	PGconn *			dbConnection;
 	PGresult *			queryResult;
 	const char *		pszInsertTemplate;
 	char				szInsertStr[128];
 
-	Logger log = Logger::getInstance();
+	Logger & log = Logger::getInstance();
 
 	sprintf(
 		szConnection, 
-		"host=%s port=5432 dbname=%s password=password", 
+		"host=%s port=5432 dbname=%s user=guy password=password", 
 		pszHost, 
 		pszDbName);
 
@@ -62,14 +60,14 @@ int insertTPHRecord(const char * pszHost, const char * pszDbName, PostData * pPo
 
 	queryResult = PQexec(dbConnection, "BEGIN");
 
-	log.logInfo("Opened DB transaction");
-
 	if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
 		log.logError("Error beginning transaction [%s]", PQerrorMessage(dbConnection));
 		PQclear(queryResult);
 		PQfinish(dbConnection);
 		return -1;
 	}
+
+	log.logInfo("Opened DB transaction");
 
 	PQclear(queryResult);
 
@@ -300,57 +298,36 @@ void * webPostThread(void * pArgs)
 	WebConnector & web = WebConnector::getInstance();
 	Logger & log = Logger::getInstance();
 
-	CurrentTime time;
-
 	while (go) {
 		if (!qmgr.isWebPostQueueEmpty()) {
 			PostData * pPostData = qmgr.popWebPost();
 
-			if (strcmp(pPostData->getType(), "AVG") == 0) {
-				log.logDebug("Posting AVG data...");
-
-				rtn = web.postTPH(
-					WEB_PATH_AVG, 
-					pPostData->isDoSave(), 
-					pPostData->getTemperature(), 
-					pPostData->getPressure(), 
-					pPostData->getHumidity());
-			}
-			else if (strcmp(pPostData->getType(), "MAX") == 0) {
-				log.logDebug("Posting MAX data...");
-				
-				rtn = web.postTPH(
-					WEB_PATH_MAX, 
-					pPostData->isDoSave(), 
-					pPostData->getTemperature(), 
-					pPostData->getPressure(), 
-					pPostData->getHumidity());
-			}
-			else if (strcmp(pPostData->getType(), "MIN") == 0) {
-				log.logDebug("Posting MIN data...");
-				
-				rtn = web.postTPH(
-					WEB_PATH_MIN, 
-					pPostData->isDoSave(), 
-					pPostData->getTemperature(), 
-					pPostData->getPressure(), 
-					pPostData->getHumidity());
-			}
+			rtn = web.postTPH(pPostData);
 
 			if (rtn < 0) {
 				log.logError("Error posting to web server");
-				log.logInfo("Writing to local CSV instead, you will need to reconcile later...");
+				log.logInfo("Attempting to INSERT directly to remote DB instead...");
 
-				vector<string> record = {
-					time.getTimeStamp(), 
-					pPostData->getType(), 
-					pPostData->getTemperature(), 
-					pPostData->getPressure(), 
-					pPostData->getHumidity()};
+				if (insertTPHRecord(web.getHost(), "weather", pPostData) < 0) {
+					log.logError("Failed to insert to remote database, maybe network error?\n");
+					log.logInfo("Insert to local DB instance instead, you will need to reconcile later...\n");
 
-				CSVHelper & csv = CSVHelper::getInstance();
+					if (insertTPHRecord("localhost", "backup", pPostData) < 0) {
+						log.logError("Failed to insert to local database, out of options\n");
+						log.logInfo("Writing to local CSV, you will need to reconcile later...\n");
 
-				csv.writeRecord(5, record);
+						vector<string> record = {
+							pPostData->getTimestamp(), 
+							pPostData->getType(), 
+							pPostData->getTemperature(), 
+							pPostData->getPressure(), 
+							pPostData->getHumidity()};
+
+						CSVHelper & csv = CSVHelper::getInstance();
+
+						csv.writeRecord(5, record);
+					}
+				}
 			}
 			else {
 				log.logInfo("Successfully posted to server");
@@ -369,14 +346,32 @@ void * webPostThread(void * pArgs)
 
 void cleanup(void)
 {
-#ifndef WEB_LISTENER_TEST
+	/*
+	** Kill the threads...
+	*/
 	pthread_kill(tidTxCmd, SIGKILL);
-#endif
+	pthread_kill(tidWebListener, SIGKILL);
+	pthread_kill(tidWebPost, SIGKILL);
 
-	if (pid_fd != -1) {
-		lockf(pid_fd, F_ULOCK, 0);
-		close(pid_fd);
-	}
+	/*
+	** Close any open DB connection...
+	*/
+	PQfinish(dbConnection);
+
+	/*
+	** Close the logger...
+	*/
+	Logger & log = Logger::getInstance();
+	log.logInfo("Cleaning up and exiting...");
+	log.closeLogger();
+
+	/*
+	** Close the serial port...
+	*/
+	SerialPort & port = SerialPort::getInstance();
+	port.closePort();
+
+	closelog();
 }
 
 void handleSignal(int sigNum)
@@ -398,6 +393,54 @@ void handleSignal(int sigNum)
     exit(0);
 }
 
+void daemonise()
+{
+	pid_t			pid;
+	pid_t			sid;
+
+	fprintf(stdout, "Starting daemon...\n");
+	fflush(stdout);
+
+	do {
+		pid = fork();
+	}
+	while ((pid == -1) && (errno == EAGAIN));
+
+	if (pid < 0) {
+		fprintf(stderr, "Forking daemon failed...\n");
+		fflush(stderr);
+		exit(EXIT_FAILURE);
+	}
+	if (pid > 0) {
+		fprintf(stdout, "Exiting child process...\n");
+		fflush(stdout);
+		exit(EXIT_SUCCESS);
+	}
+
+	sid = setsid();
+	
+	if(sid < 0) {
+		fprintf(stderr, "Failed calling setsid()...\n");
+		fflush(stderr);
+		exit(EXIT_FAILURE);
+	}
+
+	signal(SIGCHLD, SIG_IGN);
+	signal(SIGHUP, SIG_IGN);    
+	
+	umask(0);
+
+	if((chdir("/") == -1)) {
+		fprintf(stderr, "Failed changing directory\n");
+		fflush(stderr);
+		exit(EXIT_FAILURE);
+	}
+
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
+}
+
 void printUsage(char * pszAppName)
 {
 	printf("\n Usage: %s [OPTIONS]\n\n", pszAppName);
@@ -415,14 +458,13 @@ int main(int argc, char *argv[])
 {
 	char			szPort[128];
 	char			szBaud[8];
+	char *			pszAppName;
 	char *			pszLogFileName = NULL;
 	char *			pszConfigFileName = NULL;
 	int				i;
 	bool			isDaemonised = false;
-	pid_t			pid;
-	pid_t			sid;
 
-	strcpy(szAppName, argv[0]);
+	pszAppName = strdup(argv[0]);
 
 	if (argc > 1) {
 		for (i = 1;i < argc;i++) {
@@ -443,24 +485,28 @@ int main(int argc, char *argv[])
 					pszConfigFileName = strdup(&argv[++i][0]);
 				}
 				else if (argv[i][1] == 'h' || argv[i][1] == '?') {
-					printUsage(szAppName);
+					printUsage(pszAppName);
 					return 0;
 				}
 				else {
 					printf("Unknown argument '%s'", &argv[i][0]);
-					printUsage(szAppName);
+					printUsage(pszAppName);
 					return 0;
 				}
 			}
 		}
 	}
 	else {
-		printUsage(szAppName);
+		printUsage(pszAppName);
 		return -1;
 	}
+
+	if (isDaemonised) {
+		daemonise();
+	}
 	
-	openlog(szAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
-	syslog(LOG_INFO, "Started %s", szAppName);
+	openlog(pszAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
+	syslog(LOG_INFO, "Started %s", pszAppName);
 
 	Logger & log = Logger::getInstance();
 
@@ -469,45 +515,6 @@ int main(int argc, char *argv[])
 	}
 	else {
 		log.initLogger(LOG_LEVEL);
-	}
-
-	if (isDaemonised) {
-		log.logInfo("Starting daemon...");
-
-		do {
-			pid = fork();
-		}
-		while ((pid == -1) && (errno == EAGAIN));
-
-		if (pid < 0) {
-			log.logError("Forking daemon failed...");
-			exit(EXIT_FAILURE);
-		}
-		if (pid > 0) {
-			log.logInfo("Exiting child process...");
-			exit(EXIT_SUCCESS);
-		}
-
-		sid = setsid();
-		
-		if(sid < 0) {
-			log.logError("Failed calling setsid()...");
-			exit(EXIT_FAILURE);
-		}
-
-		signal(SIGCHLD, SIG_IGN);
-		signal(SIGHUP, SIG_IGN);    
-		
-		umask(0);
-
-		if((chdir("/") == -1)) {
-			log.logError("Failed changing directory");
-			exit(EXIT_FAILURE);
-		}
-
-		close(STDIN_FILENO);
-		close(STDOUT_FILENO);
-		close(STDERR_FILENO);
 	}
 
 	/*
@@ -590,13 +597,7 @@ int main(int argc, char *argv[])
 	while (1) {
 		sleep(5);
 	}
-
-	log.logInfo("Cleaning up and exiting!");
 	
-	port.closePort();
-	log.closeLogger();
-	closelog();
-
 	cleanup();
 
 	return 0;

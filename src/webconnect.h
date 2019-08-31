@@ -21,6 +21,7 @@ private:
 	char			szHumidity[20];
 	bool			doSave = false;
 	const char *	type;
+	CurrentTime		time;
 
 public:
 	PostData() {
@@ -45,6 +46,9 @@ public:
 		clean();
 	}
 
+	char *			getTimestamp() {
+		return this->time.getTimeStamp();
+	}
 	const char *	getType() {
 		return this->type;
 	}
@@ -109,11 +113,11 @@ private:
 
 public:
 	~WebConnector();
-	
+
 	void		setConfigLocation(char * pszConfigFile);
 	void		initListener();
 
-	int			postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity);
+	int			postTPH(PostData * pPostData);
 	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));
 	void		listen();
 

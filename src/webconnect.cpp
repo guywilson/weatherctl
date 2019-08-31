@@ -188,10 +188,11 @@ void WebConnector::queryConfig()
 	this->isConfigured = true;
 }
 
-int WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTemperature, char * pszPressure, char * pszHumidity)
+int WebConnector::postTPH(PostData * pPostData)
 {
 	char				szBody[128];
 	char				szWebPath[256];
+	char				szPathSuffix[32];
 	CURLcode			result;
 
 	CurrentTime time;
@@ -200,11 +201,21 @@ int WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTempe
 	sprintf(
 		szBody,
 		"{\n\t\"time\": \"%s\",\n\t\"save\": \"%s\",\n\t\"temperature\": \"%s\",\n\t\"pressure\": \"%s\",\n\t\"humidity\": \"%s\"\n}",
-		time.getTimeStamp(),
-		save ? "true" : "false",
-		pszTemperature,
-		pszPressure,
-		pszHumidity);
+		pPostData->getTimestamp(),
+		pPostData->isDoSave() ? "true" : "false",
+		pPostData->getTemperature(),
+		pPostData->getPressure(),
+		pPostData->getHumidity());
+
+	if (strcmp(pPostData->getType(), "AVG") == 0) {
+		strcpy(szPathSuffix, WEB_PATH_AVG);
+	}
+	else if (strcmp(pPostData->getType(), "MAX") == 0) {
+		strcpy(szPathSuffix, WEB_PATH_MAX);
+	}
+	else if (strcmp(pPostData->getType(), "MIN") == 0) {
+		strcpy(szPathSuffix, WEB_PATH_MIN);
+	}
 
 	sprintf(
 		szWebPath, 
@@ -213,7 +224,7 @@ int WebConnector::postTPH(const char * pszPathSuffix, bool save, char * pszTempe
 		this->getHost(), 
 		this->getPort(), 
 		this->szBasePath, 
-		pszPathSuffix);
+		szPathSuffix);
 
 	log.logDebug("Posting to %s [%s]", szWebPath, szBody);
 
