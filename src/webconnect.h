@@ -4,6 +4,7 @@
 #include <curl/curl.h>
 
 #include "mongoose.h"
+#include "currenttime.h"
 #include "exception.h"
 
 #ifndef _INCL_WEBCONNECT
@@ -131,7 +132,5 @@ public:
 		return this->szDocRoot;
 	}
 };
-
-void * webPostThread(void * pArgs);
 
 #endif

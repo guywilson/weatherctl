@@ -8,11 +8,11 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 #include <pthread.h>
 #include <time.h>
 #include <signal.h>
 #include <syslog.h>
-#include <libpq-fe.h>
 
 #include "serial.h"
 #include "exception.h"
@@ -21,7 +21,7 @@
 #include "currenttime.h"
 #include "mongoose.h"
 #include "webconnect.h"
-#include "csvhelper.h"
+#include "backup.h"
 #include "views.h"
 #include "logger.h"
 
@@ -33,82 +33,6 @@ using namespace std;
 pthread_t			tidTxCmd;
 pthread_t			tidWebListener;
 pthread_t			tidWebPost;
-PGconn *			dbConnection;
-
-int insertTPHRecord(const char * pszHost, const char * pszDbName, PostData * pPostData)
-{
-	char				szConnection[128];
-	PGresult *			queryResult;
-	const char *		pszInsertTemplate;
-	char				szInsertStr[128];
-
-	Logger & log = Logger::getInstance();
-
-	sprintf(
-		szConnection, 
-		"host=%s port=5432 dbname=%s user=guy password=password", 
-		pszHost, 
-		pszDbName);
-
-	dbConnection = PQconnectdb(szConnection);
-
-	if (PQstatus(dbConnection) != CONNECTION_OK) {
-		log.logError("Cannot connect to remote database [%s]", PQerrorMessage(dbConnection));
-		PQfinish(dbConnection);
-		return -1;
-	}
-
-	queryResult = PQexec(dbConnection, "BEGIN");
-
-	if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
-		log.logError("Error beginning transaction [%s]", PQerrorMessage(dbConnection));
-		PQclear(queryResult);
-		PQfinish(dbConnection);
-		return -1;
-	}
-
-	log.logInfo("Opened DB transaction");
-
-	PQclear(queryResult);
-
-	CurrentTime time;
-
-	pszInsertTemplate= "INSERT INTO TPH (TS, TYPE, TEMPERATURE, PRESSURE, HUMIDITY) VALUES ('%s', '%s', %s, %s, %s)";
-
-	sprintf(
-		szInsertStr, 
-		pszInsertTemplate, 
-		time.getTimeStamp(), 
-		pPostData->getType(), 
-		pPostData->getTemperature(), 
-		pPostData->getPressure(), 
-		pPostData->getHumidity());
-
-	queryResult = PQexec(dbConnection, szInsertStr);
-
-	if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
-		log.logError("Error issuing INSERT statement [%s]", PQerrorMessage(dbConnection));
-		PQclear(queryResult);
-		PQfinish(dbConnection);
-		return -1;
-	}
-	else {
-		log.logInfo("Successfully INSERTed record to database.");
-	}
-
-	PQclear(queryResult);
-
-	queryResult = PQexec(dbConnection, "END");
-	PQclear(queryResult);
-
-	log.logInfo("Closed DB transaction");
-
-	PQfinish(dbConnection);
-
-	log.logInfo("PQfinish()");
-
-	return 0;
-}
 
 void * txCmdThread(void * pArgs)
 {
@@ -306,28 +230,10 @@ void * webPostThread(void * pArgs)
 
 			if (rtn < 0) {
 				log.logError("Error posting to web server");
-				log.logInfo("Attempting to INSERT directly to remote DB instead...");
+				log.logInfo("Attempting to backup data");
 
-				if (insertTPHRecord(web.getHost(), "weather", pPostData) < 0) {
-					log.logError("Failed to insert to remote database, maybe network error?\n");
-					log.logInfo("Insert to local DB instance instead, you will need to reconcile later...\n");
-
-					if (insertTPHRecord("localhost", "backup", pPostData) < 0) {
-						log.logError("Failed to insert to local database, out of options\n");
-						log.logInfo("Writing to local CSV, you will need to reconcile later...\n");
-
-						vector<string> record = {
-							pPostData->getTimestamp(), 
-							pPostData->getType(), 
-							pPostData->getTemperature(), 
-							pPostData->getPressure(), 
-							pPostData->getHumidity()};
-
-						CSVHelper & csv = CSVHelper::getInstance();
-
-						csv.writeRecord(5, record);
-					}
-				}
+				BackupManager & backup = BackupManager::getInstance();
+				backup.backup(pPostData);
 			}
 			else {
 				log.logInfo("Successfully posted to server");
@@ -356,7 +262,8 @@ void cleanup(void)
 	/*
 	** Close any open DB connection...
 	*/
-	PQfinish(dbConnection);
+	BackupManager & backup = BackupManager::getInstance();
+	backup.close();
 
 	/*
 	** Close the logger...
@@ -463,8 +370,13 @@ int main(int argc, char *argv[])
 	char *			pszConfigFileName = NULL;
 	int				i;
 	bool			isDaemonised = false;
+	char			cwd[PATH_MAX];
 
 	pszAppName = strdup(argv[0]);
+
+	getcwd(cwd, sizeof(cwd));
+
+	printf("Running %s from %s\n\n", pszAppName, cwd);
 
 	if (argc > 1) {
 		for (i = 1;i < argc;i++) {
@@ -512,6 +424,7 @@ int main(int argc, char *argv[])
 
 	if (pszLogFileName != NULL) {
 		log.initLogger(pszLogFileName, LOG_LEVEL);
+		free(pszLogFileName);
 	}
 	else {
 		log.initLogger(LOG_LEVEL);
@@ -558,6 +471,18 @@ int main(int argc, char *argv[])
 	web.registerHandler("/avr/cmd", avrViewHandler);
 	web.registerHandler("/avr/cmd/post", avrCommandHandler);
 	web.registerHandler("/css", cssHandler);
+
+	if (pszConfigFileName != NULL) {
+		free(pszConfigFileName);
+	}
+
+	BackupManager & backup = BackupManager::getInstance();
+	
+	strcat(cwd, "/wctl.csv");
+
+	backup.setupCSV(cwd);
+	backup.setupPrimaryDB(web.getHost(), "weather");
+	backup.setupSecondaryDB("localhost", "backup");
 
 	/*
 	 * Start threads...
