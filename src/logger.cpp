@@ -31,6 +31,12 @@ void Logger::initLogger(char * pszLogFileName, int logLevel)
     }
 }
 
+void Logger::initLogger(int logLevel)
+{
+    this->loggingLevel = logLevel;
+    this->lfp = stdout;
+}
+
 void Logger::closeLogger()
 {
     if (lfp != stdout) {

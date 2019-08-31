@@ -408,7 +408,6 @@ void printUsage(char * pszAppName)
 	printf("   -cfg configfile  Specify the cfg file, default is ./webconfig.cfg\n");
 	printf("   -d               Daemonise this application\n");
 	printf("   -log  filename   Write logs to the file\n");
-	printf("   -lock filename   PID lock file (only applicable with -d option))\n");
 	printf("\n");
 }
 
@@ -416,7 +415,6 @@ int main(int argc, char *argv[])
 {
 	char			szPort[128];
 	char			szBaud[8];
-	char *			pszLockFileName = NULL;
 	char *			pszLogFileName = NULL;
 	char *			pszConfigFileName = NULL;
 	int				i;
@@ -437,9 +435,6 @@ int main(int argc, char *argv[])
 				}
 				else if (argv[i][1] == 'd') {
 					isDaemonised = true;
-				}
-				else if (strcmp(&argv[i][1], "lock") == 0) {
-					pszLockFileName = strdup(&argv[++i][0]);
 				}
 				else if (strcmp(&argv[i][1], "log") == 0) {
 					pszLogFileName = strdup(&argv[++i][0]);
@@ -463,13 +458,18 @@ int main(int argc, char *argv[])
 		printUsage(szAppName);
 		return -1;
 	}
-
-	Logger & log = Logger::getInstance();
 	
 	openlog(szAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
 	syslog(LOG_INFO, "Started %s", szAppName);
 
-	log.initLogger(pszLogFileName, LOG_LEVEL);
+	Logger & log = Logger::getInstance();
+
+	if (pszLogFileName != NULL) {
+		log.initLogger(pszLogFileName, LOG_LEVEL);
+	}
+	else {
+		log.initLogger(LOG_LEVEL);
+	}
 
 	if (isDaemonised) {
 		log.logInfo("Starting daemon...");
@@ -508,30 +508,6 @@ int main(int argc, char *argv[])
 		close(STDIN_FILENO);
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
-
-		/* Try to write PID of daemon to lockfile */
-		if (pszLockFileName != NULL)
-		{
-			char str[256];
-
-			pid_fd = open(pszLockFileName, O_RDWR|O_CREAT, 0640);
-
-			if (pid_fd < 0) {
-				log.logError("Failed to open lock file %s", pszLockFileName);
-				exit(EXIT_FAILURE);
-			}
-
-			if (lockf(pid_fd, F_TLOCK, 0) < 0) {
-				log.logError("Failed to lock file...");
-				exit(EXIT_FAILURE);
-			}
-
-			/* Get current PID */
-			sprintf(str, "%d\n", getpid());
-
-			/* Write PID to lockfile */
-			write(pid_fd, str, strlen(str));
-		}
 	}
 
 	/*

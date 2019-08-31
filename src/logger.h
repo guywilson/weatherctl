@@ -40,6 +40,8 @@ public:
     ~Logger();
 
     void        initLogger(char * pszLogFileName, int logLevel);
+    void        initLogger(int logLevel);
+    
     void        closeLogger();
 
     int         getLogLevel();
