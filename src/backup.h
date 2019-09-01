@@ -2,7 +2,12 @@
 #include <vector>
 #include <stdio.h>
 #include <stdint.h>
+
+#ifdef __APPLE__
 #include <libpq-fe.h>
+#else
+#include <postgresql/libpq-fe.h>
+#endif
 
 #include "webconnect.h"
 #include "logger.h"
