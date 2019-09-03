@@ -12,6 +12,7 @@
 #include "queuemgr.h"
 #include "logger.h"
 #include "backup.h"
+#include "configmgr.h"
 
 extern "C" {
 #include "mongoose.h"
@@ -91,99 +92,43 @@ void WebConnector::setConfigLocation(char * pszConfigFile)
 
 void WebConnector::queryConfig()
 {
-	FILE *			fptr;
-	char *			pszToken;
-	char *			config = NULL;
-	int				fileLength = 0;
-	int				bytesRead = 0;
-	const char *	tokens = "#=\n\r ";
+	static const char * keys[] = {
+		"web.host", 
+		"web.port", 
+		"web.basepath", 
+		"web.issecure", 
+		"admin.listenport", 
+		"admin.docroot"};
+
+	const char *		pszToken;
 
 	Logger & log = Logger::getInstance();
 
-	fptr = fopen(this->szConfigFile, "rt");
+	ConfigManager & cfg = ConfigManager::getInstance();
 
-	if (fptr == NULL) {
-		log.logError("Failed to open config file %s", this->szConfigFile);
-		throw new Exception("ERROR reading config");
-	}
+	pszToken = cfg.getValue(keys[0]).c_str();
+	log.logDebug("Got '%s' as '%s'", keys[0], pszToken);
+	strcpy(this->szHost, pszToken);
 
-    fseek(fptr, 0L, SEEK_END);
-    fileLength = ftell(fptr);
-    rewind(fptr);
+	pszToken = cfg.getValue(keys[1]).c_str();
+	log.logDebug("Got '%s' as '%s'", keys[1], pszToken);
+	this->port = atoi(pszToken);
 
-	config = (char *)malloc(fileLength);
+	pszToken = cfg.getValue(keys[2]).c_str();
+	log.logDebug("Got '%s' as '%s'", keys[2], pszToken);
+	strcpy(this->szBasePath, pszToken);
 
-	if (config == NULL) {
-		log.logError("Failed to alocate %d bytes for config file %s", fileLength, this->szConfigFile);
-		throw new Exception("Failed to allocate memory for config.");
-	}
+	pszToken = cfg.getValue(keys[3]).c_str();
+	log.logDebug("Got '%s' as '%s'", keys[3], pszToken);
+	this->isSecure = (strcmp(pszToken, "yes") == 0 || strcmp(pszToken, "true") == 0) ? true : false;
 
-	/*
-	** Read in the config file...
-	*/
-	bytesRead = fread(config, 1, fileLength, fptr);
+	pszToken = cfg.getValue(keys[4]).c_str();
+	log.logDebug("Got '%s' as '%s'", keys[4], pszToken);
+	strcpy(this->szListenPort, pszToken);
 
-	if (bytesRead != fileLength) {
-		log.logError("Read %d bytes, but config file %s is %d bytes long", bytesRead, this->szConfigFile, fileLength);
-		throw new Exception("Failed to read in config file.");
-	}
-
-	fclose(fptr);
-
-	log.logInfo("Read %d bytes from config file %s", bytesRead, this->szConfigFile);
-
-	pszToken = strtok(config, tokens);
-
-	while (pszToken != NULL) {
-		if (strcmp(pszToken, "web.host") == 0) {
-			pszToken = strtok(NULL, tokens);
-			strcpy(this->szHost, pszToken);
-
-			log.logDebug("Got web.host as %s", this->szHost);
-		}
-		else if (strcmp(pszToken, "web.port") == 0) {
-			pszToken = strtok(NULL, tokens);
-
-			this->port = atoi(pszToken);
-
-			log.logDebug("Got web.port as %d", this->port);
-		}
-		else if (strcmp(pszToken, "web.basepath") == 0) {
-			pszToken = strtok(NULL, tokens);
-
-			strcpy(this->szBasePath, pszToken);
-
-			log.logDebug("Got web.basepath as %s", this->szBasePath);
-		}
-		else if (strcmp(pszToken, "web.issecure") == 0) {
-			pszToken = strtok(NULL, tokens);
-
-			this->isSecure = (strcmp(pszToken, "yes") == 0 || strcmp(pszToken, "true") == 0) ? true : false;
-
-			log.logDebug("Got web.issecure as %s", pszToken);
-		}
-		else if (strcmp(pszToken, "admin.listenport") == 0) {
-			pszToken = strtok(NULL, tokens);
-
-			strcpy(this->szListenPort, pszToken);
-
-			log.logDebug("Got admin.listenport as %s", this->szListenPort);
-		}
-		else if (strcmp(pszToken, "admin.docroot") == 0) {
-			pszToken = strtok(NULL, tokens);
-
-			strcpy(this->szDocRoot, pszToken);
-
-			log.logDebug("Got admin.docroot as %s", this->szDocRoot);
-		}
-		else {
-			pszToken = strtok(NULL, tokens);
-
-			log.logDebug("Got token '%s'", pszToken);
-		}
-	}
-
-	free(config);
+	pszToken = cfg.getValue(keys[5]).c_str();
+	log.logDebug("Got '%s' as '%s'", keys[5], pszToken);
+	strcpy(this->szDocRoot, pszToken);
 
 	this->isConfigured = true;
 }

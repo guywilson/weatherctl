@@ -171,6 +171,7 @@ void processResponse(uint8_t * response, int responseLength)
 	char 				szTemperature[20];
 	char 				szPressure[20];
 	char 				szHumidity[20];
+	char *				reference;
 	static int			avgCount = 0;
 	static bool			avgSave = true;
 	static bool			minSave = false;
@@ -182,6 +183,12 @@ void processResponse(uint8_t * response, int responseLength)
 	RxFrame * pFrame = new RxFrame(response, responseLength);
 
 	Logger & log = Logger::getInstance();
+
+    /*
+    ** Retain pointer to original string for 
+    ** calling the re-entrant strtok_r() library function...
+    */
+	reference = szResponse;
 
 	if (pFrame->isACK() && pFrame->getFrameLength() < (pFrame->getDataLength() + NUM_ACK_RSP_FRAME_BYTES)) {
 		log.logInfo(
@@ -204,9 +211,9 @@ void processResponse(uint8_t * response, int responseLength)
 
 				delete pFrame;
 
-				strcpy(szTemperature, strtok(szResponse, ";"));
-				strcpy(szPressure, strtok(NULL, ";"));
-				strcpy(szHumidity, strtok(NULL, ";"));
+				strcpy(szTemperature, strtok_r(szResponse, ";", &reference));
+				strcpy(szPressure, strtok_r(NULL, ";", &reference));
+				strcpy(szHumidity, strtok_r(NULL, ";", &reference));
 
 				log.logDebug("Got AVG data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
 
@@ -231,9 +238,9 @@ void processResponse(uint8_t * response, int responseLength)
 
 				delete pFrame;
 
-				strcpy(szTemperature, strtok(szResponse, ";"));
-				strcpy(szPressure, strtok(NULL, ";"));
-				strcpy(szHumidity, strtok(NULL, ";"));
+				strcpy(szTemperature, strtok_r(szResponse, ";", &reference));
+				strcpy(szPressure, strtok_r(NULL, ";", &reference));
+				strcpy(szHumidity, strtok_r(NULL, ";", &reference));
 
 				log.logDebug("Got MAX data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
 
@@ -252,9 +259,9 @@ void processResponse(uint8_t * response, int responseLength)
 
 				delete pFrame;
 
-				strcpy(szTemperature, strtok(szResponse, ";"));
-				strcpy(szPressure, strtok(NULL, ";"));
-				strcpy(szHumidity, strtok(NULL, ";"));
+				strcpy(szTemperature, strtok_r(szResponse, ";", &reference));
+				strcpy(szPressure, strtok_r(NULL, ";", &reference));
+				strcpy(szHumidity, strtok_r(NULL, ";", &reference));
 
 				log.logDebug("Got MIN data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
 

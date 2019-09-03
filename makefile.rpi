@@ -31,7 +31,7 @@ CFLAGS=-c -Wall
 MGFLAGS=
 
 # Object files 
-OBJFILES=$(BUILD)/main.o $(BUILD)/serial.o $(BUILD)/avrweather.o $(BUILD)/frame.o $(BUILD)/currenttime.o $(BUILD)/logger.o $(BUILD)/backup.o $(BUILD)/queuemgr.o $(BUILD)/webconnect.o $(BUILD)/views.o $(BUILD)/exception.o $(BUILD)/mongoose.o
+OBJFILES=$(BUILD)/main.o $(BUILD)/serial.o $(BUILD)/avrweather.o $(BUILD)/frame.o $(BUILD)/currenttime.o $(BUILD)/logger.o $(BUILD)/backup.o $(BUILD)/configmgr.o $(BUILD)/queuemgr.o $(BUILD)/webconnect.o $(BUILD)/views.o $(BUILD)/exception.o $(BUILD)/mongoose.o
 
 # Target
 all: $(WCTL) $(TOGGLERST)
@@ -58,6 +58,9 @@ $(BUILD)/logger.o: $(SOURCE)/logger.cpp $(SOURCE)/logger.h $(SOURCE)/currenttime
 
 $(BUILD)/backup.o: $(SOURCE)/backup.cpp $(SOURCE)/backup.h $(SOURCE)/logger.h $(SOURCE)/exception.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/backup.o $(SOURCE)/backup.cpp
+
+$(BUILD)/configmgr.o: $(SOURCE)/configmgr.cpp $(SOURCE)/configmgr.h $(SOURCE)/logger.h $(SOURCE)/exception.h
+	$(CPP) $(CPPFLAGS) -o $(BUILD)/configmgr.o $(SOURCE)/configmgr.cpp
 
 $(BUILD)/queuemgr.o: $(SOURCE)/queuemgr.cpp $(SOURCE)/queuemgr.h $(SOURCE)/exception.h $(SOURCE)/frame.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/queuemgr.o $(SOURCE)/queuemgr.cpp

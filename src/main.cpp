@@ -24,6 +24,7 @@
 #include "backup.h"
 #include "views.h"
 #include "logger.h"
+#include "configmgr.h"
 
 #define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
 //#define SERIAL_EMULATION
@@ -371,6 +372,7 @@ int main(int argc, char *argv[])
 	int				i;
 	bool			isDaemonised = false;
 	char			cwd[PATH_MAX];
+	char			szCSVFileName[PATH_MAX + 8];
 
 	pszAppName = strdup(argv[0]);
 
@@ -430,6 +432,10 @@ int main(int argc, char *argv[])
 		log.initLogger(LOG_LEVEL);
 	}
 
+	ConfigManager & mgr = ConfigManager::getInstance();
+	
+	mgr.initialise(pszConfigFileName);
+
 	/*
 	 * Register signal handler for cleanup...
 	 */
@@ -478,9 +484,10 @@ int main(int argc, char *argv[])
 
 	BackupManager & backup = BackupManager::getInstance();
 	
-	strcat(cwd, "/wctl.csv");
+	strcpy(szCSVFileName, cwd);
+	strcat(szCSVFileName, "/wctl.csv");
 
-	backup.setupCSV(cwd);
+	backup.setupCSV(szCSVFileName);
 	backup.setupPrimaryDB(web.getHost(), "weather");
 	backup.setupSecondaryDB("localhost", "backup");
 
