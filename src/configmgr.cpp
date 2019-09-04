@@ -123,6 +123,16 @@ void ConfigManager::readConfig()
     isConfigured = true;
 }
 
+void ConfigManager::getCFG()
+{
+    values[string("web.host")] = string("peaceful-earth-94757.herokuapp.com");
+    values[string("web.port")] = string("443");
+    values[string("web.issecure")] = string("yes");
+    values[string("web.basepath")] = string("/weather/api/");
+    values[string("admin.listenport")] = string("80");
+    values[string("admin.docroot")] = string("/var/www/html");
+}
+
 string & ConfigManager::getValue(string key)
 {
     if (!isConfigured) {
