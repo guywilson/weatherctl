@@ -165,9 +165,16 @@ int WebConnector::postTPH(PostData * pPostData)
 
 	log.logDebug("Posting to %s [%s]", szWebPath, szBody);
 
+	struct curl_slist *headers = NULL;
+	headers = curl_slist_append(headers, "Accept: application/json");
+	headers = curl_slist_append(headers, "Content-Type: application/json");
+	headers = curl_slist_append(headers, "charsets: utf-8");
+
 	curl_easy_setopt(pCurl, CURLOPT_URL, szWebPath);
 	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(szBody));
 	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, szBody);
+    curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers); 
+    curl_easy_setopt(pCurl, CURLOPT_USERAGENT, "libcrp/0.1");
 
 	result = curl_easy_perform(pCurl);
 

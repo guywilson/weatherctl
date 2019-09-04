@@ -26,8 +26,8 @@
 #include "logger.h"
 #include "configmgr.h"
 
-#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
-//#define SERIAL_EMULATION
+#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL | LOG_LEVEL_DEBUG
+#define SERIAL_EMULATION
 
 using namespace std;
 
@@ -227,6 +227,8 @@ void * webPostThread(void * pArgs)
 		if (!qmgr.isWebPostQueueEmpty()) {
 			PostData * pPostData = qmgr.popWebPost();
 
+			log.logDebug("Posting %s data to %s", pPostData->getType(), web.getHost());
+			
 			rtn = web.postTPH(pPostData);
 
 			if (rtn < 0) {
