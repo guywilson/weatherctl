@@ -23,6 +23,7 @@ private:
     bool                    isConfigured = false;
 
     ConfigManager() {}
+
     void getCFG();
 
 public:

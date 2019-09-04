@@ -482,11 +482,11 @@ int main(int argc, char *argv[])
 	web.registerHandler("/avr/cmd/post", avrCommandHandler);
 	web.registerHandler("/css", cssHandler);
 
-//	BackupManager & backup = BackupManager::getInstance();
+	BackupManager & backup = BackupManager::getInstance();
 
-//	backup.setupCSV(mgr.getValueAsCstr("backup.csv"));
-//	backup.setupPrimaryDB(mgr.getValueAsCstr("backup.primaryhost"), mgr.getValueAsCstr("backup.primarydb"));
-//	backup.setupSecondaryDB(mgr.getValueAsCstr("backup.secondaryhost"), mgr.getValueAsCstr("backup.secondarydb"));
+	backup.setupCSV(mgr.getValueAsCstr("backup.csv"));
+	backup.setupPrimaryDB(mgr.getValueAsCstr("backup.primaryhost"), mgr.getValueAsCstr("backup.primarydb"));
+	backup.setupSecondaryDB(mgr.getValueAsCstr("backup.secondaryhost"), mgr.getValueAsCstr("backup.secondarydb"));
 
 	/*
 	 * Start threads...

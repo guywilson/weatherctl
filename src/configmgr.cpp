@@ -43,7 +43,7 @@ void ConfigManager::readConfig()
     fileLength = ftell(fptr);
     rewind(fptr);
 
-	config = (char *)malloc(fileLength);
+	config = (char *)malloc(fileLength + 1);
 
 	if (config == NULL) {
 		log.logError("Failed to alocate %d bytes for config file %s", fileLength, szConfigFileName);
@@ -68,6 +68,11 @@ void ConfigManager::readConfig()
 
 	fclose(fptr);
 
+    /*
+    ** Null terminate the string...
+    */
+    config[fileLength] = 0;
+
 	log.logInfo("Read %d bytes from config file %s", bytesRead, szConfigFileName);
 
 	pszConfigLine = strtok_r(config, delimiters, &reference);
@@ -87,7 +92,7 @@ void ConfigManager::readConfig()
         ** Try and cope with weird error (seen on mac os when testing) where strtok()
         ** returns some random chars if there is a new line at the end of the file...
         */
-        if (strlen(pszConfigLine) > 0 || strstr(pszConfigLine, delimiters) != NULL) {
+        if (strlen(pszConfigLine) > 0) {
             for (i = 0;i < (int)strlen(pszConfigLine);i++) {
                 if (pszConfigLine[i] == '=') {
                     pszKey = strndup(pszConfigLine, i);
