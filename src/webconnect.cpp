@@ -82,14 +82,6 @@ WebConnector::~WebConnector()
 	curl_easy_cleanup(this->pCurl);
 }
 
-void WebConnector::setConfigLocation(char * pszConfigFile)
-{
-	if (pszConfigFile != NULL) {
-		strcpy(this->szConfigFile, pszConfigFile);
-		queryConfig();
-	}
-}
-
 void WebConnector::queryConfig()
 {
 	static const char * keys[] = {
@@ -106,27 +98,27 @@ void WebConnector::queryConfig()
 
 	ConfigManager & cfg = ConfigManager::getInstance();
 
-	pszToken = cfg.getValue(keys[0]).c_str();
+	pszToken = cfg.getValueAsCstr(keys[0]);
 	log.logDebug("Got '%s' as '%s'", keys[0], pszToken);
 	strcpy(this->szHost, pszToken);
 
-	pszToken = cfg.getValue(keys[1]).c_str();
+	pszToken = cfg.getValueAsCstr(keys[1]);
 	log.logDebug("Got '%s' as '%s'", keys[1], pszToken);
 	this->port = atoi(pszToken);
 
-	pszToken = cfg.getValue(keys[2]).c_str();
+	pszToken = cfg.getValueAsCstr(keys[2]);
 	log.logDebug("Got '%s' as '%s'", keys[2], pszToken);
 	strcpy(this->szBasePath, pszToken);
 
-	pszToken = cfg.getValue(keys[3]).c_str();
+	pszToken = cfg.getValueAsCstr(keys[3]);
 	log.logDebug("Got '%s' as '%s'", keys[3], pszToken);
 	this->isSecure = (strcmp(pszToken, "yes") == 0 || strcmp(pszToken, "true") == 0) ? true : false;
 
-	pszToken = cfg.getValue(keys[4]).c_str();
+	pszToken = cfg.getValueAsCstr(keys[4]);
 	log.logDebug("Got '%s' as '%s'", keys[4], pszToken);
 	strcpy(this->szListenPort, pszToken);
 
-	pszToken = cfg.getValue(keys[5]).c_str();
+	pszToken = cfg.getValueAsCstr(keys[5]);
 	log.logDebug("Got '%s' as '%s'", keys[5], pszToken);
 	strcpy(this->szDocRoot, pszToken);
 
@@ -192,11 +184,8 @@ int WebConnector::postTPH(PostData * pPostData)
 void WebConnector::initListener()
 {
 	Logger & log = Logger::getInstance();
-
-	if (!this->isConfigured) {
-		strcpy(this->szConfigFile, "./webconfig.cfg");
-		queryConfig();
-	}
+	
+	queryConfig();
 
 	mg_mgr_init(&mgr, NULL);
 

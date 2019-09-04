@@ -21,6 +21,7 @@ using namespace std;
 #define BACKUP_COMPLETE_PRIMARY_DB      0x0200
 #define BACKUP_COMPLETE_SECONDARY_DB    0x0400
 #define BACKUP_FAILED_DATA_LOST         0x0000
+#define BACKUP_NOT_REQUIRED_SKIPPED     0x0001
 
 class BackupManager
 {

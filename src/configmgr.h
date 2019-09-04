@@ -32,6 +32,7 @@ public:
 
     string &                getValue(string key);
     string &                getValue(const char * key);
+    const char *            getValueAsCstr(const char * key);
 };
 
 #endif

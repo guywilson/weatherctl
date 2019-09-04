@@ -92,7 +92,6 @@ public:
 	}
 
 private:
-	char			szConfigFile[256];
 	char			szHost[256];
 	int				port;
 	bool			isSecure = false;
@@ -115,7 +114,6 @@ private:
 public:
 	~WebConnector();
 
-	void		setConfigLocation(char * pszConfigFile);
 	void		initListener();
 
 	int			postTPH(PostData * pPostData);

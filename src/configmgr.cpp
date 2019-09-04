@@ -88,7 +88,7 @@ void ConfigManager::readConfig()
         ** returns some random chars if there is a new line at the end of the file...
         */
         if (strlen(pszConfigLine) > 0 || strstr(pszConfigLine, delimiters) != NULL) {
-            for (i = 0;i < strlen(pszConfigLine);i++) {
+            for (i = 0;i < (int)strlen(pszConfigLine);i++) {
                 if (pszConfigLine[i] == '=') {
                     pszKey = strndup(pszConfigLine, i);
                     delimPos = i;
@@ -137,4 +137,9 @@ string & ConfigManager::getValue(string key)
 string & ConfigManager::getValue(const char * key)
 {
     return getValue(string(key));
+}
+
+const char * ConfigManager::getValueAsCstr(const char * key)
+{
+    return getValue(key).c_str();
 }

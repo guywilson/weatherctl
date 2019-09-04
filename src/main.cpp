@@ -372,7 +372,6 @@ int main(int argc, char *argv[])
 	int				i;
 	bool			isDaemonised = false;
 	char			cwd[PATH_MAX];
-	char			szCSVFileName[PATH_MAX + 8];
 
 	pszAppName = strdup(argv[0]);
 
@@ -436,6 +435,10 @@ int main(int argc, char *argv[])
 	
 	mgr.initialise(pszConfigFileName);
 
+	if (pszConfigFileName != NULL) {
+		free(pszConfigFileName);
+	}
+
 	/*
 	 * Register signal handler for cleanup...
 	 */
@@ -471,25 +474,17 @@ int main(int argc, char *argv[])
 
 	WebConnector & web = WebConnector::getInstance();
 
-	web.setConfigLocation(pszConfigFileName);
 	web.initListener();
 
 	web.registerHandler("/avr/cmd", avrViewHandler);
 	web.registerHandler("/avr/cmd/post", avrCommandHandler);
 	web.registerHandler("/css", cssHandler);
 
-	if (pszConfigFileName != NULL) {
-		free(pszConfigFileName);
-	}
-
 	BackupManager & backup = BackupManager::getInstance();
-	
-	strcpy(szCSVFileName, cwd);
-	strcat(szCSVFileName, "/wctl.csv");
 
-	backup.setupCSV(szCSVFileName);
-	backup.setupPrimaryDB(web.getHost(), "weather");
-	backup.setupSecondaryDB("localhost", "backup");
+	backup.setupCSV(mgr.getValueAsCstr("backup.csv"));
+	backup.setupPrimaryDB(mgr.getValueAsCstr("backup.primaryhost"), mgr.getValueAsCstr("backup.primarydb"));
+	backup.setupSecondaryDB(mgr.getValueAsCstr("backup.secondaryhost"), mgr.getValueAsCstr("backup.secondarydb"));
 
 	/*
 	 * Start threads...

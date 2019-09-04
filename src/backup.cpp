@@ -111,106 +111,112 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
 	const char *		pszInsertTemplate;
 	char				szInsertStr[128];
 
-	sprintf(
-		szConnection, 
-		"host=%s port=5432 dbname=%s user=guy password=password", 
-		pszHost, 
-		pszDbName);
+    sprintf(
+        szConnection, 
+        "host=%s port=5432 dbname=%s user=guy password=password", 
+        pszHost, 
+        pszDbName);
 
-	dbConnection = PQconnectdb(szConnection);
+    dbConnection = PQconnectdb(szConnection);
 
-	if (PQstatus(dbConnection) != CONNECTION_OK) {
-		log.logError("Cannot connect to database [%s]", PQerrorMessage(dbConnection));
-		PQfinish(dbConnection);
-		throw new Exception("Cannot connect to database");
-	}
+    if (PQstatus(dbConnection) != CONNECTION_OK) {
+        log.logError("Cannot connect to database [%s]", PQerrorMessage(dbConnection));
+        PQfinish(dbConnection);
+        throw new Exception("Cannot connect to database");
+    }
 
-	queryResult = PQexec(dbConnection, "BEGIN");
+    queryResult = PQexec(dbConnection, "BEGIN");
 
-	if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
-		log.logError("Error beginning transaction [%s]", PQerrorMessage(dbConnection));
-		PQclear(queryResult);
-		PQfinish(dbConnection);
-		throw new Exception("Error opening transaction");
-	}
+    if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
+        log.logError("Error beginning transaction [%s]", PQerrorMessage(dbConnection));
+        PQclear(queryResult);
+        PQfinish(dbConnection);
+        throw new Exception("Error opening transaction");
+    }
 
-	log.logDebug("Opened DB transaction");
+    log.logDebug("Opened DB transaction");
 
-	PQclear(queryResult);
+    PQclear(queryResult);
 
-	CurrentTime time;
+    CurrentTime time;
 
-	pszInsertTemplate= "INSERT INTO TPH (TS, TYPE, TEMPERATURE, PRESSURE, HUMIDITY) VALUES ('%s', '%s', %s, %s, %s)";
+    pszInsertTemplate= "INSERT INTO TPH (TS, TYPE, TEMPERATURE, PRESSURE, HUMIDITY) VALUES ('%s', '%s', %s, %s, %s)";
 
-	sprintf(
-		szInsertStr, 
-		pszInsertTemplate, 
-		time.getTimeStamp(), 
-		pPostData->getType(), 
-		pPostData->getTemperature(), 
-		pPostData->getPressure(), 
-		pPostData->getHumidity());
+    sprintf(
+        szInsertStr, 
+        pszInsertTemplate, 
+        time.getTimeStamp(), 
+        pPostData->getType(), 
+        pPostData->getTemperature(), 
+        pPostData->getPressure(), 
+        pPostData->getHumidity());
 
-	queryResult = PQexec(dbConnection, szInsertStr);
+    queryResult = PQexec(dbConnection, szInsertStr);
 
-	if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
-		log.logError("Error issuing INSERT statement [%s]", PQerrorMessage(dbConnection));
-		PQclear(queryResult);
-		PQfinish(dbConnection);
-		throw new Exception("Error issuing INSERT statement");
-	}
-	else {
-		log.logInfo("Successfully INSERTed record to database.");
-	}
+    if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
+        log.logError("Error issuing INSERT statement [%s]", PQerrorMessage(dbConnection));
+        PQclear(queryResult);
+        PQfinish(dbConnection);
+        throw new Exception("Error issuing INSERT statement");
+    }
+    else {
+        log.logInfo("Successfully INSERTed record to database.");
+    }
 
-	PQclear(queryResult);
+    PQclear(queryResult);
 
-	queryResult = PQexec(dbConnection, "END");
-	PQclear(queryResult);
+    queryResult = PQexec(dbConnection, "END");
+    PQclear(queryResult);
 
-	log.logDebug("Closed DB transaction");
+    log.logDebug("Closed DB transaction");
 
-	PQfinish(dbConnection);
+    PQfinish(dbConnection);
 
-	log.logDebug("PQfinish()");
+    log.logDebug("PQfinish()");
 }
 
 uint16_t BackupManager::backup(PostData * pPostData)
 {
-    uint16_t            rtn = BACKUP_FAILED_DATA_LOST;
+    uint16_t            rtn = BACKUP_NOT_REQUIRED_SKIPPED;
 
-    try {
-        writeDBRecord(this->pszPrimaryDBHost, this->pszPrimaryDBName, pPostData);
-
-        log.logInfo("Written backup record to primary DB %s on %s", this->pszPrimaryDBName, this->pszPrimaryDBHost);
-
-        rtn = BACKUP_COMPLETE_PRIMARY_DB;
-    }
-    catch (Exception * e) {
-        log.logError("Failed to insert to primary database, maybe network error?");
-        log.logInfo("Insert to secndary DB instance instead, you will need to reconcile later...");
-
+    /*
+    ** Only save a backup if we tried to tell the
+    ** web server to save...
+    */
+    if (pPostData->isDoSave()) {
         try {
-            writeDBRecord(this->pszSecondaryDBHost, this->pszSecondaryDBName, pPostData);
+            writeDBRecord(this->pszPrimaryDBHost, this->pszPrimaryDBName, pPostData);
 
-            log.logInfo("Written backup record to secondary DB %s on %s", this->pszSecondaryDBName, this->pszSecondaryDBHost);
+            log.logInfo("Written backup record to primary DB %s on %s", this->pszPrimaryDBName, this->pszPrimaryDBHost);
 
-            rtn = BACKUP_COMPLETE_SECONDARY_DB;
+            rtn = BACKUP_COMPLETE_PRIMARY_DB;
         }
-        catch (Exception * e2) {
-            log.logError("Failed to insert to secondary database, check your configuration!");
-            log.logInfo("Writing to CSV file %s, you will need to reconcile later...", this->pszCSVFileName);
+        catch (Exception * e) {
+            log.logError("Failed to insert to primary database, maybe network error?");
+            log.logInfo("Insert to secndary DB instance instead, you will need to reconcile later...");
 
             try {
-                writeCSVRecord(pPostData);
+                writeDBRecord(this->pszSecondaryDBHost, this->pszSecondaryDBName, pPostData);
 
-                rtn = BACKUP_COMPLETE_CSV;
+                log.logInfo("Written backup record to secondary DB %s on %s", this->pszSecondaryDBName, this->pszSecondaryDBHost);
+
+                rtn = BACKUP_COMPLETE_SECONDARY_DB;
             }
-            catch (Exception * e3) {
-                log.logError("Failed to write to CSV file %s, out of options!!", this->pszCSVFileName);
-                log.logInfo("Data will be lost!");
+            catch (Exception * e2) {
+                log.logError("Failed to insert to secondary database, check your configuration!");
+                log.logInfo("Writing to CSV file %s, you will need to reconcile later...", this->pszCSVFileName);
 
-                rtn = BACKUP_FAILED_DATA_LOST;
+                try {
+                    writeCSVRecord(pPostData);
+
+                    rtn = BACKUP_COMPLETE_CSV;
+                }
+                catch (Exception * e3) {
+                    log.logError("Failed to write to CSV file %s, out of options!!", this->pszCSVFileName);
+                    log.logInfo("Data will be lost!");
+
+                    rtn = BACKUP_FAILED_DATA_LOST;
+                }
             }
         }
     }
