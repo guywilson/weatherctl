@@ -120,7 +120,10 @@ void WebConnector::queryConfig()
 
 	pszToken = cfg.getValueAsCstr(keys[5]);
 	log.logDebug("Got '%s' as '%s'", keys[5], pszToken);
-	strcpy(this->szDocRoot, pszToken);
+	strcpy(this->szHTMLDocRoot, pszToken);
+	strcat(this->szHTMLDocRoot, "/html");
+	strcpy(this->szCSSDocRoot, pszToken);
+	strcat(this->szCSSDocRoot, "/css");
 
 	this->isConfigured = true;
 }

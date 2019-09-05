@@ -163,7 +163,7 @@ void avrViewHandler(struct mg_connection * connection, int event, void * p)
 			if (strncmp(pszMethod, "GET", 3) == 0) {
 				WebConnector & web = WebConnector::getInstance();
 
-				struct mg_serve_http_opts opts = { .document_root = web.getDocRoot() };
+				struct mg_serve_http_opts opts = { .document_root = web.getHTMLDocRoot() };
 
 				log.logInfo("Serving file '%s'", pszURI);
 
@@ -215,7 +215,9 @@ void cssHandler(struct mg_connection * connection, int event, void * p)
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 
 			if (strncmp(pszMethod, "GET", 3) == 0) {
-				struct mg_serve_http_opts opts = { .document_root = "./resources" };
+				WebConnector & web = WebConnector::getInstance();
+
+				struct mg_serve_http_opts opts = { .document_root = web.getCSSDocRoot() };
 
 				log.logInfo("Serving file '%s'", pszURI);
 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <curl/curl.h>
 
 #include "mongoose.h"
@@ -97,7 +98,8 @@ private:
 	bool			isSecure = false;
 	char			szListenPort[8];
 	char			szBasePath[128];
-	char			szDocRoot[256];
+	char			szHTMLDocRoot[PATH_MAX];
+	char			szCSSDocRoot[PATH_MAX];
 	char			szCurlError[CURL_ERROR_SIZE];
 
 	bool			isConfigured = false;
@@ -126,8 +128,12 @@ public:
 	int			getPort() {
 		return this->port;
 	}
-	char *		getDocRoot() {
-		return this->szDocRoot;
+
+	char *		getHTMLDocRoot() {
+		return this->szHTMLDocRoot;
+	}
+	char *		getCSSDocRoot() {
+		return this->szCSSDocRoot;
 	}
 };
 
