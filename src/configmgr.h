@@ -24,8 +24,6 @@ private:
 
     ConfigManager() {}
 
-    void getCFG();
-
 public:
     ~ConfigManager() {}
 

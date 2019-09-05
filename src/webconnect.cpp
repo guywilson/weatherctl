@@ -165,6 +165,9 @@ int WebConnector::postTPH(PostData * pPostData)
 
 	log.logDebug("Posting to %s [%s]", szWebPath, szBody);
 
+	/*
+	** Custom headers for JSON...
+	*/
 	struct curl_slist *headers = NULL;
 	headers = curl_slist_append(headers, "Accept: application/json");
 	headers = curl_slist_append(headers, "Content-Type: application/json");
