@@ -40,13 +40,13 @@ char * str_trim_leading(const char * str)
         }
 
         if (i > 0) {
-            startPos = i - 1;
+            startPos = i;
         }
         else {
             endPos += 1;
         }
 
-        return strndup(&str[startPos], endPos - 1);
+        return strndup(&str[startPos], endPos);
     }
     else {
         return NULL;
