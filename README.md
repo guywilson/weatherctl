@@ -13,7 +13,6 @@ Options:
   -cfg  <config file>   Absolute path to the config file, defaults to webconfig.cfg in the root directory
   -d                    Daemonise the application, -log must be specified if this option is used
   -log  <log file>      Absolute path to the log file
-  -lock <lock file>     Absolute path to the PID lock file (prevents the daemon being loaded twice)
   -h/?                  Displays usage info
 ```
 
