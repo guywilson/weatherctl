@@ -105,7 +105,7 @@ void ConfigManager::readConfig()
                 if (delimPos) {
                     valueLen = strlen(pszConfigLine) - delimPos;
 
-                    for (j = delimPos + 1;j < strlen(pszConfigLine);j++) {
+                    for (j = delimPos + 1;j < (int)strlen(pszConfigLine);j++) {
                         if (pszConfigLine[j] == '#') {
                             valueLen = (j - delimPos - 1);
                             break;

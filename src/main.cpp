@@ -27,7 +27,7 @@
 #include "configmgr.h"
 
 #define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
-#define SERIAL_EMULATION
+//#define SERIAL_EMULATION
 
 using namespace std;
 
@@ -314,6 +314,16 @@ void handleSignal(int sigNum)
 				log.setLogLevel(level);
 			}
 			return;
+
+		case SIGUSR2:
+			/*
+			** We're interpreting this as a request to reload config...
+			*/
+			log.logInfo("Detected SIGUSR2, reloading config...");
+
+			ConfigManager & cfg = ConfigManager::getInstance();
+			cfg.readConfig();
+			return;
 	}
 
 	cleanup();
@@ -476,17 +486,22 @@ int main(int argc, char *argv[])
 	 * Register signal handler for cleanup...
 	 */
 	if (signal(SIGINT, &handleSignal) == SIG_ERR) {
-		log.logError("Failed to register signal handler for SIGINT\n");
+		log.logError("Failed to register signal handler for SIGINT");
 		return -1;
 	}
 
 	if (signal(SIGTERM, &handleSignal) == SIG_ERR) {
-		log.logError("Failed to register signal handler for SIGTERM\n");
+		log.logError("Failed to register signal handler for SIGTERM");
 		return -1;
 	}
 
 	if (signal(SIGUSR1, &handleSignal) == SIG_ERR) {
-		log.logError("Failed to register signal handler for SIGUSR1\n");
+		log.logError("Failed to register signal handler for SIGUSR1");
+		return -1;
+	}
+
+	if (signal(SIGUSR2, &handleSignal) == SIG_ERR) {
+		log.logError("Failed to register signal handler for SIGUSR2");
 		return -1;
 	}
 	
