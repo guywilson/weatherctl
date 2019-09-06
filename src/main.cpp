@@ -27,7 +27,7 @@
 #include "configmgr.h"
 
 #define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
-//#define SERIAL_EMULATION
+#define SERIAL_EMULATION
 
 using namespace std;
 
@@ -296,6 +296,24 @@ void handleSignal(int sigNum)
 		case SIGTERM:
 			log.logInfo("Detected SIGTERM, cleaning up...");
 			break;
+
+		case SIGUSR1:
+			/*
+			** We're interpreting this as a request to turn on/off debug logging...
+			*/
+			log.logInfo("Detected SIGUSR1...");
+
+			if (log.isLogLevel(LOG_LEVEL_DEBUG)) {
+				int level = log.getLogLevel();
+				level &= ~LOG_LEVEL_DEBUG;
+				log.setLogLevel(level);
+			}
+			else {
+				int level = log.getLogLevel();
+				level |= LOG_LEVEL_DEBUG;
+				log.setLogLevel(level);
+			}
+			return;
 	}
 
 	cleanup();
@@ -464,6 +482,11 @@ int main(int argc, char *argv[])
 
 	if (signal(SIGTERM, &handleSignal) == SIG_ERR) {
 		log.logError("Failed to register signal handler for SIGTERM\n");
+		return -1;
+	}
+
+	if (signal(SIGUSR1, &handleSignal) == SIG_ERR) {
+		log.logError("Failed to register signal handler for SIGUSR1\n");
 		return -1;
 	}
 	
