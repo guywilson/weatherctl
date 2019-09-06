@@ -323,6 +323,13 @@ void handleSignal(int sigNum)
 
 			ConfigManager & cfg = ConfigManager::getInstance();
 			cfg.readConfig();
+
+			/*
+			** The only thing we can change dynamically (at present)
+			** is the loging level...
+			*/
+			log.setLogLevel(cfg.getValueAsCstr("log.level"));
+			
 			return;
 	}
 

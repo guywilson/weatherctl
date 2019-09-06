@@ -36,14 +36,52 @@ void Logger::initLogger(const char * pszLogFileName, int logLevel)
     }
 }
 
-void Logger::initLogger(const char * pszLogFileName, const char * pszloggingLevel)
+void Logger::initLogger(const char * pszLogFileName, const char * pszLoggingLevel)
+{
+    initLogger(pszLogFileName, logLevel_atoi(pszLoggingLevel));
+}
+
+void Logger::initLogger(int logLevel)
+{
+    this->loggingLevel = logLevel;
+    this->lfp = stdout;
+}
+
+void Logger::closeLogger()
+{
+    if (lfp != stdout) {
+        fclose(lfp);
+    }
+}
+
+int Logger::getLogLevel()
+{
+    return this->loggingLevel;
+}
+
+void Logger::setLogLevel(int logLevel)
+{
+    this->loggingLevel = logLevel;
+}
+
+void Logger::setLogLevel(const char * pszLogLevel)
+{
+    this->loggingLevel = logLevel_atoi(pszLogLevel);
+}
+
+bool Logger::isLogLevel(int logLevel)
+{
+    return ((this->getLogLevel() & logLevel) == logLevel ? true : false);
+}
+
+int Logger::logLevel_atoi(const char * pszLoggingLevel)
 {
     char *          pszLogLevel;
     char *          pszToken;
     char *          reference;
     int             logLevel = 0;
 
-    pszLogLevel = strdup(pszloggingLevel);
+    pszLogLevel = strdup(pszLoggingLevel);
 
     reference = pszLogLevel;
 
@@ -70,35 +108,7 @@ void Logger::initLogger(const char * pszLogFileName, const char * pszloggingLeve
 
     free(pszLogLevel);
 
-    initLogger(pszLogFileName, logLevel);
-}
-
-void Logger::initLogger(int logLevel)
-{
-    this->loggingLevel = logLevel;
-    this->lfp = stdout;
-}
-
-void Logger::closeLogger()
-{
-    if (lfp != stdout) {
-        fclose(lfp);
-    }
-}
-
-int Logger::getLogLevel()
-{
-    return this->loggingLevel;
-}
-
-void Logger::setLogLevel(int logLevel)
-{
-    this->loggingLevel = logLevel;
-}
-
-bool Logger::isLogLevel(int logLevel)
-{
-    return ((this->getLogLevel() & logLevel) == logLevel ? true : false);
+    return logLevel;
 }
 
 int Logger::logMessage(int logLevel, bool addCR, const char * fmt, va_list args)

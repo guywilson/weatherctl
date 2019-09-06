@@ -34,19 +34,21 @@ private:
 
     CurrentTime     currentTime;
 
+    int             logLevel_atoi(const char * pszLoggingLevel);
     int             logMessage(int logLevel, bool addCR, const char * fmt, va_list args);
 
 public:
     ~Logger();
 
     void        initLogger(const char * pszLogFileName, int logLevel);
-    void        initLogger(const char * pszLogFileName, const char * pszLogLevel);
+    void        initLogger(const char * pszLogFileName, const char * pszLoggingLevel);
     void        initLogger(int logLevel);
     
     void        closeLogger();
 
     int         getLogLevel();
     void        setLogLevel(int logLevel);
+    void        setLogLevel(const char * pszLogLevel);
     bool        isLogLevel(int logLevel);
 
     void        newline();
