@@ -10,6 +10,10 @@
 #include "configmgr.h"
 #include "exception.h"
 
+extern "C" {
+#include "strutils.h"
+}
+
 using namespace std;
 
 void ConfigManager::initialise(char * pszConfigFileName)
@@ -25,11 +29,14 @@ void ConfigManager::readConfig()
 	char *			pszConfigLine;
     char *          pszKey;
     char *          pszValue;
+    char *          pszUntrimmedValue;
 	char *			config = NULL;
     char *          reference = NULL;
 	int				fileLength = 0;
 	int				bytesRead = 0;
     int             i;
+    int             j;
+    int             valueLen = 0;
     int             delimPos = 0;
 	const char *	delimiters = "\n\r";
 
@@ -89,10 +96,6 @@ void ConfigManager::readConfig()
 
         syslog(LOG_DEBUG, "Read %d chars of line '%s'", (int)strlen(pszConfigLine), pszConfigLine);
 
-        /*
-        ** Try and cope with weird error (seen on mac os when testing) where strtok()
-        ** returns some random chars if there is a new line at the end of the file...
-        */
         if (strlen(pszConfigLine) > 0) {
             for (i = 0;i < (int)strlen(pszConfigLine);i++) {
                 if (pszConfigLine[i] == '=') {
@@ -100,18 +103,24 @@ void ConfigManager::readConfig()
                     delimPos = i;
                 }
                 if (delimPos) {
-                    if (pszConfigLine[i] == '#' || pszConfigLine[i] == ' ') {
-                        pszValue = strndup(&pszConfigLine[delimPos + 1], i - delimPos);
-                        break;
+                    valueLen = strlen(pszConfigLine) - delimPos;
+
+                    for (j = delimPos + 1;j < strlen(pszConfigLine);j++) {
+                        if (pszConfigLine[j] == '#') {
+                            valueLen = (j - delimPos - 1);
+                            break;
+                        }
                     }
-                    else {
-                        pszValue = strndup(&pszConfigLine[delimPos + 1], strlen(pszConfigLine) - delimPos);
-                        break;
-                    }
+
+                    pszUntrimmedValue = strndup(&pszConfigLine[delimPos + 1], valueLen);
+                    pszValue = str_trim_trailing(pszUntrimmedValue);
+                    free(pszUntrimmedValue);
+                    break;
                 }
             }
 
             delimPos = 0;
+            valueLen = 0;
 
             syslog(LOG_DEBUG, "Got key '%s' and value '%s'", pszKey, pszValue);
 
@@ -153,7 +162,7 @@ const char * ConfigManager::getValueAsCstr(const char * key)
 void ConfigManager::dumpConfig()
 {
     readConfig();
-    
+
     for (auto it = values.cbegin(); it != values.cend(); ++it) {
         printf("'%s' = '%s'\n", it->first.c_str(), it->second.c_str());
     }

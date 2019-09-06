@@ -10,30 +10,8 @@
 #include "currenttime.h"
 #include "logger.h"
 
-static char * strtrim(const char * str)
-{
-    int             i = 0;
-    int             startPos = 0;
-    int             endPos = 0;
-
-    if (str != NULL) {
-        while (isspace(str[i++]));
-
-        if (i > 0) {
-            startPos = i - 1;
-        }
-
-        while (!isspace(str[i++]));
-
-        if (i > 0) {
-            endPos = i - 1;
-        }
-
-        return strndup(&str[startPos], endPos - 1);
-    }
-    else {
-        return NULL;
-    }
+extern "C" {
+#include "strutils.h"
 }
 
 Logger::~Logger()
@@ -69,7 +47,7 @@ void Logger::initLogger(const char * pszLogFileName, const char * pszloggingLeve
 
     reference = pszLogLevel;
 
-    pszToken = strtrim(strtok_r(pszLogLevel, "|", &reference));
+    pszToken = str_trim(strtok_r(pszLogLevel, "|", &reference));
 
     while (pszToken != NULL) {
         if (strncmp(pszToken, "LOG_LEVEL_INFO", 14) == 0) {
@@ -87,11 +65,11 @@ void Logger::initLogger(const char * pszLogFileName, const char * pszloggingLeve
 
         free(pszToken);
 
-        pszToken = strtrim(strtok_r(NULL, "|", &reference));
+        pszToken = str_trim(strtok_r(NULL, "|", &reference));
     }
 
     free(pszLogLevel);
-    
+
     initLogger(pszLogFileName, logLevel);
 }
 
