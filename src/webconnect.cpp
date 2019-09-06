@@ -123,7 +123,6 @@ void WebConnector::queryConfig()
 	strcpy(this->szHTMLDocRoot, pszToken);
 	strcat(this->szHTMLDocRoot, "/html");
 	strcpy(this->szCSSDocRoot, pszToken);
-	strcat(this->szCSSDocRoot, "/css");
 
 	this->isConfigured = true;
 }
