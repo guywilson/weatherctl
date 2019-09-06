@@ -340,7 +340,6 @@ void handleSignal(int sigNum)
 
 void daemonise()
 {
-	FILE *			fptr_pid;
 	pid_t			pid;
 	pid_t			sid;
 
@@ -382,18 +381,6 @@ void daemonise()
 		exit(EXIT_FAILURE);
 	}
 	
-	fptr_pid = fopen("wctl.pid", "wt");
-	
-	if (fptr_pid == NULL) {
-		fprintf(stderr, "Failed top open PID file\n");
-		fflush(stderr);
-		exit(EXIT_FAILURE);
-	}
-	
-	fprintf(fptr_pid, "%d\n", getpid());
-	
-	fclose(fptr_pid);
-
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
@@ -414,11 +401,13 @@ void printUsage(char * pszAppName)
 
 int main(int argc, char *argv[])
 {
+	FILE *			fptr_pid;
 	char *			pszPort = NULL;
 	char *			pszBaud = NULL;
 	char *			pszAppName;
 	char *			pszLogFileName = NULL;
 	char *			pszConfigFileName = NULL;
+	char			szPidFileName[PATH_MAX];
 	int				i;
 	bool			isDaemonised = false;
 	char			cwd[PATH_MAX];
@@ -426,6 +415,9 @@ int main(int argc, char *argv[])
 	pszAppName = strdup(argv[0]);
 
 	getcwd(cwd, sizeof(cwd));
+	
+	strcpy(szPidFileName, cwd);
+	strcat(szPidFileName, "/wctl.pid");
 
 	printf("Running %s from %s\n\n", pszAppName, cwd);
 
@@ -467,7 +459,19 @@ int main(int argc, char *argv[])
 	if (isDaemonised) {
 		daemonise();
 	}
+
+	fptr_pid = fopen(szPidFileName, "wt");
 	
+	if (fptr_pid == NULL) {
+		fprintf(stderr, "Failed top open PID file\n");
+		fflush(stderr);
+		exit(EXIT_FAILURE);
+	}
+	
+	fprintf(fptr_pid, "%d\n", getpid());
+	
+	fclose(fptr_pid);
+
 	openlog(pszAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
 	syslog(LOG_INFO, "Started %s", pszAppName);
 
