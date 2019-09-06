@@ -340,6 +340,7 @@ void handleSignal(int sigNum)
 
 void daemonise()
 {
+	FILE *			fptr_pid;
 	pid_t			pid;
 	pid_t			sid;
 
@@ -380,6 +381,18 @@ void daemonise()
 		fflush(stderr);
 		exit(EXIT_FAILURE);
 	}
+	
+	fptr_pid = fopen("wctl.pid", "wt");
+	
+	if (fptr_pid == NULL) {
+		fprintf(stderr, "Failed top open PID file\n");
+		fflush(stderr);
+		exit(EXIT_FAILURE);
+	}
+	
+	fprintf(fptr_pid, "%d\n", getpid());
+	
+	fclose(fptr_pid);
 
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
