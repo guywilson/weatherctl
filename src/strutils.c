@@ -35,10 +35,15 @@ char * str_trim_leading(const char * str)
     if (str != NULL) {
         endPos = strlen(str);
 
-        while (isspace(str[i++]) && i < endPos);
+        while (isspace(str[i]) && i < endPos) {
+            i++;
+        }
 
         if (i > 0) {
             startPos = i - 1;
+        }
+        else {
+            endPos += 1;
         }
 
         return strndup(&str[startPos], endPos - 1);
