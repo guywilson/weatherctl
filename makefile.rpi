@@ -89,7 +89,8 @@ $(WCTL): $(OBJFILES)
 $(TOGGLERST): $(BUILD)/toggle.o
 	$(C) -o $(TOGGLERST) $(BUILD)/toggle.o -lgpioc
 
-test: webtest
-
-webtest: $(BUILD)/exception.o $(BUILD)/currenttime.o $(BUILD)/webconnect.o
-	$(LINKER) -lstdc++ -o webtest $(BUILD)/exception.o $(BUILD)/currenttime.o $(BUILD)/webconnect.o
+install: $(WCTL)
+	cp $(WCTL) /usr/local/bin
+	cp wctl.cfg /etc/weatherctl
+	cp resources/css/*.css /var/www/css
+	cp resources/html/avr/cmd/*.html /var/www/html/avr/cmd

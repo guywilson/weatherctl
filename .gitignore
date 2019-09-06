@@ -7,3 +7,4 @@
 /*.txt
 /*.log
 wctl.lck
+wctl.pid

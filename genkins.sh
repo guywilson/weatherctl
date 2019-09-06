@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Check for git updates
+sudo -u guy git pull
+
+sudo -u guy make
+
+if [ $? -eq 0 ] ; then
+    echo "Build succeeded"
+
+    while IFS= read -r pid; do
+        echo "PID of wctl process is: $pid"
+    done < "wctl.pid"
+
+    kill $pid
+
+    make install
+else
+    echo "Build failed"
+    exit
+fi    
