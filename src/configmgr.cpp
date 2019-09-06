@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <syslog.h>
 
 #include <map>
 #include <vector>
@@ -35,7 +36,7 @@ void ConfigManager::readConfig()
 	fptr = fopen(szConfigFileName, "rt");
 
 	if (fptr == NULL) {
-		log.logError("Failed to open config file %s", szConfigFileName);
+		syslog(LOG_ERR, "Failed to open config file %s", szConfigFileName);
 		throw new Exception("ERROR reading config");
 	}
 
@@ -46,7 +47,7 @@ void ConfigManager::readConfig()
 	config = (char *)malloc(fileLength + 1);
 
 	if (config == NULL) {
-		log.logError("Failed to alocate %d bytes for config file %s", fileLength, szConfigFileName);
+		syslog(LOG_ERR, "Failed to alocate %d bytes for config file %s", fileLength, szConfigFileName);
 		throw new Exception("Failed to allocate memory for config.");
 	}
 
@@ -62,7 +63,7 @@ void ConfigManager::readConfig()
 	bytesRead = fread(config, 1, fileLength, fptr);
 
 	if (bytesRead != fileLength) {
-		log.logError("Read %d bytes, but config file %s is %d bytes long", bytesRead, szConfigFileName, fileLength);
+		syslog(LOG_ERR, "Read %d bytes, but config file %s is %d bytes long", bytesRead, szConfigFileName, fileLength);
 		throw new Exception("Failed to read in config file.");
 	}
 
@@ -73,7 +74,7 @@ void ConfigManager::readConfig()
     */
     config[fileLength] = 0;
 
-	log.logInfo("Read %d bytes from config file %s", bytesRead, szConfigFileName);
+	syslog(LOG_INFO, "Read %d bytes from config file %s", bytesRead, szConfigFileName);
 
 	pszConfigLine = strtok_r(config, delimiters, &reference);
 
@@ -86,7 +87,7 @@ void ConfigManager::readConfig()
             continue;
         }
 
-        log.logDebug("Read %d chars of line '%s'", strlen(pszConfigLine), pszConfigLine);
+        syslog(LOG_DEBUG, "Read %d chars of line '%s'", (int)strlen(pszConfigLine), pszConfigLine);
 
         /*
         ** Try and cope with weird error (seen on mac os when testing) where strtok()
@@ -112,7 +113,7 @@ void ConfigManager::readConfig()
 
             delimPos = 0;
 
-            log.logDebug("Got key '%s' and value '%s'", pszKey, pszValue);
+            syslog(LOG_DEBUG, "Got key '%s' and value '%s'", pszKey, pszValue);
 
             values[string(pszKey)] = string(pszValue);
 
@@ -147,4 +148,13 @@ string & ConfigManager::getValue(const char * key)
 const char * ConfigManager::getValueAsCstr(const char * key)
 {
     return getValue(key).c_str();
+}
+
+void ConfigManager::dumpConfig()
+{
+    readConfig();
+    
+    for (auto it = values.cbegin(); it != values.cend(); ++it) {
+        printf("'%s' = '%s'\n", it->first.c_str(), it->second.c_str());
+    }
 }

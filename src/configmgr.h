@@ -1,8 +1,6 @@
 #include <map>
 #include <vector>
 
-#include "logger.h"
-
 using namespace std;
 
 #ifndef _INCL_CONFIGMGR
@@ -19,7 +17,6 @@ public:
 private:
     char                    szConfigFileName[PATH_MAX];
     map<string, string>     values;
-	Logger & log =          Logger::getInstance();
     bool                    isConfigured = false;
 
     ConfigManager() {}
@@ -33,6 +30,8 @@ public:
     string &                getValue(string key);
     string &                getValue(const char * key);
     const char *            getValueAsCstr(const char * key);
+
+    void                    dumpConfig();
 };
 
 #endif

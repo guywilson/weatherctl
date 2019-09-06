@@ -366,8 +366,8 @@ void printUsage(char * pszAppName)
 
 int main(int argc, char *argv[])
 {
-	char			szPort[128];
-	char			szBaud[8];
+	char *			pszPort = NULL;
+	char *			pszBaud = NULL;
 	char *			pszAppName;
 	char *			pszLogFileName = NULL;
 	char *			pszConfigFileName = NULL;
@@ -385,10 +385,10 @@ int main(int argc, char *argv[])
 		for (i = 1;i < argc;i++) {
 			if (argv[i][0] == '-') {
 				if (strcmp(&argv[i][1], "port") == 0) {
-					strcpy(szPort, &argv[++i][0]);
+					pszPort = strdup(&argv[++i][0]);
 				}
 				else if (strcmp(&argv[i][1], "baud") == 0) {
-					strcpy(szBaud, &argv[++i][0]);
+					pszBaud = strdup(&argv[++i][0]);
 				}
 				else if (argv[i][1] == 'd') {
 					isDaemonised = true;
@@ -423,6 +423,16 @@ int main(int argc, char *argv[])
 	openlog(pszAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
 	syslog(LOG_INFO, "Started %s", pszAppName);
 
+	ConfigManager & mgr = ConfigManager::getInstance();
+	
+	mgr.initialise(pszConfigFileName);
+
+	if (pszConfigFileName != NULL) {
+		free(pszConfigFileName);
+	}
+
+//	mgr.dumpConfig();
+
 	Logger & log = Logger::getInstance();
 
 	if (pszLogFileName != NULL) {
@@ -430,15 +440,18 @@ int main(int argc, char *argv[])
 		free(pszLogFileName);
 	}
 	else {
-		log.initLogger(LOG_LEVEL);
-	}
+		const char * filename = mgr.getValueAsCstr("log.filename");
+		const char * level = mgr.getValueAsCstr("log.level");
 
-	ConfigManager & mgr = ConfigManager::getInstance();
-	
-	mgr.initialise(pszConfigFileName);
-
-	if (pszConfigFileName != NULL) {
-		free(pszConfigFileName);
+		if (strlen(filename) == 0 && strlen(level) == 0) {
+			log.initLogger(LOG_LEVEL);
+		}
+		else if (strlen(level) == 0) {
+			log.initLogger(filename, LOG_LEVEL);
+		}
+		else {
+			log.initLogger(filename, level);
+		}
 	}
 
 	/*
@@ -464,7 +477,15 @@ int main(int argc, char *argv[])
 #endif
 
 	try {
-		port.openPort(szPort, SerialPort::mapBaudRate(atoi(szBaud)), false);
+		if (pszPort != NULL) {
+			port.openPort(pszPort, SerialPort::mapBaudRate(atoi(pszBaud)), false);
+		}
+		else {
+			port.openPort(
+					mgr.getValueAsCstr("serial.port"), 
+					SerialPort::mapBaudRate(atoi(mgr.getValueAsCstr("serial.baud"))), 
+					false);
+		}
 	}
 	catch (Exception * e) {
 		log.logFatal("Failed to open serial port %s", e->getMessage().c_str());

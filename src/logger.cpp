@@ -5,16 +5,43 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <ctype.h>
 
 #include "currenttime.h"
 #include "logger.h"
+
+static char * strtrim(const char * str)
+{
+    int             i = 0;
+    int             startPos = 0;
+    int             endPos = 0;
+
+    if (str != NULL) {
+        while (isspace(str[i++]));
+
+        if (i > 0) {
+            startPos = i - 1;
+        }
+
+        while (!isspace(str[i++]));
+
+        if (i > 0) {
+            endPos = i - 1;
+        }
+
+        return strndup(&str[startPos], endPos - 1);
+    }
+    else {
+        return NULL;
+    }
+}
 
 Logger::~Logger()
 {
     closeLogger();
 }
 
-void Logger::initLogger(char * pszLogFileName, int logLevel)
+void Logger::initLogger(const char * pszLogFileName, int logLevel)
 {
     this->loggingLevel = logLevel;
 
@@ -29,6 +56,43 @@ void Logger::initLogger(char * pszLogFileName, int logLevel)
     else {
         this->lfp = stdout;
     }
+}
+
+void Logger::initLogger(const char * pszLogFileName, const char * pszloggingLevel)
+{
+    char *          pszLogLevel;
+    char *          pszToken;
+    char *          reference;
+    int             logLevel = 0;
+
+    pszLogLevel = strdup(pszloggingLevel);
+
+    reference = pszLogLevel;
+
+    pszToken = strtrim(strtok_r(pszLogLevel, "|", &reference));
+
+    while (pszToken != NULL) {
+        if (strncmp(pszToken, "LOG_LEVEL_INFO", 14) == 0) {
+            logLevel |= LOG_LEVEL_INFO;
+        }
+        else if (strncmp(pszToken, "LOG_LEVEL_DEBUG", 15) == 0) {
+            logLevel |= LOG_LEVEL_DEBUG;
+        }
+        else if (strncmp(pszToken, "LOG_LEVEL_ERROR", 15) == 0) {
+            logLevel |= LOG_LEVEL_ERROR;
+        }
+        else if (strncmp(pszToken, "LOG_LEVEL_FATAL", 15) == 0) {
+            logLevel |= LOG_LEVEL_FATAL;
+        }
+
+        free(pszToken);
+
+        pszToken = strtrim(strtok_r(NULL, "|", &reference));
+    }
+
+    free(pszLogLevel);
+    
+    initLogger(pszLogFileName, logLevel);
 }
 
 void Logger::initLogger(int logLevel)

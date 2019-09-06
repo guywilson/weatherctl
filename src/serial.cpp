@@ -67,7 +67,7 @@ SerialPort::~SerialPort()
 	closePort();
 }
 
-void SerialPort::_openSerialPort(char * pszPort, int baudRate, bool isBlocking)
+void SerialPort::_openSerialPort(const char * pszPort, int baudRate, bool isBlocking)
 {
 	char				szExceptionText[1024];
 	int					flags;
@@ -127,7 +127,7 @@ void SerialPort::_openSerialPort(char * pszPort, int baudRate, bool isBlocking)
 	}
 }
 
-void SerialPort::openPort(char * pszPort, int baudRate, bool isBlocking)
+void SerialPort::openPort(const char * pszPort, int baudRate, bool isBlocking)
 {
 	if (!isEmulationMode) {
 		_openSerialPort(pszPort, baudRate, isBlocking);

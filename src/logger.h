@@ -39,7 +39,8 @@ private:
 public:
     ~Logger();
 
-    void        initLogger(char * pszLogFileName, int logLevel);
+    void        initLogger(const char * pszLogFileName, int logLevel);
+    void        initLogger(const char * pszLogFileName, const char * pszLogLevel);
     void        initLogger(int logLevel);
     
     void        closeLogger();
