@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
 		free(pszConfigFileName);
 	}
 
-	mgr.dumpConfig();
+//	mgr.dumpConfig();
 
 	Logger & log = Logger::getInstance();
 
