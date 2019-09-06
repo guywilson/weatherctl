@@ -10,9 +10,9 @@ if [ $? -eq 0 ] ; then
 
     while IFS= read -r pid; do
         echo "PID of wctl process is: $pid"
-    done < "wctl.pid"
 
-    kill $pid
+        kill $pid
+    done < "wctl.pid"
 
     make install
 else
