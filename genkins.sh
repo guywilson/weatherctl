@@ -15,6 +15,8 @@ if [ $? -eq 0 ] ; then
     done < "wctl.pid"
 
     make install
+
+    wctl -d -cfg /etc/weatherctl/wctl.cfg
 else
     echo "Build failed"
     exit
