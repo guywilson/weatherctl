@@ -46,8 +46,8 @@ void * txCmdThread(void * pArgs)
 	int				bytesRead;
 	int				writeLen;
 	int 				i;
-	uint8_t				data[MAX_RESPONSE_MESSAGE_LENGTH];
 	bool				go = true;
+	uint8_t				data[MAX_RESPONSE_MESSAGE_LENGTH];
 	uint8_t				frame[MAX_REQUEST_MESSAGE_LENGTH];
 
 	Logger & log = Logger::getInstance();
