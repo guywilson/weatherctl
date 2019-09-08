@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
 	char *			pszLogFileName = NULL;
 	char *			pszConfigFileName = NULL;
 	char			szPidFileName[PATH_MAX];
-	int				i;
+	int			i;
 	bool			isDaemonised = false;
 	char			cwd[PATH_MAX];
 
