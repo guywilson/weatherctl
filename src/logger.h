@@ -9,6 +9,9 @@
 
 #define MAX_LOG_LENGTH          250
 
+/*
+** Supported log levels...
+*/
 #define LOG_LEVEL_INFO          0x01
 #define LOG_LEVEL_DEBUG         0x02
 #define LOG_LEVEL_ERROR         0x04
