@@ -71,4 +71,4 @@ fi
 
 # Restart the process...
 echo -e ${ACTION}Restarting wctl process...${NOCOLOR}
-sudo -u guy wctl -d -cfg /etc/weatherctl/wctl.cfg
+wctl -d -cfg /etc/weatherctl/wctl.cfg
