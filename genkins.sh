@@ -6,12 +6,17 @@ READY='\033[1;92m'
 NOCOLOR='\033[0m' # No Color
 ERROR='\033[0;31m'
 
+TIMESTAMP=$(date)
+
+echo
+echo -e ${ACTION}Running build script at ${TIMESTAMP}${NOCOLOR}
+
 # Check for git updates
 echo
 echo -e ${ACTION}Checking Git repo
 echo -e =======================${NOCOLOR}
 
-BRANCH=$(sudo -u git rev-parse --abbrev-ref HEAD)
+BRANCH=$(sudo -u guy git rev-parse --abbrev-ref HEAD)
 if [ "$BRANCH" != "master" ] ; then
     echo -e ${ERROR}Not on master. Aborting. ${NOCOLOR}
     echo
