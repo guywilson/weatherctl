@@ -43,12 +43,12 @@ void * txCmdThread(void * pArgs)
 	uint32_t			txMinTPH = 1;
 	uint32_t			txMaxTPH = 2;
 	uint32_t			txResetMinMax;
-	int					bytesRead;
+	int				bytesRead;
+	int				writeLen;
+	int 				i;
 	uint8_t				data[MAX_RESPONSE_MESSAGE_LENGTH];
 	bool				go = true;
 	uint8_t				frame[MAX_REQUEST_MESSAGE_LENGTH];
-	int					writeLen;
-	int 				i;
 
 	Logger & log = Logger::getInstance();
 
