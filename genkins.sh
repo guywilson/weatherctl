@@ -18,9 +18,9 @@ if [ "$BRANCH" != "master" ] ; then
     exit 0
 fi
 
-git fetch
-HEADHASH=$(sudo -u git rev-parse HEAD)
-UPSTREAMHASH=$(sudo -u git rev-parse master@{upstream})
+sudo -u guy git fetch
+HEADHASH=$(sudo -u guy git rev-parse HEAD)
+UPSTREAMHASH=$(sudo -u guy git rev-parse master@{upstream})
 
 if [ "$HEADHASH" != "$UPSTREAMHASH" ] ; then
     echo -e ${ACTION}Not up to date with origin. Pull from remote${NOCOLOR}
@@ -66,4 +66,4 @@ fi
 
 # Restart the process...
 echo -e ${ACTION}Restarting wctl process...${NOCOLOR}
-wctl -d -cfg /etc/weatherctl/wctl.cfg
+sudo -u guy wctl -d -cfg /etc/weatherctl/wctl.cfg
