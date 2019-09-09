@@ -217,7 +217,7 @@ void processResponse(uint8_t * response, int responseLength)
 
 				log.logDebug("Got AVG data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
 
-				qmgr.pushWebPost(new PostData("AVG", avgSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
+				qmgr.pushWebPost(new PostDataTPH("AVG", avgSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
 				avgCount++;
 
 				/*
@@ -248,7 +248,7 @@ void processResponse(uint8_t * response, int responseLength)
 					maxSave = true;
 				}
 
-				qmgr.pushWebPost(new PostData("MAX", maxSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
+				qmgr.pushWebPost(new PostDataTPH("MAX", maxSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
 
 				maxSave = false;
 				break;
@@ -269,7 +269,7 @@ void processResponse(uint8_t * response, int responseLength)
 					minSave = true;
 				}
 
-				qmgr.pushWebPost(new PostData("MIN", minSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
+				qmgr.pushWebPost(new PostDataTPH("MIN", minSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
 
 				minSave = false;
 				break;

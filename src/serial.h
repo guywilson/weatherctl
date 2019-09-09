@@ -37,10 +37,8 @@ private:
 public:
 						~SerialPort();
 
-	void 				openPort(const char * pszPort, int baudRate, bool isBlocking);
+	void 				openPort(const char * pszPort, int baudRate, bool isBlocking, bool isEmulation);
 	void				closePort();
-
-	void				setEmulationMode();
 
 	void				setExpectedBytes(int size);
 

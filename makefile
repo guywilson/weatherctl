@@ -38,7 +38,7 @@ all: $(WCTL) $(TOGGLERST)
 
 # Compile C source files
 #
-$(BUILD)/main.o: $(SOURCE)/main.cpp $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/currenttime.h
+$(BUILD)/main.o: $(SOURCE)/main.cpp $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/currenttime.h $(SOURCE)/webconnect.h $(SOURCE)/queuemgr.h $(SOURCE)/backup.h $(SOURCE)/views.h $(SOURCE)/configmgr.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/main.o $(SOURCE)/main.cpp
 
 $(BUILD)/serial.o: $(SOURCE)/serial.cpp $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h
@@ -68,28 +68,29 @@ $(BUILD)/queuemgr.o: $(SOURCE)/queuemgr.cpp $(SOURCE)/queuemgr.h $(SOURCE)/excep
 $(BUILD)/views.o: $(SOURCE)/views.cpp $(SOURCE)/views.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/queuemgr.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/views.o $(SOURCE)/views.cpp
 
-$(BUILD)/webconnect.o: $(SOURCE)/webconnect.cpp $(SOURCE)/webconnect.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/currenttime.h
+$(BUILD)/webconnect.o: $(SOURCE)/webconnect.cpp $(SOURCE)/webconnect.h $(SOURCE)/avrweather.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/currenttime.h $(SOURCE)/queuemgr.h $(SOURCE)/backup.h $(SOURCE)/configmgr.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/webconnect.o $(SOURCE)/webconnect.cpp
 
 $(BUILD)/exception.o: $(SOURCE)/exception.cpp $(SOURCE)/exception.h $(SOURCE)/types.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/exception.o $(SOURCE)/exception.cpp
 
-$(BUILD)/strutils.o: $(SOURCE)/strutils.c
+$(BUILD)/strutils.o: $(SOURCE)/strutils.c $(SOURCE)/strutils.h
 	$(C) $(CFLAGS) -o $(BUILD)/strutils.o $(SOURCE)/strutils.c
 
-$(BUILD)/mongoose.o: $(SOURCE)/mongoose.c
+$(BUILD)/mongoose.o: $(SOURCE)/mongoose.c $(SOURCE)/mongoose.h
 	$(C) $(CFLAGS) $(MGFLAGS) -o $(BUILD)/mongoose.o $(SOURCE)/mongoose.c
 
 $(BUILD)/toggle.o: $(SOURCE)/toggle.c
 	$(C) $(CFLAGS) -o $(BUILD)/toggle.o $(SOURCE)/toggle.c
 
 $(WCTL): $(OBJFILES)
-	$(LINKER) -lpthread -lgpioc -lpq -lcurl -lstdc++ -o $(WCTL) $(OBJFILES)
+	$(LINKER) -pthread -lstdc++ -o $(WCTL) $(OBJFILES) -lgpioc -lpq -lcurl
 
 $(TOGGLERST): $(BUILD)/toggle.o
-	$(C) -lgpioc -o $(TOGGLERST) $(BUILD)/toggle.o
+	$(C) -o $(TOGGLERST) $(BUILD)/toggle.o -lgpioc
 
-test: webtest
-
-webtest: $(BUILD)/exception.o $(BUILD)/currenttime.o $(BUILD)/webconnect.o
-	$(LINKER) -lstdc++ -o webtest $(BUILD)/exception.o $(BUILD)/currenttime.o $(BUILD)/webconnect.o
+install: $(WCTL)
+	cp $(WCTL) /usr/local/bin
+	cp wctl.cfg /etc/weatherctl
+	cp resources/css/*.css /var/www/css
+	cp resources/html/avr/cmd/*.html /var/www/html/avr/cmd

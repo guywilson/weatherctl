@@ -15,7 +15,33 @@
 #define WEB_PATH_MIN		"min-tph"
 #define WEB_PATH_MAX		"max-tph"
 
+#define CLASS_ID_BASE		0
+#define CLASS_ID_TPH		1
+
 class PostData
+{
+private:
+	CurrentTime		time;
+
+protected:
+
+public:
+	PostData() {
+	}
+
+	virtual ~PostData() {
+	}
+
+	char *			getTimestamp() {
+		return this->time.getTimeStamp();
+	}
+	virtual int				getClassID() {
+		return CLASS_ID_BASE;
+	}
+	virtual char *		getJSON() = 0;
+};
+
+class PostDataTPH : public PostData
 {
 private:
 	char 			szTemperature[20];
@@ -23,13 +49,13 @@ private:
 	char			szHumidity[20];
 	bool			doSave = false;
 	const char *	type;
-	CurrentTime		time;
+	const char *	jsonTemplate = "{\n\t\"time\": \"%s\",\n\t\"save\": \"%s\",\n\t\"temperature\": \"%s\",\n\t\"pressure\": \"%s\",\n\t\"humidity\": \"%s\"\n}";
 
 public:
-	PostData() {
+	PostDataTPH() {
 	}
 
-	PostData(const char * type, bool doSave, char * pszTemperature, char * pszPressure, char * pszHumidity) : PostData() {
+	PostDataTPH(const char * type, bool doSave, char * pszTemperature, char * pszPressure, char * pszHumidity) : PostDataTPH() {
 		strncpy(this->szTemperature, pszTemperature, sizeof(this->szTemperature));
 		strncpy(this->szPressure, pszPressure, sizeof(this->szPressure));
 		strncpy(this->szHumidity, pszHumidity, sizeof(this->szHumidity));
@@ -44,12 +70,29 @@ public:
 		memset(this->szHumidity, 0, sizeof(this->szHumidity));
 	}
 
-	~PostData() {
+	~PostDataTPH() {
 		clean();
 	}
 
-	char *			getTimestamp() {
-		return this->time.getTimeStamp();
+	int				getClassID() {
+		return CLASS_ID_TPH;
+	}
+	char *			getJSON()
+	{
+		char *		jsonBuffer;
+
+		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + sizeof(szTemperature) + sizeof(szPressure) + sizeof(szHumidity) + 12);
+
+		sprintf(
+			jsonBuffer,
+			jsonTemplate,
+			this->getTimestamp(),
+			this->isDoSave() ? "true" : "false",
+			this->getTemperature(),
+			this->getPressure(),
+			this->getHumidity());
+
+		return jsonBuffer;
 	}
 	const char *	getType() {
 		return this->type;
@@ -118,7 +161,7 @@ public:
 
 	void		initListener();
 
-	int			postTPH(PostData * pPostData);
+	int			postTPH(PostDataTPH * pPostData);
 	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));
 	void		listen();
 

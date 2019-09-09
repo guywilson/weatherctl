@@ -48,8 +48,8 @@ private:
 
     BackupManager() {}
     void            writeCSVHeader();
-    void            writeCSVRecord(PostData * pPostData);
-    void            writeDBRecord(const char * pszHost, const char * pszDbName, PostData * pPostData);
+    void            writeCSVRecord(PostDataTPH * pPostData);
+    void            writeDBRecord(const char * pszHost, const char * pszDbName, PostDataTPH * pPostData);
 
 public:
     ~BackupManager();
@@ -60,7 +60,7 @@ public:
     void            setupPrimaryDB(const char * pszHostname, const char * pszDBName);
     void            setupSecondaryDB(const char * pszHostname, const char * pszDBName);
 
-    uint16_t        backup(PostData * pPostData);
+    uint16_t        backup(PostDataTPH * pPostData);
 };
 
 #endif

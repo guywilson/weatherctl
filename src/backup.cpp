@@ -63,7 +63,7 @@ void BackupManager::writeCSVHeader()
     fflush(fptr_csv);
 }
 
-void BackupManager::writeCSVRecord(PostData * pPostData)
+void BackupManager::writeCSVRecord(PostDataTPH * pPostData)
 {
     FILE *      f;
     bool        isNewFile = false;
@@ -104,7 +104,7 @@ void BackupManager::writeCSVRecord(PostData * pPostData)
     fflush(fptr_csv);
 }
 
-void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, PostData * pPostData)
+void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, PostDataTPH * pPostData)
 {
 	char				szConnection[128];
 	PGresult *			queryResult;
@@ -175,7 +175,7 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
     log.logDebug("PQfinish()");
 }
 
-uint16_t BackupManager::backup(PostData * pPostData)
+uint16_t BackupManager::backup(PostDataTPH * pPostData)
 {
     uint16_t            rtn = BACKUP_NOT_REQUIRED_SKIPPED;
 

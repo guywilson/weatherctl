@@ -127,8 +127,10 @@ void SerialPort::_openSerialPort(const char * pszPort, int baudRate, bool isBloc
 	}
 }
 
-void SerialPort::openPort(const char * pszPort, int baudRate, bool isBlocking)
+void SerialPort::openPort(const char * pszPort, int baudRate, bool isBlocking, bool isEmulation)
 {
+	this->isEmulationMode = isEmulation;
+
 	if (!isEmulationMode) {
 		_openSerialPort(pszPort, baudRate, isBlocking);
 	}
@@ -137,11 +139,6 @@ void SerialPort::openPort(const char * pszPort, int baudRate, bool isBlocking)
 void SerialPort::closePort()
 {
 	close(fd);
-}
-
-void SerialPort::setEmulationMode()
-{
-	isEmulationMode = true;
 }
 
 void SerialPort::setExpectedBytes(int size)

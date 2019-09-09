@@ -27,7 +27,6 @@
 #include "configmgr.h"
 
 #define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
-//#define SERIAL_EMULATION
 
 using namespace std;
 
@@ -227,19 +226,29 @@ void * webPostThread(void * pArgs)
 		if (!qmgr.isWebPostQueueEmpty()) {
 			PostData * pPostData = qmgr.popWebPost();
 
-			log.logDebug("Posting %s data to %s", pPostData->getType(), web.getHost());
-			
-			rtn = web.postTPH(pPostData);
+			switch (pPostData->getClassID()) {
+				case CLASS_ID_TPH:
+					log.logDebug("Got TPH post data from queue...");
 
-			if (rtn < 0) {
-				log.logError("Error posting to web server");
-				log.logInfo("Attempting to backup data");
+					log.logDebug("Posting %s data to %s", ((PostDataTPH *)pPostData)->getType(), web.getHost());
+					
+					rtn = web.postTPH((PostDataTPH *)pPostData);
 
-				BackupManager & backup = BackupManager::getInstance();
-				backup.backup(pPostData);
-			}
-			else {
-				log.logInfo("Successfully posted to server");
+					if (rtn < 0) {
+						log.logError("Error posting to web server");
+						log.logInfo("Attempting to backup data");
+
+						BackupManager & backup = BackupManager::getInstance();
+						backup.backup((PostDataTPH *)pPostData);
+					}
+					else {
+						log.logInfo("Successfully posted to server");
+					}
+					break;
+
+				case CLASS_ID_BASE:
+					log.logDebug("Got BASE post data from queue...");
+					break;
 			}
 
 			rtn = 0;
@@ -534,19 +543,16 @@ int main(int argc, char *argv[])
 	 */
 	SerialPort & port = SerialPort::getInstance();
 
-#ifdef SERIAL_EMULATION
-	port.setEmulationMode();
-#endif
-
 	try {
 		if (pszPort != NULL) {
-			port.openPort(pszPort, SerialPort::mapBaudRate(atoi(pszBaud)), false);
+			port.openPort(pszPort, SerialPort::mapBaudRate(atoi(pszBaud)), false, false);
 		}
 		else {
 			port.openPort(
 					mgr.getValueAsCstr("serial.port"), 
 					SerialPort::mapBaudRate(atoi(mgr.getValueAsCstr("serial.baud"))), 
-					false);
+					(strcmp(mgr.getValueAsCstr("serial.isblocking"), "yes") == 0 || strcmp(mgr.getValueAsCstr("serial.isblocking"), "true") == 0) ? true : false,
+					(strcmp(mgr.getValueAsCstr("serial.isemulation"), "yes") == 0 || strcmp(mgr.getValueAsCstr("serial.isemulation"), "true") == 0) ? true : false);
 		}
 	}
 	catch (Exception * e) {

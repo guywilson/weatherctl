@@ -127,9 +127,9 @@ void WebConnector::queryConfig()
 	this->isConfigured = true;
 }
 
-int WebConnector::postTPH(PostData * pPostData)
+int WebConnector::postTPH(PostDataTPH * pPostData)
 {
-	char				szBody[128];
+	char *				pszBody;
 	char				szWebPath[256];
 	char				szPathSuffix[32];
 	CURLcode			result;
@@ -137,14 +137,7 @@ int WebConnector::postTPH(PostData * pPostData)
 	CurrentTime time;
 	Logger & log = Logger::getInstance();
 
-	sprintf(
-		szBody,
-		"{\n\t\"time\": \"%s\",\n\t\"save\": \"%s\",\n\t\"temperature\": \"%s\",\n\t\"pressure\": \"%s\",\n\t\"humidity\": \"%s\"\n}",
-		pPostData->getTimestamp(),
-		pPostData->isDoSave() ? "true" : "false",
-		pPostData->getTemperature(),
-		pPostData->getPressure(),
-		pPostData->getHumidity());
+	pszBody = pPostData->getJSON();
 
 	if (strcmp(pPostData->getType(), "AVG") == 0) {
 		strcpy(szPathSuffix, WEB_PATH_AVG);
@@ -165,7 +158,7 @@ int WebConnector::postTPH(PostData * pPostData)
 		this->szBasePath, 
 		szPathSuffix);
 
-	log.logDebug("Posting to %s [%s]", szWebPath, szBody);
+	log.logDebug("Posting to %s [%s]", szWebPath, pszBody);
 
 	/*
 	** Custom headers for JSON...
@@ -176,13 +169,15 @@ int WebConnector::postTPH(PostData * pPostData)
 	headers = curl_slist_append(headers, "charsets: utf-8");
 
 	curl_easy_setopt(pCurl, CURLOPT_URL, szWebPath);
-	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(szBody));
-	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, szBody);
+	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(pszBody));
+	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszBody);
     curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers); 
     curl_easy_setopt(pCurl, CURLOPT_USERAGENT, "libcrp/0.1");
 
 	result = curl_easy_perform(pCurl);
 
+	free(pszBody);
+	
 	if (result != CURLE_OK) {
 		log.logError("Failed to post to %s - Curl error [%s]", szWebPath, this->szCurlError);
 		return -1;
