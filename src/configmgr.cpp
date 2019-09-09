@@ -165,7 +165,7 @@ bool ConfigManager::getValueAsBoolean(const char * key)
 
     pszValue = getValueAsCstr(key);
 
-    return ((strcmp(pszValue, "yes") == 0 || strcmp(pszValue, "true") == 0) ? true : false);
+    return ((strcmp(pszValue, "yes") == 0 || strcmp(pszValue, "true") == 0 || strcmp(pszValue, "on") == 0) ? true : false);
 }
 
 int ConfigManager::getValueAsInteger(const char * key)
