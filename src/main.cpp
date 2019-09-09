@@ -545,14 +545,18 @@ int main(int argc, char *argv[])
 
 	try {
 		if (pszPort != NULL) {
-			port.openPort(pszPort, SerialPort::mapBaudRate(atoi(pszBaud)), false, false);
+			port.openPort(
+					pszPort, 
+					SerialPort::mapBaudRate(atoi(pszBaud)), 
+					false, 
+					false);
 		}
 		else {
 			port.openPort(
 					mgr.getValueAsCstr("serial.port"), 
-					SerialPort::mapBaudRate(atoi(mgr.getValueAsCstr("serial.baud"))), 
-					(strcmp(mgr.getValueAsCstr("serial.isblocking"), "yes") == 0 || strcmp(mgr.getValueAsCstr("serial.isblocking"), "true") == 0) ? true : false,
-					(strcmp(mgr.getValueAsCstr("serial.isemulation"), "yes") == 0 || strcmp(mgr.getValueAsCstr("serial.isemulation"), "true") == 0) ? true : false);
+					SerialPort::mapBaudRate(mgr.getValueAsInteger("serial.baud")), 
+					mgr.getValueAsBoolean("serial.isblocking"),
+					mgr.getValueAsBoolean("serial.isemulation"));
 		}
 	}
 	catch (Exception * e) {

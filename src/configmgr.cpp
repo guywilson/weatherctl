@@ -159,6 +159,24 @@ const char * ConfigManager::getValueAsCstr(const char * key)
     return getValue(key).c_str();
 }
 
+bool ConfigManager::getValueAsBoolean(const char * key)
+{
+    const char *        pszValue;
+
+    pszValue = getValueAsCstr(key);
+
+    return ((strcmp(pszValue, "yes") == 0 || strcmp(pszValue, "true") == 0) ? true : false);
+}
+
+int ConfigManager::getValueAsInteger(const char * key)
+{
+    const char *        pszValue;
+
+    pszValue = getValueAsCstr(key);
+
+    return atoi(pszValue);
+}
+
 void ConfigManager::dumpConfig()
 {
     readConfig();

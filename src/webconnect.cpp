@@ -104,7 +104,7 @@ void WebConnector::queryConfig()
 
 	pszToken = cfg.getValueAsCstr(keys[1]);
 	log.logDebug("Got '%s' as '%s'", keys[1], pszToken);
-	this->port = atoi(pszToken);
+	this->port = cfg.getValueAsInteger(keys[1]);
 
 	pszToken = cfg.getValueAsCstr(keys[2]);
 	log.logDebug("Got '%s' as '%s'", keys[2], pszToken);
@@ -112,7 +112,7 @@ void WebConnector::queryConfig()
 
 	pszToken = cfg.getValueAsCstr(keys[3]);
 	log.logDebug("Got '%s' as '%s'", keys[3], pszToken);
-	this->isSecure = (strcmp(pszToken, "yes") == 0 || strcmp(pszToken, "true") == 0) ? true : false;
+	this->isSecure = cfg.getValueAsBoolean(keys[3]);
 
 	pszToken = cfg.getValueAsCstr(keys[4]);
 	log.logDebug("Got '%s' as '%s'", keys[4], pszToken);
@@ -177,7 +177,7 @@ int WebConnector::postTPH(PostDataTPH * pPostData)
 	result = curl_easy_perform(pCurl);
 
 	free(pszBody);
-	
+
 	if (result != CURLE_OK) {
 		log.logError("Failed to post to %s - Curl error [%s]", szWebPath, this->szCurlError);
 		return -1;
