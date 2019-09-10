@@ -1,5 +1,5 @@
-#define __BDATE__      "2019-09-10 13:46:38"
-#define __BVERSION__   "1.2.009"
+#define __BDATE__      "2019-09-10 13:48:21"
+#define __BVERSION__   "1.2.007"
 
 const char * getWCTLVersion()
 {
