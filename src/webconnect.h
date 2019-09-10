@@ -20,6 +20,8 @@ extern "C" {
 #define WEB_PATH_MIN		"min-tph"
 #define WEB_PATH_MAX		"max-tph"
 
+#define WEB_PATH_VERSION	"version"
+
 #define CLASS_ID_BASE		0
 #define CLASS_ID_TPH		1
 #define CLASS_ID_VERSION	9
@@ -192,6 +194,7 @@ public:
 
 	void		initListener();
 
+	int			postVersion(PostDataVersion * pPostData);
 	int			postTPH(PostDataTPH * pPostData);
 	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));
 	void		listen();

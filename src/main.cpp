@@ -230,6 +230,11 @@ void * webPostThread(void * pArgs)
 	WebConnector & web = WebConnector::getInstance();
 	Logger & log = Logger::getInstance();
 
+	/*
+	** Post wctl version on startup...
+	*/
+	qmgr.pushWebPost(new PostDataVersion());
+
 	while (go) {
 		if (!qmgr.isWebPostQueueEmpty()) {
 			PostData * pPostData = qmgr.popWebPost();
