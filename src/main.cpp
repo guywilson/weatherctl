@@ -2,6 +2,8 @@
 **
 ** Main WCTL file...
 **
+** Contains the program entry point
+**
 ******************************************************************************/
 #include <iostream>
 #include <cstring>
