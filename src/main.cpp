@@ -261,6 +261,17 @@ void * webPostThread(void * pArgs)
 
 				case CLASS_ID_VERSION:
 					log.logDebug("Got VERSION post data from queue...");
+
+					log.logDebug("Posting version data to %s", web.getHost());
+
+					rtn = web.postVersion((PostDataVersion *)pPostData);
+
+					if (rtn < 0) {
+						log.logError("Error posting to web server");
+					}
+					else {
+						log.logInfo("Successfully posted to server");
+					}
 					break;
 
 				case CLASS_ID_BASE:

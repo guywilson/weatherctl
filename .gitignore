@@ -10,3 +10,5 @@ wctl.lck
 wctl.pid
 wctl.ver
 src/version.c
+vbuild
+
