@@ -22,6 +22,7 @@ extern "C" {
 
 #define CLASS_ID_BASE		0
 #define CLASS_ID_TPH		1
+#define CLASS_ID_VERSION	9
 
 class PostData
 {
@@ -52,6 +53,9 @@ private:
 	const char *	jsonTemplate = "{\n\t\"version\": \"%s\",\n\t\"buildDate\": \"%s\"\n}";
 
 public:
+	int				getClassID() {
+		return CLASS_ID_VERSION;
+	}
 	char *			getJSON()
 	{
 		char *		jsonBuffer;

@@ -32,6 +32,7 @@
 #include "views.h"
 #include "logger.h"
 #include "configmgr.h"
+#include "version.h"
 
 #define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
 
@@ -253,6 +254,10 @@ void * webPostThread(void * pArgs)
 					}
 					break;
 
+				case CLASS_ID_VERSION:
+					log.logDebug("Got VERSION post data from queue...");
+					break;
+
 				case CLASS_ID_BASE:
 					log.logDebug("Got BASE post data from queue...");
 					break;
@@ -407,6 +412,7 @@ void printUsage(char * pszAppName)
 	printf("\n Usage: %s [OPTIONS]\n\n", pszAppName);
 	printf("  Options:\n");
 	printf("   -h/?             Print this help\n");
+	printf("   -version         Print the program version\n");
 	printf("   -port device     Serial port device\n");
 	printf("   -baud baudrate   Serial port baud rate\n");
 	printf("   -cfg configfile  Specify the cfg file, default is ./webconfig.cfg\n");
@@ -457,6 +463,10 @@ int main(int argc, char *argv[])
 				}
 				else if (argv[i][1] == 'h' || argv[i][1] == '?') {
 					printUsage(pszAppName);
+					return 0;
+				}
+				else if (strcmp(&argv[i][1], "version") == 0) {
+					printf("%s Version: [%s], Build date: [%s]\n\n", pszAppName, getWCTLVersion(), getWCTLBuildDate());
 					return 0;
 				}
 				else {
