@@ -6,7 +6,12 @@
 
 #include "mongoose.h"
 #include "currenttime.h"
+#include "configmgr.h"
 #include "exception.h"
+
+extern "C" {
+#include "version.h"
+}
 
 #ifndef _INCL_WEBCONNECT
 #define _INCL_WEBCONNECT
@@ -39,6 +44,28 @@ public:
 		return CLASS_ID_BASE;
 	}
 	virtual char *		getJSON() = 0;
+};
+
+class PostDataVersion : public PostData
+{
+private:
+	const char *	jsonTemplate = "{\n\t\"version\": \"%s\",\n\t\"buildDate\": \"%s\"\n}";
+
+public:
+	char *			getJSON()
+	{
+		char *		jsonBuffer;
+
+		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + 80);
+
+		sprintf(
+			jsonBuffer,
+			jsonTemplate,
+			getWCTLVersion(),
+			getWCTLBuildDate());
+
+		return jsonBuffer;
+	}
 };
 
 class PostDataTPH : public PostData

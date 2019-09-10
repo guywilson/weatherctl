@@ -6,6 +6,10 @@
 #                                                                             #
 ###############################################################################
 
+# Version number for WCTL
+MAJOR_VERSION=1
+MINOR_VERSION=2
+
 # Source directory
 SOURCE=src
 
@@ -15,6 +19,7 @@ BUILD=build
 # What is our target
 WCTL=wctl
 TOGGLERST=toggle
+VBUILD=vbuild
 
 # C compiler
 CPP=g++
@@ -34,7 +39,7 @@ MGFLAGS=
 OBJFILES=$(BUILD)/main.o $(BUILD)/serial.o $(BUILD)/avrweather.o $(BUILD)/frame.o $(BUILD)/currenttime.o $(BUILD)/logger.o $(BUILD)/backup.o $(BUILD)/configmgr.o $(BUILD)/queuemgr.o $(BUILD)/webconnect.o $(BUILD)/views.o $(BUILD)/exception.o $(BUILD)/strutils.o $(BUILD)/mongoose.o
 
 # Target
-all: $(WCTL) $(TOGGLERST)
+all: $(WCTL) $(TOGGLERST) $(VBUILD)
 
 # Compile C source files
 #
@@ -83,11 +88,19 @@ $(BUILD)/mongoose.o: $(SOURCE)/mongoose.c $(SOURCE)/mongoose.h
 $(BUILD)/toggle.o: $(SOURCE)/toggle.c
 	$(C) $(CFLAGS) -o $(BUILD)/toggle.o $(SOURCE)/toggle.c
 
+$(BUILD)/vbuild.o: $(SOURCE)/vbuild.cpp $(SOURCE)/currenttime.h
+	$(CPP) $(CPPFLAGS) -o $(BUILD)/vbuild.o $(SOURCE)/vbuild.cpp
+
 $(WCTL): $(OBJFILES)
-	$(LINKER) -pthread -lstdc++ -o $(WCTL) $(OBJFILES) -lgpioc -lpq -lcurl
+	./$(VBUILD) -inc wctl.ver -out $(SOURCE)/version.c -major $(MAJOR_VERSION) -minor $(MINOR_VERSION)
+	$(C) $(CFLAGS) -o $(BUILD)/version.o $(SOURCE)/version.c
+	$(LINKER) -pthread -lstdc++ -o $(WCTL) $(OBJFILES) $(BUILD)/version.o -lgpioc -lpq -lcurl
 
 $(TOGGLERST): $(BUILD)/toggle.o
 	$(C) -o $(TOGGLERST) $(BUILD)/toggle.o -lgpioc
+
+vbuild: $(BUILD)/vbuild.o $(BUILD)/currenttime.o
+	$(LINKER) -o vbuild $(BUILD)/vbuild.o $(BUILD)/currenttime.o
 
 install: $(WCTL)
 	cp $(WCTL) /usr/local/bin
