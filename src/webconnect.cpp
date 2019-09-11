@@ -127,18 +127,15 @@ void WebConnector::queryConfig()
 	this->isConfigured = true;
 }
 
-int	WebConnector::postVersion(PostDataVersion * pPostData)
+int	WebConnector::post(PostData * pPostData)
 {
 	char *				pszBody;
 	char				szWebPath[256];
-	char				szPathSuffix[32];
 	CURLcode			result;
 
 	Logger & log = Logger::getInstance();
 
 	pszBody = pPostData->getJSON();
-
-	strcpy(szPathSuffix, WEB_PATH_VERSION);
 
 	sprintf(
 		szWebPath, 
@@ -147,68 +144,7 @@ int	WebConnector::postVersion(PostDataVersion * pPostData)
 		this->getHost(), 
 		this->getPort(), 
 		this->szBasePath, 
-		szPathSuffix);
-
-	log.logDebug("Posting to %s [%s]", szWebPath, pszBody);
-
-	/*
-	** Custom headers for JSON...
-	*/
-	struct curl_slist *headers = NULL;
-	headers = curl_slist_append(headers, "Accept: application/json");
-	headers = curl_slist_append(headers, "Content-Type: application/json");
-	headers = curl_slist_append(headers, "charsets: utf-8");
-
-	curl_easy_setopt(pCurl, CURLOPT_URL, szWebPath);
-	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(pszBody));
-	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszBody);
-    curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers); 
-    curl_easy_setopt(pCurl, CURLOPT_USERAGENT, "libcrp/0.1");
-
-	result = curl_easy_perform(pCurl);
-
-	free(pszBody);
-
-	if (result != CURLE_OK) {
-		log.logError("Failed to post to %s - Curl error [%s]", szWebPath, this->szCurlError);
-		return -1;
-	}
-
-	log.logDebug("Finished post to %s", szWebPath);
-
-	return 0;
-}
-
-int WebConnector::postTPH(PostDataTPH * pPostData)
-{
-	char *				pszBody;
-	char				szWebPath[256];
-	char				szPathSuffix[32];
-	CURLcode			result;
-
-	CurrentTime time;
-	Logger & log = Logger::getInstance();
-
-	pszBody = pPostData->getJSON();
-
-	if (strcmp(pPostData->getType(), "AVG") == 0) {
-		strcpy(szPathSuffix, WEB_PATH_AVG);
-	}
-	else if (strcmp(pPostData->getType(), "MAX") == 0) {
-		strcpy(szPathSuffix, WEB_PATH_MAX);
-	}
-	else if (strcmp(pPostData->getType(), "MIN") == 0) {
-		strcpy(szPathSuffix, WEB_PATH_MIN);
-	}
-
-	sprintf(
-		szWebPath, 
-		"%s://%s:%d%s%s", 
-		(this->isSecure ? "https" : "http"), 
-		this->getHost(), 
-		this->getPort(), 
-		this->szBasePath, 
-		szPathSuffix);
+		pPostData->getPathSuffix());
 
 	log.logDebug("Posting to %s [%s]", szWebPath, pszBody);
 

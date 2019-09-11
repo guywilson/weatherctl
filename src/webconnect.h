@@ -40,13 +40,15 @@ public:
 	virtual ~PostData() {
 	}
 
-	char *			getTimestamp() {
+	char *	getTimestamp() {
 		return this->time.getTimeStamp();
 	}
-	virtual int				getClassID() {
+	virtual int	getClassID() {
 		return CLASS_ID_BASE;
 	}
-	virtual char *		getJSON() = 0;
+
+	virtual const char *	getPathSuffix() = 0;
+	virtual char *			getJSON() = 0;
 };
 
 class PostDataVersion : public PostData
@@ -55,10 +57,13 @@ private:
 	const char *	jsonTemplate = "{\n\t\"version\": \"%s\",\n\t\"buildDate\": \"%s\"\n}";
 
 public:
-	int				getClassID() {
+	int	getClassID() {
 		return CLASS_ID_VERSION;
 	}
-	char *			getJSON()
+	const char * getPathSuffix() {
+		return WEB_PATH_VERSION; 
+	}
+	char *	getJSON()
 	{
 		char *		jsonBuffer;
 
@@ -107,10 +112,25 @@ public:
 		clean();
 	}
 
-	int				getClassID() {
+	int	getClassID() {
 		return CLASS_ID_TPH;
 	}
-	char *			getJSON()
+	const char * getPathSuffix() {
+		const char * pszPathSuffix = "";
+
+		if (strcmp(this->getType(), "AVG") == 0) {
+			pszPathSuffix = WEB_PATH_AVG;
+		}
+		else if (strcmp(this->getType(), "MAX") == 0) {
+			pszPathSuffix = WEB_PATH_MAX;
+		}
+		else if (strcmp(this->getType(), "MIN") == 0) {
+			pszPathSuffix = WEB_PATH_MIN;
+		}
+
+		return pszPathSuffix;
+	}
+	char *	getJSON()
 	{
 		char *		jsonBuffer;
 
@@ -194,8 +214,7 @@ public:
 
 	void		initListener();
 
-	int			postVersion(PostDataVersion * pPostData);
-	int			postTPH(PostDataTPH * pPostData);
+	int			post(PostData * pPostData);
 	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));
 	void		listen();
 

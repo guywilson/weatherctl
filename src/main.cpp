@@ -242,41 +242,26 @@ void * webPostThread(void * pArgs)
 			switch (pPostData->getClassID()) {
 				case CLASS_ID_TPH:
 					log.logDebug("Got TPH post data from queue...");
-
-					log.logDebug("Posting %s data to %s", ((PostDataTPH *)pPostData)->getType(), web.getHost());
-					
-					rtn = web.postTPH((PostDataTPH *)pPostData);
-
-					if (rtn < 0) {
-						log.logError("Error posting to web server");
-						log.logInfo("Attempting to backup data");
-
-						BackupManager & backup = BackupManager::getInstance();
-						backup.backup((PostDataTPH *)pPostData);
-					}
-					else {
-						log.logInfo("Successfully posted to server");
-					}
 					break;
 
 				case CLASS_ID_VERSION:
 					log.logDebug("Got VERSION post data from queue...");
-
-					log.logDebug("Posting version data to %s", web.getHost());
-
-					rtn = web.postVersion((PostDataVersion *)pPostData);
-
-					if (rtn < 0) {
-						log.logError("Error posting to web server");
-					}
-					else {
-						log.logInfo("Successfully posted to server");
-					}
 					break;
 
 				case CLASS_ID_BASE:
 					log.logDebug("Got BASE post data from queue...");
 					break;
+			}
+
+			log.logDebug("Posting data to %s", web.getHost());
+
+			rtn = web.post(pPostData);
+
+			if (rtn < 0) {
+				log.logError("Error posting to web server");
+			}
+			else {
+				log.logInfo("Successfully posted to server");
 			}
 
 			rtn = 0;
