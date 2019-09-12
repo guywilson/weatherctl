@@ -1,7 +1,7 @@
 #ifndef _INCL_VERSION
 #define _INCL_VERSION
 
-const char * getWCTLVersion();
-const char * getWCTLBuildDate();
+const char * getVersion();
+const char * getBuildDate();
 
 #endif

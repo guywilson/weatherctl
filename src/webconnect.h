@@ -72,8 +72,8 @@ public:
 		sprintf(
 			jsonBuffer,
 			jsonTemplate,
-			getWCTLVersion(),
-			getWCTLBuildDate());
+			getVersion(),
+			getBuildDate());
 
 		return jsonBuffer;
 	}

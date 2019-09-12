@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
 					return 0;
 				}
 				else if (strcmp(&argv[i][1], "version") == 0) {
-					printf("%s Version: [%s], Build date: [%s]\n\n", pszAppName, getWCTLVersion(), getWCTLBuildDate());
+					printf("%s Version: [%s], Build date: [%s]\n\n", pszAppName, getVersion(), getBuildDate());
 					return 0;
 				}
 				else {
