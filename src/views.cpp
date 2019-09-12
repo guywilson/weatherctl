@@ -76,7 +76,7 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 					isSerialCommand = true;
 				}
 				else if (strncmp(szCmdValue, "reset-min-max", sizeof(szCmdValue)) == 0) {
-					cmdCode = RX_CMD_RESET_MINMAX_TPH;
+					cmdCode = RX_CMD_RESET_MINMAX;
 					isSerialCommand = true;
 				}
 				else if (strncmp(szCmdValue, "get-scheduler-version", sizeof(szCmdValue)) == 0) {

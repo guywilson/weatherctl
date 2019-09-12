@@ -274,13 +274,13 @@ void processResponse(uint8_t * response, int responseLength)
 				minSave = false;
 				break;
 
-			case RX_RSP_RESET_MINMAX_TPH:
+			case RX_RSP_RESET_MINMAX:
 				break;
 
-			case RX_RSP_ANEMOMETER:
+			case RX_RSP_WINDSPEED:
 				break;
 
-			case RX_RSP_RAINGUAGE:
+			case RX_RSP_RAINFALL:
 				break;
 
 			case RX_RSP_WDT_DISABLE:

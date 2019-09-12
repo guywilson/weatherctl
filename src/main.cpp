@@ -116,7 +116,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request to reset min & max values...
 			*/
-			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_RESET_MINMAX_TPH);
+			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_RESET_MINMAX);
 
 			port.setExpectedBytes(7);
 
