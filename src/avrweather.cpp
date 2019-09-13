@@ -171,11 +171,21 @@ void processResponse(uint8_t * response, int responseLength)
 	char 				szTemperature[20];
 	char 				szPressure[20];
 	char 				szHumidity[20];
+	char				szAvgWindspeed[20];
+	char				szMaxWindSpeed[20];
+	char				szAvgRainfall[20];
+	char				szTotalRainfall[20];
 	char *				reference;
 	static int			avgCount = 0;
+	static int			avgWindspeedCount = 0;
+	static int			avgRainfallCount = 0;
 	static bool			avgSave = true;
 	static bool			minSave = false;
 	static bool			maxSave = false;
+	static bool			avgWindspeedSave = false;
+	static bool			maxWindspeedSave = false;
+	static bool			avgRainfallSave = false;
+	static bool			totalRainfallSave = false;
 
 	CurrentTime 		time;
 
@@ -278,15 +288,72 @@ void processResponse(uint8_t * response, int responseLength)
 				break;
 
 			case RX_RSP_WINDSPEED:
+				log.logDebug("Windspeed - Copying %d bytes", pFrame->getDataLength());
+				memcpy(szResponse, pFrame->getData(), pFrame->getDataLength());
+
+				delete pFrame;
+
+				strcpy(szAvgWindspeed, strtok_r(szResponse, ";", &reference));
+				strcpy(szMaxWindSpeed, strtok_r(NULL, ";", &reference));
+
+				log.logDebug("Got windspeed data: A = %s, M = %s", szAvgWindspeed, szMaxWindSpeed);
+
+				if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
+					maxWindspeedSave = true;
+				}
+
+				qmgr.pushWebPost(new PostDataWindspeed(avgWindspeedSave, maxWindspeedSave, &szAvgWindspeed[2], &szMaxWindSpeed[2]));
+
+				maxWindspeedSave = false;
+
+				/*
+				* Save every 20 minutes...
+				*/
+				if (avgWindspeedCount < (AVG_MSGS_PER_MIN * 20)) {
+					avgWindspeedSave = false;
+				}
+				else {
+					avgWindspeedSave = true;
+					avgWindspeedCount = 0;
+				}
 				break;
 
 			case RX_RSP_RAINFALL:
+				log.logDebug("Rainfall - Copying %d bytes", pFrame->getDataLength());
+				memcpy(szResponse, pFrame->getData(), pFrame->getDataLength());
+
+				delete pFrame;
+
+				strcpy(szAvgRainfall, strtok_r(szResponse, ";", &reference));
+				strcpy(szTotalRainfall, strtok_r(NULL, ";", &reference));
+
+				log.logDebug("Got rainfall data: A = %s, T = %s", szAvgRainfall, szTotalRainfall);
+
+				if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
+					totalRainfallSave = true;
+				}
+
+				qmgr.pushWebPost(new PostDataRainfall(avgRainfallSave, totalRainfallSave, &szAvgRainfall[2], &szTotalRainfall[2]));
+
+				totalRainfallSave = false;
+
+				/*
+				* Save every 60 minutes...
+				*/
+				if (avgRainfallCount < (AVG_MSGS_PER_MIN * 60)) {
+					avgRainfallSave = false;
+				}
+				else {
+					avgRainfallSave = true;
+					avgRainfallCount = 0;
+				}
 				break;
 
 			case RX_RSP_WDT_DISABLE:
 				break;
 
 			case RX_RSP_GET_SCHED_VERSION:
+			case RX_RSP_GET_AVR_VERSION:
 				qmgr.pushRx(pFrame);
 				break;
 

@@ -49,9 +49,11 @@ void * txCmdThread(void * pArgs)
 	uint32_t			txAvgTPH = 0;
 	uint32_t			txMinTPH = 1;
 	uint32_t			txMaxTPH = 2;
+	uint32_t			txWindspeed = 3;
+	uint32_t			txRainfall = 4;
 	uint32_t			txResetMinMax;
-	int				bytesRead;
-	int				writeLen;
+	int					bytesRead;
+	int					writeLen;
 	int 				i;
 	bool				go = true;
 	uint8_t				data[MAX_RESPONSE_MESSAGE_LENGTH];
@@ -111,6 +113,32 @@ void * txCmdThread(void * pArgs)
 			** Schedule next tx in 20 seconds...
 			*/
 			txMaxTPH = txCount + 20;
+		}
+		else if (txCount == txWindspeed) {
+			/*
+			** Next TX packet is a request for windspeed data...
+			*/
+			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_WINDSPEED);
+
+			port.setExpectedBytes(20);
+
+			/*
+			** Schedule next tx in 60 seconds...
+			*/
+			txWindspeed = txCount + 60;
+		}
+		else if (txCount == txRainfall) {
+			/*
+			** Next TX packet is a request for rainfall data...
+			*/
+			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_RAINFALL);
+
+			port.setExpectedBytes(20);
+
+			/*
+			** Schedule next tx in 1 hour...
+			*/
+			txWindspeed = txCount + 3600;
 		}
 		else if (txCount == txResetMinMax) {
 			/*
@@ -244,12 +272,20 @@ void * webPostThread(void * pArgs)
 					log.logDebug("Got TPH post data from queue...");
 					break;
 
+				case CLASS_ID_WINDSPEED:
+					log.logDebug("Got WINDSPEED post data from queue...");
+					break;
+
+				case CLASS_ID_RAINFALL:
+					log.logDebug("Got RAINFALL post data from queue...");
+					break;
+
 				case CLASS_ID_VERSION:
 					log.logDebug("Got VERSION post data from queue...");
 					break;
 
 				case CLASS_ID_BASE:
-					log.logDebug("Got BASE post data from queue...");
+					log.logError("Got BASE post data from queue!");
 					break;
 			}
 

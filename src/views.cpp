@@ -18,7 +18,7 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 	char *							pszMethod;
 	char *							pszURI;
 	char							szCmdValue[32];
-	char							szVersion[64];
+	char							szRenderBuffer[256];
 	int								rtn;
 	uint8_t							cmdCode;
 	bool							isSerialCommand = false;
@@ -79,6 +79,16 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 					cmdCode = RX_CMD_RESET_MINMAX;
 					isSerialCommand = true;
 				}
+				else if (strncmp(szCmdValue, "get-wctl-version", sizeof(szCmdValue)) == 0) {
+					sprintf(szRenderBuffer, "WCTL Version: %s [%s]", getVersion(), getBuildDate());
+					isSerialCommand = false;
+					isRenderable = true;
+				}
+				else if (strncmp(szCmdValue, "get-avr-version", sizeof(szCmdValue)) == 0) {
+					cmdCode = RX_CMD_GET_AVR_VERSION;
+					isSerialCommand = true;
+					isRenderable = true;
+				}
 				else if (strncmp(szCmdValue, "get-scheduler-version", sizeof(szCmdValue)) == 0) {
 					cmdCode = RX_CMD_GET_SCHED_VERSION;
 					isSerialCommand = true;
@@ -98,15 +108,20 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 					
 					if (isRenderable) {
 						RxFrame * pRxFrame = send_receive(pTxFrame);
-						
-						memcpy(szVersion, pRxFrame->getData(), pRxFrame->getDataLength());
-						szVersion[pRxFrame->getDataLength()] = 0;
+
+						memcpy(szRenderBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
+						szRenderBuffer[pRxFrame->getDataLength()] = 0;
 
 						delete pRxFrame;
 
-						log.logInfo("Got scheduler version from Arduino [%s]", szVersion);
-						mg_printf(connection, "HTTP/1.1 200 OK\n\n Version [%s]", szVersion);
-						connection->flags |= MG_F_SEND_AND_CLOSE;
+						if (pRxFrame->getResponseCode() == RX_RSP_GET_SCHED_VERSION) {
+							log.logInfo("Got scheduler version from Arduino [%s]", szRenderBuffer);
+							mg_printf(connection, "HTTP/1.1 200 OK\n\n Scheduler Version [%s]", szRenderBuffer);
+						}
+						else if (pRxFrame->getResponseCode() == RX_RSP_GET_AVR_VERSION) {
+							log.logInfo("Got avr version from Arduino [%s]", szRenderBuffer);
+							mg_printf(connection, "HTTP/1.1 200 OK\n\n AVR Version: %s", szRenderBuffer);
+						}
 					}
 					else {
 						fire_forget(pTxFrame);
@@ -119,8 +134,12 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 
 			if (!isRenderable) {
 				mg_printf(connection, "HTTP/1.1 200 OK");
-				connection->flags |= MG_F_SEND_AND_CLOSE;
 			}
+			else {
+				mg_printf(connection, "HTTP/1.1 200 OK\n\n %s", szRenderBuffer);
+			}
+
+			connection->flags |= MG_F_SEND_AND_CLOSE;
 			break;
 
 		default:
