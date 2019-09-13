@@ -125,19 +125,21 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 					}
 					else {
 						fire_forget(pTxFrame);
+						mg_printf(connection, "HTTP/1.1 200 OK");
+					}
+				}
+				else {
+					if (isRenderable) {
+						mg_printf(connection, "HTTP/1.1 200 OK\n\n %s", szRenderBuffer);
+					}
+					else {
+						mg_printf(connection, "HTTP/1.1 200 OK");
 					}
 				}
 			}
 
 			free(pszMethod);
 			free(pszURI);
-
-			if (!isRenderable) {
-				mg_printf(connection, "HTTP/1.1 200 OK");
-			}
-			else {
-				mg_printf(connection, "HTTP/1.1 200 OK\n\n %s", szRenderBuffer);
-			}
 
 			connection->flags |= MG_F_SEND_AND_CLOSE;
 			break;
