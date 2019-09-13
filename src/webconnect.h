@@ -197,7 +197,7 @@ public:
 		return CLASS_ID_WINDSPEED;
 	}
 	const char * getPathSuffix() {
-		return "windspeed";
+		return "wind";
 	}
 	char *	getJSON()
 	{
@@ -265,7 +265,7 @@ public:
 		return CLASS_ID_RAINFALL;
 	}
 	const char * getPathSuffix() {
-		return "rainfall";
+		return "rain";
 	}
 	char *	getJSON()
 	{
