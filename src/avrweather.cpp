@@ -182,9 +182,9 @@ void processResponse(uint8_t * response, int responseLength)
 	static bool			avgSave = true;
 	static bool			minSave = false;
 	static bool			maxSave = false;
-	static bool			avgWindspeedSave = false;
+	static bool			avgWindspeedSave = true;
 	static bool			maxWindspeedSave = false;
-	static bool			avgRainfallSave = false;
+	static bool			avgRainfallSave = true;
 	static bool			totalRainfallSave = false;
 
 	CurrentTime 		time;
