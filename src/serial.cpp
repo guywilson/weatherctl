@@ -210,6 +210,8 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 	static const char *	avgTPH = "T:25.28;P:1010.10;H:52.25;";
 	static const char *	minTPH = "T:21.21;P:1007.13;H:49.17;";
 	static const char *	maxTPH = "T:27.12;P:1012.23;H:57.74;";
+	static const char * windMsg = "A:12.37;M:21.46;";
+	static const char * rainMsg = "A:3.65;T:26.47;";
 
 	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
 	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
@@ -238,6 +240,20 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 
 		case RX_CMD_MIN_TPH:
 			data = (char *)minTPH;
+			dataLength = strlen(data);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_WINDSPEED:
+			data = (char *)windMsg;
+			dataLength = strlen(data);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_RAINFALL:
+			data = (char *)rainMsg;
 			dataLength = strlen(data);
 
 			_build_response_frame(data, dataLength);

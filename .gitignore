@@ -12,3 +12,4 @@ wctl.ver
 src/version.c
 vbuild
 
+test.cfg
