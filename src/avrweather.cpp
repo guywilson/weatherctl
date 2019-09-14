@@ -303,6 +303,7 @@ void processResponse(uint8_t * response, int responseLength)
 				}
 
 				qmgr.pushWebPost(new PostDataWindspeed(avgWindspeedSave, maxWindspeedSave, &szAvgWindspeed[2], &szMaxWindSpeed[2]));
+				avgWindspeedCount++;
 
 				maxWindspeedSave = false;
 
@@ -334,6 +335,7 @@ void processResponse(uint8_t * response, int responseLength)
 				}
 
 				qmgr.pushWebPost(new PostDataRainfall(avgRainfallSave, totalRainfallSave, &szAvgRainfall[2], &szTotalRainfall[2]));
+				avgRainfallCount++;
 
 				totalRainfallSave = false;
 
