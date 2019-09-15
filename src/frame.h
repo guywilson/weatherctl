@@ -8,20 +8,20 @@
 class Frame
 {
 private:
-	uint8_t	*		buffer;
-	int				bufferLength;
+	uint8_t			buffer[80];
 	int				frameLength;
 
 protected:
 	uint8_t 		getMsgID();
-	void			initialise(uint8_t * buffer, int bufferLength, int frameLength);
+	void			initialise(int frameLength);
+	void			initialise(uint8_t * frame, int frameLength);
 	void			clear();
 
 	Logger &		log = Logger::getInstance();
 
 public:
 	Frame();
-	virtual ~Frame() = 0;
+	virtual ~Frame();
 
 	uint8_t *	getData();
 	int			getDataLength();
@@ -41,7 +41,7 @@ public:
 class TxFrame : public Frame
 {
 public:
-	TxFrame(uint8_t * buffer, int bufferLength, uint8_t * data, int dataLength, uint8_t cmdCode);
+	TxFrame(uint8_t * data, int dataLength, uint8_t cmdCode);
 	virtual ~TxFrame() {}
 
 	uint8_t		getCmdCode();

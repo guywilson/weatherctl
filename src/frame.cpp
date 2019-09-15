@@ -11,6 +11,8 @@ uint8_t				_msgID = 0;
 
 Frame::Frame()
 {
+	clear();
+	this->frameLength = 0;
 }
 
 Frame::~Frame()
@@ -18,18 +20,20 @@ Frame::~Frame()
 	clear();
 }
 
-void Frame::initialise(uint8_t * buffer, int bufferLength, int frameLength)
+void Frame::initialise(int frameLength)
 {
-	log.logDebug("Initialising with %d bytes", frameLength);
-
-	this->buffer = buffer;
-	this->bufferLength = bufferLength;
 	this->frameLength = frameLength;
+}
+
+void Frame::initialise(uint8_t * frame, int frameLength)
+{
+	memcpy(this->buffer, frame, frameLength);
+	initialise(frameLength);
 }
 
 void Frame::clear()
 {
-	memset(this->buffer, 0, this->bufferLength);
+	memset(this->buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
 }
 
 uint8_t Frame::getMsgID()
@@ -52,7 +56,16 @@ uint8_t * Frame::getData()
 
 int Frame::getDataLength()
 {
-	return this->frameLength - NUM_REQUEST_FRAME_BYTES;
+	int dataLength = 0;
+
+	if (this->frameLength == 0) {
+		dataLength = 0;
+	}
+	else {
+		dataLength = this->frameLength - NUM_REQUEST_FRAME_BYTES;
+	}
+
+	return dataLength;
 }
 
 uint8_t * Frame::getFrame()
@@ -89,11 +102,14 @@ uint8_t Frame::getChecksum()
 	return this->getFrameByteAt(5 + this->getDataLength());
 }
 
-TxFrame::TxFrame(uint8_t * buffer, int bufferLength, uint8_t * data, int dataLength, uint8_t cmdCode) : Frame()
+TxFrame::TxFrame(uint8_t * data, int dataLength, uint8_t cmdCode) : Frame()
 {
 	int				i;
 	int				checksumTotal = 0;
 	int				frameLength;
+	uint8_t *		buffer;
+
+	buffer = getFrame();
 
 	frameLength = NUM_REQUEST_FRAME_BYTES + dataLength;
 
@@ -112,7 +128,7 @@ TxFrame::TxFrame(uint8_t * buffer, int bufferLength, uint8_t * data, int dataLen
 	buffer[4 + dataLength] = (uint8_t)(0x00FF - (checksumTotal & 0x00FF));
 	buffer[5 + dataLength] = MSG_CHAR_END;
 
-	initialise(buffer, bufferLength, frameLength);
+	initialise(frameLength);
 }
 
 uint8_t TxFrame::getCmdCode()
@@ -122,7 +138,7 @@ uint8_t TxFrame::getCmdCode()
 
 RxFrame::RxFrame(uint8_t * frame, int frameLength) : Frame()
 {
-	initialise(frame, frameLength, frameLength);
+	initialise(frame, frameLength);
 }
 
 uint8_t RxFrame::getResponseCode()

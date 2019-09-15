@@ -58,7 +58,6 @@ void * txCmdThread(void * pArgs)
 	int 				i;
 	bool				go = true;
 	uint8_t				data[MAX_RESPONSE_MESSAGE_LENGTH];
-	uint8_t				frame[MAX_REQUEST_MESSAGE_LENGTH];
 
 	Logger & log = Logger::getInstance();
 
@@ -80,7 +79,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(frame, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, RX_CMD_AVG_TPH);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_AVG_TPH);
 
 			port.setExpectedBytes(30);
 
@@ -93,7 +92,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(frame, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, RX_CMD_MIN_TPH);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_MIN_TPH);
 
 			port.setExpectedBytes(30);
 
@@ -106,7 +105,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(frame, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, RX_CMD_MAX_TPH);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_MAX_TPH);
 
 			port.setExpectedBytes(30);
 
@@ -119,7 +118,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for windspeed data...
 			*/
-			pTxFrame = new TxFrame(frame, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, RX_CMD_WINDSPEED);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_WINDSPEED);
 
 			port.setExpectedBytes(20);
 
@@ -132,7 +131,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for rainfall data...
 			*/
-			pTxFrame = new TxFrame(frame, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, RX_CMD_RAINFALL);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_RAINFALL);
 
 			port.setExpectedBytes(20);
 
@@ -145,7 +144,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request to reset min & max values...
 			*/
-			pTxFrame = new TxFrame(frame, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, RX_CMD_RESET_MINMAX);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_RESET_MINMAX);
 
 			port.setExpectedBytes(7);
 
@@ -169,7 +168,7 @@ void * txCmdThread(void * pArgs)
 				/*
 				** Default is to send a ping...
 				*/
-				pTxFrame = new TxFrame(frame, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, RX_CMD_PING);
+				pTxFrame = new TxFrame(NULL, 0, RX_CMD_PING);
 
 				port.setExpectedBytes(7);
 			}
@@ -254,13 +253,12 @@ void * versionPostThread(void * pArgs)
 {
 	char			szVersionBuffer[80];
 	bool			go = true;
-	uint8_t			frame[MAX_REQUEST_MESSAGE_LENGTH];
 
 	QueueMgr & qmgr = QueueMgr::getInstance();
 	Logger & log = Logger::getInstance();
 
 	while (go) {
-		TxFrame * pTxFrame = new TxFrame(frame, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, RX_CMD_GET_AVR_VERSION);
+		TxFrame * pTxFrame = new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION);
 		RxFrame * pRxFrame = send_receive(pTxFrame);
 
 		memcpy(szVersionBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
