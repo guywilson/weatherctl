@@ -56,9 +56,17 @@ public:
 class PostDataVersion : public PostData
 {
 private:
-	const char *	jsonTemplate = "{\n\t\"version\": \"%s\",\n\t\"buildDate\": \"%s\"\n}";
+	char			szWCTLVersion[20];
+	char			szWCTLBuildDate[20];
+	char			szAVRVersionString[40];
+	const char *	jsonTemplate = "{\n\t\"wctlVersion\": \"%s\",\n\t\"wctlBuildDate\": \"%s\",\n\t\"avrVersionString\": \"%s\"\n}";
 
 public:
+	PostDataVersion(const char * pszWCTLVersion, const char * pszWCTLBuildDate, char * pszAVRVersionString) {
+		strncpy(this->szWCTLVersion, pszWCTLVersion, sizeof(this->szWCTLVersion));
+		strncpy(this->szWCTLBuildDate, pszWCTLBuildDate, sizeof(this->szWCTLBuildDate));
+		strncpy(this->szAVRVersionString, pszAVRVersionString, sizeof(this->szAVRVersionString));
+	}
 	int	getClassID() {
 		return CLASS_ID_VERSION;
 	}
@@ -74,8 +82,9 @@ public:
 		sprintf(
 			jsonBuffer,
 			jsonTemplate,
-			getVersion(),
-			getBuildDate());
+			this->szWCTLVersion,
+			this->szWCTLBuildDate,
+			this->szAVRVersionString);
 
 		return jsonBuffer;
 	}

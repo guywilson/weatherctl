@@ -14,12 +14,27 @@ Frame::Frame()
 	this->isAllocated = true;
 }
 
+Frame::~Frame()
+{
+	clear();
+}
+
+void Frame::initialise(int frameLength)
+{
+	this->frameLength = frameLength;
+}
+
 void Frame::initialise(uint8_t * frame, int frameLength)
 {
 	log.logDebug("Initialising with %d bytes", frameLength);
 
-	this->buffer = frame;
-	this->frameLength = frameLength;
+	memcpy(this->buffer, frame, frameLength);
+	initialise(frameLength);
+}
+
+void Frame::clear()
+{
+	memset(this->buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
 }
 
 uint8_t Frame::getMsgID()
@@ -84,42 +99,33 @@ uint8_t Frame::getChecksum()
 	return this->getFrameByteAt(5 + this->getDataLength());
 }
 
-TxFrame::TxFrame(uint8_t * frameBuffer, int bufferLength, uint8_t * data, int dataLength, uint8_t cmdCode) : Frame()
+TxFrame::TxFrame(uint8_t * data, int dataLength, uint8_t cmdCode) : Frame()
 {
 	int				i;
 	int				checksumTotal = 0;
 	int				frameLength;
+	uint8_t	*		frameBuffer;
 
-	this->frameBuffer = frameBuffer;
-	this->bufferLength = bufferLength;
+	frameBuffer = this->getFrame();
 
 	frameLength = NUM_REQUEST_FRAME_BYTES + dataLength;
 
-	if (bufferLength < (dataLength + NUM_REQUEST_FRAME_BYTES)) {
-		throw new Exception("Frame buffer not large enough");
-	}
+	frameBuffer[0] = MSG_CHAR_START;
+	frameBuffer[1] = 2 + dataLength;
+	frameBuffer[2] = getMsgID();
+	frameBuffer[3] = cmdCode;
 
-	this->frameBuffer[0] = MSG_CHAR_START;
-	this->frameBuffer[1] = 2 + dataLength;
-	this->frameBuffer[2] = getMsgID();
-	this->frameBuffer[3] = cmdCode;
-
-	checksumTotal = (int)this->frameBuffer[2] + (int)this->frameBuffer[3];
+	checksumTotal = (int)frameBuffer[2] + (int)frameBuffer[3];
 
 	for (i = 0;i < dataLength;i++) {
-		this->frameBuffer[i + 4] = data[i];
-		checksumTotal += this->frameBuffer[i + 4];
+		frameBuffer[i + 4] = data[i];
+		checksumTotal += frameBuffer[i + 4];
 	}
 
-	this->frameBuffer[4 + dataLength] = (uint8_t)(0x00FF - (checksumTotal & 0x00FF));
-	this->frameBuffer[5 + dataLength] = MSG_CHAR_END;
+	frameBuffer[4 + dataLength] = (uint8_t)(0x00FF - (checksumTotal & 0x00FF));
+	frameBuffer[5 + dataLength] = MSG_CHAR_END;
 
-	initialise(this->frameBuffer, frameLength);
-}
-
-TxFrame::~TxFrame()
-{
-	memset(this->frameBuffer, 0, this->bufferLength);
+	initialise(frameLength);
 }
 
 uint8_t TxFrame::getCmdCode()

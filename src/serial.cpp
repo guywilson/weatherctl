@@ -212,6 +212,8 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 	static const char *	maxTPH = "T:27.12;P:1012.23;H:57.74;";
 	static const char * windMsg = "A:12.37;M:21.46;";
 	static const char * rainMsg = "A:3.65;T:26.47;";
+	static const char * schVer = "1.2.01 2019-07-30 17:37:20";
+	static const char * avrVer = "1.2.009 2019-09-14 17:37:20";
 
 	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
 	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
@@ -266,8 +268,15 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 			_build_response_frame(data, dataLength);
 			break;
 
+		case RX_CMD_GET_AVR_VERSION:
+			data = (char *)avrVer;
+			dataLength = strlen(data);
+
+			_build_response_frame(data, dataLength);
+			break;
+
 		case RX_CMD_GET_SCHED_VERSION:
-			data = (char *)"1.2.01 2019-07-30 17:37:20";
+			data = (char *)schVer;
 			dataLength = strlen(data);
 
 			_build_response_frame(data, dataLength);

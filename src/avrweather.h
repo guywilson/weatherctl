@@ -1,7 +1,7 @@
-#include "frame.h"
-
 #ifndef _INCL_AVRWEATHER
 #define _INCL_AVRWEATHER
+
+#include "frame.h"
 
 #define LOG_RXTX
 

@@ -41,6 +41,7 @@ using namespace std;
 pthread_t			tidTxCmd;
 pthread_t			tidWebListener;
 pthread_t			tidWebPost;
+pthread_t			tidVersionPost;
 
 void * txCmdThread(void * pArgs)
 {
@@ -57,7 +58,6 @@ void * txCmdThread(void * pArgs)
 	int 				i;
 	bool				go = true;
 	uint8_t				data[MAX_RESPONSE_MESSAGE_LENGTH];
-	uint8_t				frame[MAX_REQUEST_MESSAGE_LENGTH];
 
 	Logger & log = Logger::getInstance();
 
@@ -79,7 +79,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_AVG_TPH);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_AVG_TPH);
 
 			port.setExpectedBytes(30);
 
@@ -92,7 +92,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_MIN_TPH);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_MIN_TPH);
 
 			port.setExpectedBytes(30);
 
@@ -105,7 +105,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_MAX_TPH);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_MAX_TPH);
 
 			port.setExpectedBytes(30);
 
@@ -118,7 +118,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for windspeed data...
 			*/
-			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_WINDSPEED);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_WINDSPEED);
 
 			port.setExpectedBytes(20);
 
@@ -131,7 +131,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request for rainfall data...
 			*/
-			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_RAINFALL);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_RAINFALL);
 
 			port.setExpectedBytes(20);
 
@@ -144,7 +144,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Next TX packet is a request to reset min & max values...
 			*/
-			pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_RESET_MINMAX);
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_RESET_MINMAX);
 
 			port.setExpectedBytes(7);
 
@@ -168,7 +168,7 @@ void * txCmdThread(void * pArgs)
 				/*
 				** Default is to send a ping...
 				*/
-				pTxFrame = new TxFrame(frame, sizeof(frame), NULL, 0, RX_CMD_PING);
+				pTxFrame = new TxFrame(NULL, 0, RX_CMD_PING);
 
 				port.setExpectedBytes(7);
 			}
@@ -249,6 +249,36 @@ void * webListenerThread(void * pArgs)
 	return NULL;
 }
 
+void * versionPostThread(void * pArgs)
+{
+	char			szVersionBuffer[80];
+	bool			go = true;
+
+	QueueMgr & qmgr = QueueMgr::getInstance();
+	Logger & log = Logger::getInstance();
+
+	while (go) {
+		TxFrame * pTxFrame = new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION);
+		RxFrame * pRxFrame = send_receive(pTxFrame);
+
+		memcpy(szVersionBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
+		szVersionBuffer[pRxFrame->getDataLength()] = 0;
+
+		delete pRxFrame;
+
+		qmgr.pushWebPost(new PostDataVersion(getVersion(), getBuildDate(), szVersionBuffer));
+
+		log.logInfo("Posting AVR version '%s' and WCTL version '%s [%s]'", szVersionBuffer, getVersion(), getBuildDate());
+
+		/*
+		** Sleep for an hour...
+		*/
+		sleep(3600);
+	}
+
+	return NULL;
+}
+
 void * webPostThread(void * pArgs)
 {
 	int rtn = 0;
@@ -257,11 +287,6 @@ void * webPostThread(void * pArgs)
 	QueueMgr & qmgr = QueueMgr::getInstance();
 	WebConnector & web = WebConnector::getInstance();
 	Logger & log = Logger::getInstance();
-
-	/*
-	** Post wctl version on startup...
-	*/
-	qmgr.pushWebPost(new PostDataVersion());
 
 	while (go) {
 		if (!qmgr.isWebPostQueueEmpty()) {
@@ -668,6 +693,16 @@ int main(int argc, char *argv[])
 	}
 	else {
 		log.logInfo("Thread webPostThread() created successfully");
+	}
+
+	err = pthread_create(&tidVersionPost, NULL, &versionPostThread, NULL);
+
+	if (err != 0) {
+		log.logError("ERROR! Can't create versionPostThread() :[%s]", strerror(err));
+		return -1;
+	}
+	else {
+		log.logInfo("Thread versionPostThread() created successfully");
 	}
 
 	while (1) {

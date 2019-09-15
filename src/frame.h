@@ -1,26 +1,28 @@
 #include <stdint.h>
 
-#include "logger.h"
-
 #ifndef _INCL_FRAME
 #define _INCL_FRAME
+
+#include "logger.h"
 
 class Frame
 {
 private:
 	bool			isAllocated;
-	uint8_t	*		buffer;
+	uint8_t			buffer[80];
 	int				frameLength;
 
 protected:
 	uint8_t 		getMsgID();
+	void			initialise(int frameLength);
 	void			initialise(uint8_t * frame, int frameLength);
+	void			clear();
 
 	Logger &		log = Logger::getInstance();
 
 public:
 	Frame();
-	virtual ~Frame() {}
+	virtual ~Frame() = 0;
 
 	bool		getIsAllocated();
 
@@ -41,13 +43,9 @@ public:
 
 class TxFrame : public Frame
 {
-private:
-	uint8_t *	frameBuffer;
-	int			bufferLength;
-
 public:
-	TxFrame(uint8_t * frameBuffer, int bufferLength, uint8_t * data, int dataLength, uint8_t cmdCode);
-	~TxFrame();
+	TxFrame(uint8_t * data, int dataLength, uint8_t cmdCode);
+	virtual ~TxFrame() {}
 
 	uint8_t		getCmdCode();
 
@@ -64,6 +62,7 @@ class RxFrame : public Frame
 public:
 	RxFrame() : Frame() {}
 	RxFrame(uint8_t * frame, int frameLength);
+	virtual ~RxFrame() {}
 
 	uint8_t		getResponseCode();
 	bool		isACK();

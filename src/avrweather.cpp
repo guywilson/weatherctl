@@ -355,6 +355,9 @@ void processResponse(uint8_t * response, int responseLength)
 				break;
 
 			case RX_RSP_GET_SCHED_VERSION:
+				qmgr.pushRx(pFrame);
+				break;
+
 			case RX_RSP_GET_AVR_VERSION:
 				qmgr.pushRx(pFrame);
 				break;

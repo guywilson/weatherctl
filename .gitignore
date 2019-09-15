@@ -13,3 +13,4 @@ src/version.c
 vbuild
 
 test.cfg
+wctl.map
