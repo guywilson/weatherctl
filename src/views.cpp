@@ -10,6 +10,8 @@
 #include "logger.h"
 #include "mongoose.h"
 
+static uint8_t buffer[MAX_REQUEST_MESSAGE_LENGTH];
+
 void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 {
 	struct http_message *			message;
@@ -102,7 +104,7 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 				}
 
 				if (isSerialCommand) {
-					TxFrame * pTxFrame = new TxFrame(NULL, 0, cmdCode);
+					TxFrame * pTxFrame = new TxFrame(buffer, MAX_REQUEST_MESSAGE_LENGTH, NULL, 0, cmdCode);
 					
 					if (isRenderable) {
 						RxFrame * pRxFrame = send_receive(pTxFrame);

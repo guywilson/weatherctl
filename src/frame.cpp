@@ -11,7 +11,6 @@ uint8_t				_msgID = 0;
 
 Frame::Frame()
 {
-	this->isAllocated = true;
 }
 
 Frame::~Frame()
@@ -19,22 +18,18 @@ Frame::~Frame()
 	clear();
 }
 
-void Frame::initialise(int frameLength)
-{
-	this->frameLength = frameLength;
-}
-
-void Frame::initialise(uint8_t * frame, int frameLength)
+void Frame::initialise(uint8_t * buffer, int bufferLength, int frameLength)
 {
 	log.logDebug("Initialising with %d bytes", frameLength);
 
-	memcpy(this->buffer, frame, frameLength);
-	initialise(frameLength);
+	this->buffer = buffer;
+	this->bufferLength = bufferLength;
+	this->frameLength = frameLength;
 }
 
 void Frame::clear()
 {
-	memset(this->buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
+	memset(this->buffer, 0, this->bufferLength);
 }
 
 uint8_t Frame::getMsgID()
@@ -44,11 +39,6 @@ uint8_t Frame::getMsgID()
 	msgID = _msgID++;
 
 	return msgID;
-}
-
-bool Frame::getIsAllocated()
-{
-	return isAllocated;
 }
 
 uint8_t * Frame::getData()
@@ -99,33 +89,30 @@ uint8_t Frame::getChecksum()
 	return this->getFrameByteAt(5 + this->getDataLength());
 }
 
-TxFrame::TxFrame(uint8_t * data, int dataLength, uint8_t cmdCode) : Frame()
+TxFrame::TxFrame(uint8_t * buffer, int bufferLength, uint8_t * data, int dataLength, uint8_t cmdCode) : Frame()
 {
 	int				i;
 	int				checksumTotal = 0;
 	int				frameLength;
-	uint8_t	*		frameBuffer;
-
-	frameBuffer = this->getFrame();
 
 	frameLength = NUM_REQUEST_FRAME_BYTES + dataLength;
 
-	frameBuffer[0] = MSG_CHAR_START;
-	frameBuffer[1] = 2 + dataLength;
-	frameBuffer[2] = getMsgID();
-	frameBuffer[3] = cmdCode;
+	buffer[0] = MSG_CHAR_START;
+	buffer[1] = 2 + dataLength;
+	buffer[2] = getMsgID();
+	buffer[3] = cmdCode;
 
-	checksumTotal = (int)frameBuffer[2] + (int)frameBuffer[3];
+	checksumTotal = (int)buffer[2] + (int)buffer[3];
 
 	for (i = 0;i < dataLength;i++) {
-		frameBuffer[i + 4] = data[i];
-		checksumTotal += frameBuffer[i + 4];
+		buffer[i + 4] = data[i];
+		checksumTotal += buffer[i + 4];
 	}
 
-	frameBuffer[4 + dataLength] = (uint8_t)(0x00FF - (checksumTotal & 0x00FF));
-	frameBuffer[5 + dataLength] = MSG_CHAR_END;
+	buffer[4 + dataLength] = (uint8_t)(0x00FF - (checksumTotal & 0x00FF));
+	buffer[5 + dataLength] = MSG_CHAR_END;
 
-	initialise(frameLength);
+	initialise(buffer, bufferLength, frameLength);
 }
 
 uint8_t TxFrame::getCmdCode()
@@ -135,7 +122,7 @@ uint8_t TxFrame::getCmdCode()
 
 RxFrame::RxFrame(uint8_t * frame, int frameLength) : Frame()
 {
-	initialise(frame, frameLength);
+	initialise(frame, frameLength, frameLength);
 }
 
 uint8_t RxFrame::getResponseCode()

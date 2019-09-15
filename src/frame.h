@@ -8,14 +8,13 @@
 class Frame
 {
 private:
-	bool			isAllocated;
-	uint8_t			buffer[80];
+	uint8_t	*		buffer;
+	int				bufferLength;
 	int				frameLength;
 
 protected:
 	uint8_t 		getMsgID();
-	void			initialise(int frameLength);
-	void			initialise(uint8_t * frame, int frameLength);
+	void			initialise(uint8_t * buffer, int bufferLength, int frameLength);
 	void			clear();
 
 	Logger &		log = Logger::getInstance();
@@ -23,8 +22,6 @@ protected:
 public:
 	Frame();
 	virtual ~Frame() = 0;
-
-	bool		getIsAllocated();
 
 	uint8_t *	getData();
 	int			getDataLength();
@@ -44,7 +41,7 @@ public:
 class TxFrame : public Frame
 {
 public:
-	TxFrame(uint8_t * data, int dataLength, uint8_t cmdCode);
+	TxFrame(uint8_t * buffer, int bufferLength, uint8_t * data, int dataLength, uint8_t cmdCode);
 	virtual ~TxFrame() {}
 
 	uint8_t		getCmdCode();

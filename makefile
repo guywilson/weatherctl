@@ -43,7 +43,7 @@ all: $(WCTL) $(TOGGLERST)
 
 # Compile C source files
 #
-$(BUILD)/main.o: $(SOURCE)/main.cpp $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/currenttime.h $(SOURCE)/webconnect.h $(SOURCE)/queuemgr.h $(SOURCE)/backup.h $(SOURCE)/views.h $(SOURCE)/configmgr.h $(SOURCE)/mongoose.h
+$(BUILD)/main.o: $(SOURCE)/main.cpp $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/currenttime.h $(SOURCE)/webconnect.h $(SOURCE)/queuemgr.h $(SOURCE)/backup.h $(SOURCE)/views.h $(SOURCE)/configmgr.h $(SOURCE)/frame.h $(SOURCE)/mongoose.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/main.o $(SOURCE)/main.cpp
 
 $(BUILD)/serial.o: $(SOURCE)/serial.cpp $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h
@@ -70,7 +70,7 @@ $(BUILD)/configmgr.o: $(SOURCE)/configmgr.cpp $(SOURCE)/configmgr.h $(SOURCE)/lo
 $(BUILD)/queuemgr.o: $(SOURCE)/queuemgr.cpp $(SOURCE)/queuemgr.h $(SOURCE)/exception.h $(SOURCE)/frame.h $(SOURCE)/avrweather.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/queuemgr.o $(SOURCE)/queuemgr.cpp
 
-$(BUILD)/views.o: $(SOURCE)/views.cpp $(SOURCE)/views.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/queuemgr.h $(SOURCE)/mongoose.h
+$(BUILD)/views.o: $(SOURCE)/views.cpp $(SOURCE)/views.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/frame.h $(SOURCE)/queuemgr.h $(SOURCE)/mongoose.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/views.o $(SOURCE)/views.cpp
 
 $(BUILD)/webconnect.o: $(SOURCE)/webconnect.cpp $(SOURCE)/webconnect.h $(SOURCE)/avrweather.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/currenttime.h $(SOURCE)/queuemgr.h $(SOURCE)/backup.h $(SOURCE)/configmgr.h $(SOURCE)/mongoose.h
