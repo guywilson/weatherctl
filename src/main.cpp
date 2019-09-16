@@ -275,8 +275,8 @@ void * versionPostThread(void * pArgs)
 
 		ref = szVersionBuffer;
 
-		pszAVRVersion = strtok_r(szVersionBuffer, " ", &ref);
-		pszAVRBuildDate = strtok_r(NULL, "", &ref);
+		pszAVRVersion = str_trim_trailing(strtok_r(szVersionBuffer, "[]", &ref));
+		pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
 
 		delete pRxFrame;
 
