@@ -18,7 +18,7 @@ extern "C" {
 
 using namespace std;
 
-#define AVG_MSGS_PER_MIN			3
+#define TPH_MSGS_PER_MINUTE			3
 
 void resetAVR()
 {
@@ -184,7 +184,6 @@ void processResponse(uint8_t * response, int responseLength)
 	static bool			maxSave = false;
 	static bool			avgWindspeedSave = true;
 	static bool			maxWindspeedSave = false;
-	static bool			avgRainfallSave = true;
 	static bool			totalRainfallSave = false;
 
 	CurrentTime 		time;
@@ -214,6 +213,13 @@ void processResponse(uint8_t * response, int responseLength)
 	}
 
 	if (pFrame->isACK()) {
+		if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
+			maxSave = true;
+			minSave = true;
+			maxWindspeedSave = true;
+			totalRainfallSave = true;
+		}
+
 		switch (pFrame->getResponseCode()) {
 			case RX_RSP_AVG_TPH:
 				log.logDebug("AVG - Copying %d bytes", pFrame->getDataLength());
@@ -233,7 +239,7 @@ void processResponse(uint8_t * response, int responseLength)
 				/*
 				* Save every 20 minutes...
 				*/
-				if (avgCount < (AVG_MSGS_PER_MIN * 20)) {
+				if (avgCount < (TPH_MSGS_PER_MINUTE * 20)) {
 					avgSave = false;
 				}
 				else {
@@ -254,10 +260,6 @@ void processResponse(uint8_t * response, int responseLength)
 
 				log.logDebug("Got MAX data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
 
-				if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
-					maxSave = true;
-				}
-
 				qmgr.pushWebPost(new PostDataTPH("MAX", maxSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
 
 				maxSave = false;
@@ -274,10 +276,6 @@ void processResponse(uint8_t * response, int responseLength)
 				strcpy(szHumidity, strtok_r(NULL, ";", &reference));
 
 				log.logDebug("Got MIN data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
-
-				if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
-					minSave = true;
-				}
 
 				qmgr.pushWebPost(new PostDataTPH("MIN", minSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
 
@@ -298,10 +296,6 @@ void processResponse(uint8_t * response, int responseLength)
 
 				log.logDebug("Got windspeed data: A = %s, M = %s", szAvgWindspeed, szMaxWindSpeed);
 
-				if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
-					maxWindspeedSave = true;
-				}
-
 				qmgr.pushWebPost(new PostDataWindspeed(avgWindspeedSave, maxWindspeedSave, &szAvgWindspeed[2], &szMaxWindSpeed[2]));
 				avgWindspeedCount++;
 
@@ -310,7 +304,7 @@ void processResponse(uint8_t * response, int responseLength)
 				/*
 				* Save every 20 minutes...
 				*/
-				if (avgWindspeedCount < (AVG_MSGS_PER_MIN * 20)) {
+				if (avgWindspeedCount < 20) {
 					avgWindspeedSave = false;
 				}
 				else {
@@ -330,25 +324,13 @@ void processResponse(uint8_t * response, int responseLength)
 
 				log.logDebug("Got rainfall data: A = %s, T = %s", szAvgRainfall, szTotalRainfall);
 
-				if (time.getHour() == 23 && time.getMinute() == 59 && time.getSecond() >= 30) {
-					totalRainfallSave = true;
-				}
-
-				qmgr.pushWebPost(new PostDataRainfall(avgRainfallSave, totalRainfallSave, &szAvgRainfall[2], &szTotalRainfall[2]));
+				/*
+				** Rainfall messages are only received once per hour, so we always save...
+				*/
+				qmgr.pushWebPost(new PostDataRainfall(true, totalRainfallSave, &szAvgRainfall[2], &szTotalRainfall[2]));
 				avgRainfallCount++;
 
 				totalRainfallSave = false;
-
-				/*
-				* Save every 60 minutes...
-				*/
-				if (avgRainfallCount < (AVG_MSGS_PER_MIN * 60)) {
-					avgRainfallSave = false;
-				}
-				else {
-					avgRainfallSave = true;
-					avgRainfallCount = 0;
-				}
 				break;
 
 			case RX_RSP_WDT_DISABLE:
