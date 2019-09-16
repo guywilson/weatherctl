@@ -32,6 +32,11 @@
 #include "views.h"
 #include "logger.h"
 #include "configmgr.h"
+
+extern "C" {
+#include "strutils.h"
+}
+
 #include "version.h"
 
 #define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
@@ -252,6 +257,11 @@ void * webListenerThread(void * pArgs)
 void * versionPostThread(void * pArgs)
 {
 	char			szVersionBuffer[80];
+	char *			pszAVRVersion;
+	char *			pszAVRBuildDate;
+	char *			ref;
+	const char *	pszWCTLVersion;
+	const char *	pszWCTLBuildDate;
 	bool			go = true;
 
 	QueueMgr & qmgr = QueueMgr::getInstance();
@@ -263,11 +273,24 @@ void * versionPostThread(void * pArgs)
 		memcpy(szVersionBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
 		szVersionBuffer[pRxFrame->getDataLength()] = 0;
 
+		ref = szVersionBuffer;
+
+		pszAVRVersion = strtok_r(szVersionBuffer, " ", &ref);
+		pszAVRBuildDate = strtok_r(NULL, "", &ref);
+
 		delete pRxFrame;
 
-		qmgr.pushWebPost(new PostDataVersion(getVersion(), getBuildDate(), szVersionBuffer));
+		pszWCTLVersion = getVersion();
+		pszWCTLBuildDate = getBuildDate();
 
-		log.logInfo("Posting AVR version '%s' and WCTL version '%s [%s]'", szVersionBuffer, getVersion(), getBuildDate());
+		log.logInfo(
+			"Posting AVR version '%s [%s]' and WCTL version '%s [%s]'", 
+			pszAVRVersion, 
+			pszAVRBuildDate, 
+			pszWCTLVersion, 
+			pszWCTLBuildDate);
+
+		qmgr.pushWebPost(new PostDataVersion(pszWCTLVersion, pszWCTLBuildDate, pszAVRVersion, pszAVRBuildDate));
 
 		/*
 		** Sleep for an hour...

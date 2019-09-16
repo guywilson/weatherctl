@@ -58,14 +58,16 @@ class PostDataVersion : public PostData
 private:
 	char			szWCTLVersion[20];
 	char			szWCTLBuildDate[20];
-	char			szAVRVersionString[40];
-	const char *	jsonTemplate = "{\n\t\"wctlVersion\": \"%s\",\n\t\"wctlBuildDate\": \"%s\",\n\t\"avrVersionString\": \"%s\"\n}";
+	char			szAVRVersion[20];
+	char			szAVRBuildDate[20];
+	const char *	jsonTemplate = "{\n\t\"wctlVersion\": \"%s\",\n\t\"wctlBuildDate\": \"%s\",\n\t\"avrVersion\": \"%s\",\n\t\"avrBuildDate\": \"%s\"\n}";
 
 public:
-	PostDataVersion(const char * pszWCTLVersion, const char * pszWCTLBuildDate, char * pszAVRVersionString) {
+	PostDataVersion(const char * pszWCTLVersion, const char * pszWCTLBuildDate, char * pszAVRVersion, char * pszAVRBuildDate) {
 		strncpy(this->szWCTLVersion, pszWCTLVersion, sizeof(this->szWCTLVersion));
 		strncpy(this->szWCTLBuildDate, pszWCTLBuildDate, sizeof(this->szWCTLBuildDate));
-		strncpy(this->szAVRVersionString, pszAVRVersionString, sizeof(this->szAVRVersionString));
+		strncpy(this->szAVRVersion, pszAVRVersion, sizeof(this->szAVRVersion));
+		strncpy(this->szAVRBuildDate, pszAVRBuildDate, sizeof(this->szAVRBuildDate));
 	}
 	int	getClassID() {
 		return CLASS_ID_VERSION;
@@ -84,7 +86,8 @@ public:
 			jsonTemplate,
 			this->szWCTLVersion,
 			this->szWCTLBuildDate,
-			this->szAVRVersionString);
+			this->szAVRVersion,
+			this->szAVRBuildDate);
 
 		return jsonBuffer;
 	}
