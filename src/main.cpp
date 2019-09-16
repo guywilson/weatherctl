@@ -39,8 +39,6 @@ extern "C" {
 
 #include "version.h"
 
-#define LOG_LEVEL			LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL //| LOG_LEVEL_DEBUG
-
 using namespace std;
 
 pthread_t			tidTxCmd;
@@ -366,6 +364,7 @@ void cleanup(void)
 	pthread_kill(tidTxCmd, SIGKILL);
 	pthread_kill(tidWebListener, SIGKILL);
 	pthread_kill(tidWebPost, SIGKILL);
+	pthread_kill(tidVersionPost, SIGKILL);
 
 	/*
 	** Close any open DB connection...
@@ -374,17 +373,17 @@ void cleanup(void)
 	backup.close();
 
 	/*
+	** Close the serial port...
+	*/
+	SerialPort & port = SerialPort::getInstance();
+	port.closePort();
+
+	/*
 	** Close the logger...
 	*/
 	Logger & log = Logger::getInstance();
 	log.logInfo("Cleaning up and exiting...");
 	log.closeLogger();
-
-	/*
-	** Close the serial port...
-	*/
-	SerialPort & port = SerialPort::getInstance();
-	port.closePort();
 
 	closelog();
 }
@@ -431,7 +430,7 @@ void handleSignal(int sigNum)
 
 			/*
 			** The only thing we can change dynamically (at present)
-			** is the loging level...
+			** is the logging level...
 			*/
 			log.setLogLevel(cfg.getValueAsCstr("log.level"));
 			
@@ -517,6 +516,7 @@ int main(int argc, char *argv[])
 	int				i;
 	bool			isDaemonised = false;
 	char			cwd[PATH_MAX];
+	int				defaultLoggingLevel = LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL;
 
 	pszAppName = strdup(argv[0]);
 
@@ -598,7 +598,7 @@ int main(int argc, char *argv[])
 	Logger & log = Logger::getInstance();
 
 	if (pszLogFileName != NULL) {
-		log.initLogger(pszLogFileName, LOG_LEVEL);
+		log.initLogger(pszLogFileName, defaultLoggingLevel);
 		free(pszLogFileName);
 	}
 	else {
@@ -606,10 +606,10 @@ int main(int argc, char *argv[])
 		const char * level = mgr.getValueAsCstr("log.level");
 
 		if (strlen(filename) == 0 && strlen(level) == 0) {
-			log.initLogger(LOG_LEVEL);
+			log.initLogger(defaultLoggingLevel);
 		}
 		else if (strlen(level) == 0) {
-			log.initLogger(filename, LOG_LEVEL);
+			log.initLogger(filename, defaultLoggingLevel);
 		}
 		else {
 			log.initLogger(filename, level);
