@@ -143,7 +143,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 1 hour...
 			*/
-			txWindspeed = txCount + 3600;
+			txRainfall = txCount + 3600;
 		}
 		else if (txCount == txResetMinMax) {
 			/*
