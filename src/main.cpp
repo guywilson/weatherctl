@@ -258,8 +258,7 @@ void * versionPostThread(void * pArgs)
 	Logger & log = Logger::getInstance();
 
 	while (go) {
-		TxFrame * pTxFrame = new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION);
-		RxFrame * pRxFrame = send_receive(pTxFrame);
+		RxFrame * pRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION));
 
 		memcpy(szVersionBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
 		szVersionBuffer[pRxFrame->getDataLength()] = 0;
