@@ -126,8 +126,6 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 						fire_forget(pTxFrame);
 						mg_printf(connection, "HTTP/1.1 200 OK");
 					}
-
-					delete pTxFrame;
 				}
 				else {
 					if (isRenderable) {
