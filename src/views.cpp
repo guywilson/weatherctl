@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "views.h"
+#include "webadmin.h"
 #include "exception.h"
 #include "avrweather.h"
 #include "queuemgr.h"
@@ -182,7 +183,7 @@ void avrViewHandler(struct mg_connection * connection, int event, void * p)
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 	
 			if (strncmp(pszMethod, "GET", 3) == 0) {
-				WebConnector & web = WebConnector::getInstance();
+				WebAdmin & web = WebAdmin::getInstance();
 
 				struct mg_serve_http_opts opts = { .document_root = web.getHTMLDocRoot() };
 
@@ -236,7 +237,7 @@ void cssHandler(struct mg_connection * connection, int event, void * p)
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 
 			if (strncmp(pszMethod, "GET", 3) == 0) {
-				WebConnector & web = WebConnector::getInstance();
+				WebAdmin & web = WebAdmin::getInstance();
 
 				struct mg_serve_http_opts opts = { .document_root = web.getCSSDocRoot() };
 

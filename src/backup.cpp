@@ -12,7 +12,7 @@
 #endif
 
 #include "exception.h"
-#include "webconnect.h"
+#include "postdata.h"
 #include "backup.h"
 #include "logger.h"
 

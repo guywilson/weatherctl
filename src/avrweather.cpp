@@ -12,7 +12,7 @@ extern "C" {
 #include "avrweather.h"
 #include "queuemgr.h"
 #include "exception.h"
-#include "webconnect.h"
+#include "postdata.h"
 #include "currenttime.h"
 #include "logger.h"
 

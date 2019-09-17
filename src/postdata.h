@@ -1,20 +1,11 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include <limits.h>
-#include <curl/curl.h>
 
-#include "mongoose.h"
 #include "currenttime.h"
-#include "configmgr.h"
-#include "exception.h"
 
-extern "C" {
-#include "version.h"
-}
-
-#ifndef _INCL_WEBCONNECT
-#define _INCL_WEBCONNECT
+#ifndef _INCL_POSTDATA
+#define _INCL_POSTDATA
 
 #define WEB_PATH_AVG		"avg-tph"
 #define WEB_PATH_MIN		"min-tph"
@@ -308,60 +299,6 @@ public:
 	}
 	char * getTotalRainfall() {
 		return this->szTotalRainfall;
-	}
-};
-
-class WebConnector
-{
-public:
-	static WebConnector & getInstance()
-	{
-		static WebConnector instance;
-		return instance;
-	}
-
-private:
-	char			szHost[256];
-	int				port;
-	bool			isSecure = false;
-	char			szListenPort[8];
-	char			szBasePath[128];
-	char			szHTMLDocRoot[PATH_MAX];
-	char			szCSSDocRoot[PATH_MAX];
-	char			szCurlError[CURL_ERROR_SIZE];
-
-	bool			isConfigured = false;
-
-	CURL *			pCurl;
-
-	struct mg_mgr			mgr;
-	struct mg_connection *	connection;
-
-	WebConnector();
-
-	void		queryConfig();
-
-public:
-	~WebConnector();
-
-	void		initListener();
-
-	int			post(PostData * pPostData);
-	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));
-	void		listen();
-
-	char *		getHost() {
-		return this->szHost;
-	}
-	int			getPort() {
-		return this->port;
-	}
-
-	char *		getHTMLDocRoot() {
-		return this->szHTMLDocRoot;
-	}
-	char *		getCSSDocRoot() {
-		return this->szCSSDocRoot;
 	}
 };
 

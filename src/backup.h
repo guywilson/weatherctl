@@ -9,7 +9,7 @@
 #include <postgresql/libpq-fe.h>
 #endif
 
-#include "webconnect.h"
+#include "webadmin.h"
 #include "logger.h"
 
 using namespace std;
