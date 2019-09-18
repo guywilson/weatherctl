@@ -40,20 +40,12 @@ extern "C" {
 
 using namespace std;
 
-pthread_t			tidTxCmd;
-pthread_t			tidWebListener;
-pthread_t			tidWebPost;
-pthread_t			tidVersionPost;
-
 void cleanup(void)
 {
 	/*
 	** Kill the threads...
 	*/
-	pthread_kill(tidTxCmd, SIGKILL);
-	pthread_kill(tidWebListener, SIGKILL);
-	pthread_kill(tidWebPost, SIGKILL);
-	pthread_kill(tidVersionPost, SIGKILL);
+	killThreads();
 
 	/*
 	** Close any open DB connection...
@@ -209,12 +201,27 @@ int main(int argc, char *argv[])
 
 	pszAppName = strdup(argv[0]);
 
+    /*
+    ** Check privileges...
+    */
+	if (geteuid() != 0) {
+		printf("\n");
+		printf("********************************************************************************\n");
+        printf("** WARNING!                                                                   **\n");
+		printf("**                                                                            **\n");
+		printf("** In order to have the ability to reset the AVR device, this software must   **\n");
+		printf("** be run as the root user!                                                   **\n");
+		printf("**                                                                            **\n");
+		printf("********************************************************************************\n");
+		printf("\n");
+	}
+
 	getcwd(cwd, sizeof(cwd));
 	
 	strcpy(szPidFileName, cwd);
 	strcat(szPidFileName, "/wctl.pid");
 
-	printf("Running %s from %s\n\n", pszAppName, cwd);
+	printf("\nRunning %s from %s\n", pszAppName, cwd);
 
 	if (argc > 1) {
 		for (i = 1;i < argc;i++) {
@@ -372,46 +379,10 @@ int main(int argc, char *argv[])
 	/*
 	 * Start threads...
 	 */
-	int	err;
+	int rtn = startThreads();
 
-	err = pthread_create(&tidTxCmd, NULL, &txCmdThread, NULL);
-
-	if (err != 0) {
-		log.logError("ERROR! Can't create txCmdThread() :[%s]", strerror(err));
-		return -1;
-	}
-	else {
-		log.logInfo("Thread txCmdThread() created successfully");
-	}
-
-	err = pthread_create(&tidWebListener, NULL, &webListenerThread, NULL);
-
-	if (err != 0) {
-		log.logError("ERROR! Can't create webListenerThread() :[%s]", strerror(err));
-		return -1;
-	}
-	else {
-		log.logInfo("Thread webListenerThread() created successfully");
-	}
-
-	err = pthread_create(&tidWebPost, NULL, &webPostThread, NULL);
-
-	if (err != 0) {
-		log.logError("ERROR! Can't create webPostThread() :[%s]", strerror(err));
-		return -1;
-	}
-	else {
-		log.logInfo("Thread webPostThread() created successfully");
-	}
-
-	err = pthread_create(&tidVersionPost, NULL, &versionPostThread, NULL);
-
-	if (err != 0) {
-		log.logError("ERROR! Can't create versionPostThread() :[%s]", strerror(err));
-		return -1;
-	}
-	else {
-		log.logInfo("Thread versionPostThread() created successfully");
+	if (rtn < 0) {
+		return rtn;
 	}
 
 	while (1) {

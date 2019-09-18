@@ -9,13 +9,6 @@
 
 class Rest
 {
-public:
-	static Rest & getInstance()
-	{
-		static Rest instance;
-		return instance;
-	}
-
 private:
 	char			szHost[256];
 	int				port;
@@ -24,9 +17,8 @@ private:
 	char			szCurlError[CURL_ERROR_SIZE];
 	CURL *			pCurl;
 
-    Rest();
-
 public:
+    Rest();
     ~Rest();
 
 	char *		getHost() {

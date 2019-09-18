@@ -9,9 +9,74 @@
 #include "exception.h"
 #include "webadmin.h"
 #include "rest.h"
+#include "threads.h"
 
 extern "C" {
 #include "strutils.h"
+}
+
+pthread_t			tidTxCmd;
+pthread_t			tidWebListener;
+pthread_t			tidWebPost;
+pthread_t			tidVersionPost;
+
+int startThreads()
+{
+	int	err;
+
+	Logger & log = Logger::getInstance();
+
+	log.logInfo("Starting threads...");
+
+	err = pthread_create(&tidTxCmd, NULL, &txCmdThread, NULL);
+
+	if (err != 0) {
+		log.logError("ERROR! Can't create txCmdThread() :[%s]", strerror(err));
+		return -1;
+	}
+	else {
+		log.logInfo("Thread txCmdThread() created successfully");
+	}
+
+	err = pthread_create(&tidWebListener, NULL, &webListenerThread, NULL);
+
+	if (err != 0) {
+		log.logError("ERROR! Can't create webListenerThread() :[%s]", strerror(err));
+		return -1;
+	}
+	else {
+		log.logInfo("Thread webListenerThread() created successfully");
+	}
+
+	err = pthread_create(&tidWebPost, NULL, &webPostThread, NULL);
+
+	if (err != 0) {
+		log.logError("ERROR! Can't create webPostThread() :[%s]", strerror(err));
+		return -1;
+	}
+	else {
+		log.logInfo("Thread webPostThread() created successfully");
+	}
+
+	err = pthread_create(&tidVersionPost, NULL, &versionPostThread, NULL);
+
+	if (err != 0) {
+		log.logError("ERROR! Can't create versionPostThread() :[%s]", strerror(err));
+		return -1;
+	}
+	else {
+		log.logInfo("Thread versionPostThread() created successfully");
+	}
+
+	return 0;
+}
+
+void killThreads()
+{
+	pthread_kill(tidTxCmd, SIGKILL);
+	pthread_kill(tidWebListener, SIGKILL);
+	pthread_kill(tidWebPost, SIGKILL);
+	pthread_kill(tidVersionPost, SIGKILL);
 }
 
 void * txCmdThread(void * pArgs)
@@ -260,8 +325,9 @@ void * webPostThread(void * pArgs)
 	int rtn = 0;
 	bool go = true;
 
+	Rest rest;
+
 	QueueMgr & qmgr = QueueMgr::getInstance();
-	Rest & rest = Rest::getInstance();
 	Logger & log = Logger::getInstance();
 
 	while (go) {
