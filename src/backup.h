@@ -33,34 +33,43 @@ public:
 	}
 
 private:
-    char *          pszCSVFileName;
+    char *          pszTphCSVFileName;
+    char *          pszWindCSVFileName;
+    char *          pszRainCSVFileName;
     char *          pszPrimaryDBHost;
     char *          pszPrimaryDBName;
     char *          pszSecondaryDBHost;
     char *          pszSecondaryDBName;
 
-    vector<string>  csvHeader = {"TIME", "TYPE", "TEMPERATURE", "PRESSURE", "HUMIDITY"};
+    const char *    csvHeaderTPH[5] = {"TIME", "TYPE", "TEMPERATURE", "PRESSURE", "HUMIDITY"};
+    const char *    csvHeaderWind[3] = {"TIME", "TYPE", "WINDSPEED"};
+    const char *    csvHeaderRain[3] = {"TIME", "TYPE", "RAINFALL"};
 
-    FILE *          fptr_csv = NULL;
+    FILE *          fptr_tph = NULL;
+    FILE *          fptr_wind = NULL;
+    FILE *          fptr_rain = NULL;
     PGconn *		dbConnection = NULL;
-    int             numColumns = csvHeader.size();
     Logger &        log = Logger::getInstance();
 
     BackupManager() {}
-    void            writeCSVHeader();
-    void            writeCSVRecord(PostDataTPH * pPostData);
-    void            writeDBRecord(const char * pszHost, const char * pszDbName, PostDataTPH * pPostData);
+
+    bool            isDoSave(PostData * pPostData);
+    FILE *          openCSV(PostData * pPostData);
+    void            writeCSVHeader(PostData * pPostData);
+    void            writeCSVRecord(PostData * pPostData);
+    void            insertDB(const char * pszHost, const char * pszDbName, char * pszInsertStatement);
+    void            writeDBRecord(const char * pszHost, const char * pszDbName, PostData * pPostData);
 
 public:
     ~BackupManager();
 
     void            close();
     
-    void            setupCSV(const char * pszFilename);
+    void            setupCSV(const char * pszTphFilename, const char * pszWindFilename, const char * pszRainFilename);
     void            setupPrimaryDB(const char * pszHostname, const char * pszDBName);
     void            setupSecondaryDB(const char * pszHostname, const char * pszDBName);
 
-    uint16_t        backup(PostDataTPH * pPostData);
+    uint16_t        backup(PostData * pPostData);
 };
 
 #endif

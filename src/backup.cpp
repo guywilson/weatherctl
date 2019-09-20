@@ -25,13 +25,24 @@ BackupManager::~BackupManager()
 
 void BackupManager::close()
 {
-    fclose(fptr_csv);
+    if (fptr_tph != NULL) {
+        fclose(fptr_tph);
+    }
+    if (fptr_wind != NULL) {
+        fclose(fptr_wind);
+    }
+    if (fptr_rain != NULL) {
+        fclose(fptr_rain);
+    }
+
     PQfinish(dbConnection);
 }
 
-void BackupManager::setupCSV(const char * pszFilename)
+void BackupManager::setupCSV(const char * pszTphFilename, const char * pszWindFilename, const char * pszRainFilename)
 {
-    this->pszCSVFileName = strdup(pszFilename);
+    this->pszTphCSVFileName = strdup(pszTphFilename);
+    this->pszWindCSVFileName = strdup(pszWindFilename);
+    this->pszRainCSVFileName = strdup(pszRainFilename);
 }
 
 void BackupManager::setupPrimaryDB(const char * pszHostname, const char * pszDBName)
@@ -46,30 +57,55 @@ void BackupManager::setupSecondaryDB(const char * pszHostname, const char * pszD
     this->pszSecondaryDBName = strdup(pszDBName);
 }
 
-void BackupManager::writeCSVHeader()
+bool BackupManager::isDoSave(PostData * pPostData)
 {
-    int         i;
+    bool            isDoSave = false;
 
-    for (i = 0;i < numColumns;i++) {
-        fputs(csvHeader.at(i).c_str(), fptr_csv);
+    switch (pPostData->getClassID()) {
+        case CLASS_ID_TPH:
+            isDoSave = ((PostDataTPH *)pPostData)->isDoSave();
+            break;
 
-        if (i < (numColumns - 1)) {
-            fputc(',', fptr_csv);
-        }
+        case CLASS_ID_WINDSPEED:
+            isDoSave = (((PostDataWindspeed *)pPostData)->isDoSaveAvg() || ((PostDataWindspeed *)pPostData)->isDoSaveMax());
+            break;
+
+        case CLASS_ID_RAINFALL:
+            isDoSave = (((PostDataRainfall *)pPostData)->isDoSaveAvg() || ((PostDataRainfall *)pPostData)->isDoSaveTotal());
+            break;
     }
 
-    fputc('\n', fptr_csv);
-
-    fflush(fptr_csv);
+    return isDoSave;
 }
 
-void BackupManager::writeCSVRecord(PostDataTPH * pPostData)
+FILE * BackupManager::openCSV(PostData * pPostData)
 {
     FILE *      f;
+    FILE *      fptr_csv;
     bool        isNewFile = false;
+    char *      pszCSVFileName;
 
-    if (this->fptr_csv == NULL) {
-        f = fopen(this->pszCSVFileName, "rt");
+    switch (pPostData->getClassID()) {
+        case CLASS_ID_TPH:
+            fptr_csv = fptr_tph;
+            pszCSVFileName = this->pszTphCSVFileName;
+            break;
+
+        case CLASS_ID_WINDSPEED:
+            fptr_csv = fptr_wind;
+            pszCSVFileName = this->pszWindCSVFileName;
+            break;
+
+        case CLASS_ID_RAINFALL:
+            fptr_csv = fptr_rain;
+            pszCSVFileName = this->pszRainCSVFileName;
+            break;
+    }
+
+    log.logInfo("Writing to CSV file %s, you will need to reconcile later...", pszCSVFileName);
+
+    if (fptr_csv == NULL) {
+        f = fopen(pszCSVFileName, "rt");
 
         if (f == NULL) {
             isNewFile = true;
@@ -78,38 +114,165 @@ void BackupManager::writeCSVRecord(PostDataTPH * pPostData)
             fclose(f);
         }
 
-        this->fptr_csv = fopen(this->pszCSVFileName, "at");
+        fptr_csv = fopen(pszCSVFileName, "at");
 
-        if (this->fptr_csv == NULL) {
+        if (fptr_csv == NULL) {
             log.logError("Failed to open CSV file: %s", strerror(errno));
             throw new Exception("Error opening CSV file");
         }
 
+        switch (pPostData->getClassID()) {
+            case CLASS_ID_TPH:
+                this->fptr_tph = fptr_csv;
+                break;
+
+            case CLASS_ID_WINDSPEED:
+                this->fptr_wind = fptr_csv;
+                break;
+
+            case CLASS_ID_RAINFALL:
+                this->fptr_rain = fptr_csv;
+                break;
+        }
+
         if (isNewFile) {
-            writeCSVHeader();
+            writeCSVHeader(pPostData);
         }
     }
 
-    fputs(pPostData->getTimestamp(), fptr_csv);
-    fputc(',', fptr_csv);
-    fputs(pPostData->getType(), fptr_csv);
-    fputc(',', fptr_csv);
-    fputs(pPostData->getTemperature(), fptr_csv);
-    fputc(',', fptr_csv);
-    fputs(pPostData->getPressure(), fptr_csv);
-    fputc(',', fptr_csv);
-    fputs(pPostData->getHumidity(), fptr_csv);
-    fputc('\n', fptr_csv);
-
-    fflush(fptr_csv);
+    return fptr_csv;
 }
 
-void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, PostDataTPH * pPostData)
+void BackupManager::writeCSVHeader(PostData * pPostData)
+{
+    int             i;
+    int             numColumns = 0;
+    FILE *          fptr_csv = NULL;
+    const char **   csvHeader;
+
+    switch (pPostData->getClassID()) {
+        case CLASS_ID_TPH:
+            numColumns = 5;
+            csvHeader = csvHeaderTPH;
+            fptr_csv = this->fptr_tph;
+            break;
+
+        case CLASS_ID_WINDSPEED:
+            numColumns = 3;
+            csvHeader = csvHeaderWind;
+            fptr_csv = this->fptr_wind;
+            break;
+
+        case CLASS_ID_RAINFALL:
+            numColumns = 3;
+            csvHeader = csvHeaderRain;
+            fptr_csv = this->fptr_rain;
+            break;
+    }
+
+    if (fptr_csv != NULL) {
+        for (i = 0;i < numColumns;i++) {
+            fputs(csvHeader[i], fptr_csv);
+
+            if (i < (numColumns - 1)) {
+                fputc(',', fptr_csv);
+            }
+        }
+
+        fputc('\n', fptr_csv);
+
+        fflush(fptr_csv);
+    }
+}
+
+void BackupManager::writeCSVRecord(PostData * pPostData)
+{
+    FILE *              fptr_csv;
+    PostDataTPH *       pPostDataTPH;
+    PostDataWindspeed * pPostDataWind;
+    PostDataRainfall *  pPostDataRain;
+
+    switch (pPostData->getClassID()) {
+        case CLASS_ID_TPH:
+            pPostDataTPH = (PostDataTPH *)pPostData;
+
+            if (pPostDataTPH->isDoSave()) {
+                fptr_csv = openCSV(pPostData);
+
+                fputs(pPostDataTPH->getTimestamp(), fptr_csv);
+                fputc(',', fptr_csv);
+                fputs(pPostDataTPH->getType(), fptr_csv);
+                fputc(',', fptr_csv);
+                fputs(pPostDataTPH->getTemperature(), fptr_csv);
+                fputc(',', fptr_csv);
+                fputs(pPostDataTPH->getPressure(), fptr_csv);
+                fputc(',', fptr_csv);
+                fputs(pPostDataTPH->getHumidity(), fptr_csv);
+                fputc('\n', fptr_csv);
+                fflush(fptr_csv);
+            }
+            break;
+
+        case CLASS_ID_WINDSPEED:
+            pPostDataWind = (PostDataWindspeed *)pPostData;
+
+            if (pPostDataWind->isDoSaveAvg()) {
+                fptr_csv = openCSV(pPostData);
+                
+                fputs(pPostDataWind->getTimestamp(), fptr_csv);
+                fputc(',', fptr_csv);
+                fputs("AVG", fptr_csv);
+                fputc(',', fptr_csv);
+                fputs(pPostDataWind->getAvgWindspeed(), fptr_csv);
+                fputc('\n', fptr_csv);
+                fflush(fptr_csv);
+            }
+            if (pPostDataWind->isDoSaveMax()) {
+                openCSV(pPostData);
+                
+                fputs(pPostDataWind->getTimestamp(), fptr_csv);
+                fputc(',', fptr_csv);
+                fputs("MAX", fptr_csv);
+                fputc(',', fptr_csv);
+                fputs(pPostDataWind->getMaxWindspeed(), fptr_csv);
+                fputc('\n', fptr_csv);
+                fflush(fptr_csv);
+            }
+            break;
+
+        case CLASS_ID_RAINFALL:
+            pPostDataRain = (PostDataRainfall *)pPostData;
+
+            if (pPostDataRain->isDoSaveAvg()) {
+                fptr_csv = openCSV(pPostData);
+                
+                fputs(pPostDataRain->getTimestamp(), fptr_csv);
+                fputc(',', fptr_csv);
+                fputs("AVG", fptr_csv);
+                fputc(',', fptr_csv);
+                fputs(pPostDataRain->getAvgRainfall(), fptr_csv);
+                fputc('\n', fptr_csv);
+                fflush(fptr_csv);
+            }
+            if (pPostDataRain->isDoSaveTotal()) {
+                openCSV(pPostData);
+                
+                fputs(pPostDataRain->getTimestamp(), fptr_csv);
+                fputc(',', fptr_csv);
+                fputs("TOT", fptr_csv);
+                fputc(',', fptr_csv);
+                fputs(pPostDataRain->getTotalRainfall(), fptr_csv);
+                fputc('\n', fptr_csv);
+                fflush(fptr_csv);
+            }
+            break;
+    }
+}
+
+void BackupManager::insertDB(const char * pszHost, const char * pszDbName, char * pszInsertStatement)
 {
 	char				szConnection[128];
 	PGresult *			queryResult;
-	const char *		pszInsertTemplate;
-	char				szInsertStr[128];
 
     sprintf(
         szConnection, 
@@ -138,20 +301,7 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
 
     PQclear(queryResult);
 
-    CurrentTime time;
-
-    pszInsertTemplate= "INSERT INTO TPH (TS, TYPE, TEMPERATURE, PRESSURE, HUMIDITY) VALUES ('%s', '%s', %s, %s, %s)";
-
-    sprintf(
-        szInsertStr, 
-        pszInsertTemplate, 
-        time.getTimeStamp(), 
-        pPostData->getType(), 
-        pPostData->getTemperature(), 
-        pPostData->getPressure(), 
-        pPostData->getHumidity());
-
-    queryResult = PQexec(dbConnection, szInsertStr);
+    queryResult = PQexec(dbConnection, pszInsertStatement);
 
     if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
         log.logError("Error issuing INSERT statement [%s]", PQerrorMessage(dbConnection));
@@ -175,15 +325,99 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
     log.logDebug("PQfinish()");
 }
 
-uint16_t BackupManager::backup(PostDataTPH * pPostData)
+void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, PostData * pPostData)
+{
+    PostDataTPH *       pPostDataTPH;
+    PostDataWindspeed * pPostDataWind;
+    PostDataRainfall *  pPostDataRain;
+	const char *		pszInsertTemplate;
+	char				szInsertStr[128];
+
+    CurrentTime time;
+
+    switch (pPostData->getClassID()) {
+        case CLASS_ID_TPH:
+            pPostDataTPH = (PostDataTPH *)pPostData;
+
+            pszInsertTemplate= "INSERT INTO TPH (TS, TYPE, TEMPERATURE, PRESSURE, HUMIDITY) VALUES ('%s', '%s', %s, %s, %s)";
+
+            if (pPostDataTPH->isDoSave()) {
+                sprintf(
+                    szInsertStr, 
+                    pszInsertTemplate, 
+                    time.getTimeStamp(), 
+                    pPostDataTPH->getType(), 
+                    pPostDataTPH->getTemperature(), 
+                    pPostDataTPH->getPressure(), 
+                    pPostDataTPH->getHumidity());
+                
+                insertDB(pszHost, pszDbName, szInsertStr);
+            }
+            break;
+
+        case CLASS_ID_WINDSPEED:
+            pPostDataWind = (PostDataWindspeed *)pPostData;
+
+            pszInsertTemplate= "INSERT INTO WIND (TS, TYPE, WINDSPEED) VALUES ('%s', '%s', %s)";
+
+            if (pPostDataWind->isDoSaveAvg()) {
+                sprintf(
+                    szInsertStr, 
+                    pszInsertTemplate, 
+                    time.getTimeStamp(), 
+                    "AVG", 
+                    pPostDataWind->getAvgWindspeed());
+            
+                insertDB(pszHost, pszDbName, szInsertStr);
+            }
+            if (pPostDataWind->isDoSaveMax()) {
+                sprintf(
+                    szInsertStr, 
+                    pszInsertTemplate, 
+                    time.getTimeStamp(), 
+                    "MAX", 
+                    pPostDataWind->getMaxWindspeed());
+            
+                insertDB(pszHost, pszDbName, szInsertStr);
+            }
+            break;
+
+        case CLASS_ID_RAINFALL:
+            pPostDataRain = (PostDataRainfall *)pPostData;
+
+            pszInsertTemplate= "INSERT INTO RAIN (TS, TYPE, RAINFALL) VALUES ('%s', '%s', %s)";
+
+            if (pPostDataRain->isDoSaveAvg()) {
+                sprintf(
+                    szInsertStr, 
+                    pszInsertTemplate, 
+                    time.getTimeStamp(), 
+                    "AVG", 
+                    pPostDataRain->getAvgRainfall());
+            
+                insertDB(pszHost, pszDbName, szInsertStr);
+            }
+            if (pPostDataRain->isDoSaveTotal()) {
+                sprintf(
+                    szInsertStr, 
+                    pszInsertTemplate, 
+                    time.getTimeStamp(), 
+                    "TOT", 
+                    pPostDataRain->getTotalRainfall());
+            
+                insertDB(pszHost, pszDbName, szInsertStr);
+            }
+            break;
+    }
+}
+
+uint16_t BackupManager::backup(PostData * pPostData)
 {
     uint16_t            rtn = BACKUP_NOT_REQUIRED_SKIPPED;
 
-    /*
-    ** Only save a backup if we tried to tell the
-    ** web server to save...
-    */
-    if (pPostData->isDoSave()) {
+    if (this->isDoSave(pPostData)) {
+		log.logInfo("Attempting to backup data");
+
         try {
             writeDBRecord(this->pszPrimaryDBHost, this->pszPrimaryDBName, pPostData);
 
@@ -204,7 +438,6 @@ uint16_t BackupManager::backup(PostDataTPH * pPostData)
             }
             catch (Exception * e2) {
                 log.logError("Failed to insert to secondary database, check your configuration!");
-                log.logInfo("Writing to CSV file %s, you will need to reconcile later...", this->pszCSVFileName);
 
                 try {
                     writeCSVRecord(pPostData);
@@ -212,7 +445,7 @@ uint16_t BackupManager::backup(PostDataTPH * pPostData)
                     rtn = BACKUP_COMPLETE_CSV;
                 }
                 catch (Exception * e3) {
-                    log.logError("Failed to write to CSV file %s, out of options!!", this->pszCSVFileName);
+                    log.logError("Failed to write to CSV file, out of options!!");
                     log.logInfo("Data will be lost!");
 
                     rtn = BACKUP_FAILED_DATA_LOST;

@@ -364,15 +364,24 @@ int main(int argc, char *argv[])
 
 	log.logInfo("Opened serial port...");
 
+	/*
+	** Setup admin server...
+	*/
 	WebAdmin & web = WebAdmin::getInstance();
 
 	web.registerHandler("/avr/cmd", avrViewHandler);
 	web.registerHandler("/avr/cmd/post", avrCommandHandler);
 	web.registerHandler("/css", cssHandler);
 
+	/*
+	** Initialise backup manager...
+	*/
 	BackupManager & backup = BackupManager::getInstance();
 
-	backup.setupCSV(mgr.getValueAsCstr("backup.csv"));
+	backup.setupCSV(
+			mgr.getValueAsCstr("backup.tph.csv"), 
+			mgr.getValueAsCstr("backup.wind.csv"), 
+			mgr.getValueAsCstr("backup.rain.csv"));
 	backup.setupPrimaryDB(mgr.getValueAsCstr("backup.primaryhost"), mgr.getValueAsCstr("backup.primarydb"));
 	backup.setupSecondaryDB(mgr.getValueAsCstr("backup.secondaryhost"), mgr.getValueAsCstr("backup.secondarydb"));
 

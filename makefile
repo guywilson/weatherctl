@@ -46,7 +46,7 @@ all: $(WCTL) $(TOGGLERST)
 $(BUILD)/main.o: $(SOURCE)/main.cpp $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/currenttime.h $(SOURCE)/webadmin.h $(SOURCE)/queuemgr.h $(SOURCE)/backup.h $(SOURCE)/views.h $(SOURCE)/configmgr.h $(SOURCE)/rest.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/main.o $(SOURCE)/main.cpp
 
-$(BUILD)/threads.o: $(SOURCE)/threads.cpp $(SOURCE)/threads.h $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/queuemgr.h $(SOURCE)/frame.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/webadmin.h $(SOURCE)/rest.h
+$(BUILD)/threads.o: $(SOURCE)/threads.cpp $(SOURCE)/threads.h $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/queuemgr.h $(SOURCE)/frame.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h $(SOURCE)/backup.h $(SOURCE)/webadmin.h $(SOURCE)/rest.h
 	$(CPP) $(CPPFLAGS) -o $(BUILD)/threads.o $(SOURCE)/threads.cpp
 
 $(BUILD)/serial.o: $(SOURCE)/serial.cpp $(SOURCE)/serial.h $(SOURCE)/logger.h $(SOURCE)/exception.h $(SOURCE)/avrweather.h

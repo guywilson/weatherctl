@@ -9,6 +9,7 @@
 #include "exception.h"
 #include "webadmin.h"
 #include "rest.h"
+#include "backup.h"
 #include "threads.h"
 
 extern "C" {
@@ -359,6 +360,9 @@ void * webPostThread(void * pArgs)
 			log.logDebug("Posting data to %s", rest.getHost());
 
 			rtn = rest.post(pPostData);
+
+			BackupManager & backup = BackupManager::getInstance();
+			backup.backup(pPostData);
 
 			if (rtn < 0) {
 				log.logError("Error posting to web server");
