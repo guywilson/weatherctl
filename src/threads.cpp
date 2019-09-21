@@ -323,10 +323,11 @@ void * versionPostThread(void * pArgs)
 
 void * webPostThread(void * pArgs)
 {
-	int rtn = 0;
-	bool go = true;
+	int 		rtn = 0;
+	bool 		go = true;
+	char		szType[32];
 
-	Rest rest;
+	Rest 		rest;
 
 	QueueMgr & qmgr = QueueMgr::getInstance();
 	Logger & log = Logger::getInstance();
@@ -338,18 +339,22 @@ void * webPostThread(void * pArgs)
 			switch (pPostData->getClassID()) {
 				case CLASS_ID_TPH:
 					log.logDebug("Got TPH post data from queue...");
+					strcpy(szType, "TPH");
 					break;
 
 				case CLASS_ID_WINDSPEED:
 					log.logDebug("Got WINDSPEED post data from queue...");
+					strcpy(szType, "wind speed");
 					break;
 
 				case CLASS_ID_RAINFALL:
 					log.logDebug("Got RAINFALL post data from queue...");
+					strcpy(szType, "rainfall");
 					break;
 
 				case CLASS_ID_VERSION:
 					log.logDebug("Got VERSION post data from queue...");
+					strcpy(szType, "version");
 					break;
 
 				case CLASS_ID_BASE:
@@ -357,7 +362,7 @@ void * webPostThread(void * pArgs)
 					break;
 			}
 
-			log.logDebug("Posting data to %s", rest.getHost());
+			log.logDebug("Posting %s data to %s", szType, rest.getHost());
 
 			rtn = rest.post(pPostData);
 
@@ -365,10 +370,10 @@ void * webPostThread(void * pArgs)
 			backup.backup(pPostData);
 
 			if (rtn < 0) {
-				log.logError("Error posting to web server");
+				log.logError("Error posting %s data to %s", szType, rest.getHost());
 			}
 			else {
-				log.logInfo("Successfully posted to server");
+				log.logInfo("Successfully posted %s data to %s", szType, rest.getHost());
 			}
 
 			rtn = 0;
