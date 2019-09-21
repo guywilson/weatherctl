@@ -16,6 +16,8 @@ SOURCE = src
 # Build output directory
 BUILD = build
 
+DEP = dep
+
 # What is our target
 TARGET = wctl
 VBUILD = vbuild
@@ -24,38 +26,61 @@ VBUILD = vbuild
 CPP = g++
 C = gcc
 
+# postcompile step
+PRECOMPILE = @ mkdir -p $(BUILD) $(DEP)
+
+# postcompile step
+POSTCOMPILE = @ mv -f $(DEP)/$*.Td $(DEP)/$*.d
+
+# Linker
+LINKER = g++
+
 # C compiler flags (Release)
 CPPFLAGS = -c -Wall -std=c++11
 CFLAGS = -c -Wall
 
-# Linker
-LINKER = g++
+# Mongoose compiler flags
+MGFLAGS=
+
+# Dependency generation flags
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP)/$*.Td
 
 # Libraries
 STDLIBS = -pthread -lstdc++
 EXTLIBS = -lgpioc -lpq -lcurl
 
-# Dependency generation flags
-DEPFLAGS = -MMD -MP
-
-# Mongoose compiler flags
-MGFLAGS=
-
-COMPILE.cpp = $(CPP) $(CPPFLAGS) $(DEPFLAGS)
-COMPILE.c = $(C) $(CFLAGS) $(DEPFLAGS) $(MGFLAGS)
-LINK.o = $(LINKER) $(STDLIBS) 
+COMPILE.cpp = $(CPP) $(CPPFLAGS) $(DEPFLAGS) -o $@
+COMPILE.c = $(C) $(CFLAGS) $(DEPFLAGS) $(MGFLAGS) -o $@
+LINK.o = $(LINKER) $(STDLIBS) -o $@
 
 CSRCFILES = $(wildcard $(SOURCE)/*.c)
 CPPSRCFILES = $(wildcard $(SOURCE)/*.cpp)
-OBJFILES = $(CSRCFILES:.c=.o) $(CPPSRCFILES:.cpp=.o)
-DEPFILES = $(CSRCFILES:.c=.d) $(CPPSRCFILES:.cpp=.d)
+OBJFILES = $(patsubst $(SOURCE)/%.c, $(BUILD)/%.o, $(CSRCFILES)) $(patsubst $(SOURCE)/%.cpp, $(BUILD)/%.o, $(CPPSRCFILES))
+DEPFILES = $(patsubst $(SOURCE)/%.c, $(DEP)/%.d, $(CSRCFILES)) $(patsubst $(SOURCE)/%.cpp, $(DEP)/%.d, $(CPPSRCFILES))
+
+all: $(TARGET)
 
 # Compile C/C++ source files
 #
 $(TARGET): $(OBJFILES)
 	$(VBUILD) -incfile wctl.ver -template version.c.template -out $(SOURCE)/version.c -major $(MAJOR_VERSION) -minor $(MINOR_VERSION)
 	$(C) $(CFLAGS) -o $(BUILD)/version.o $(SOURCE)/version.c
-	$(LINK.o) -o $@ $^ $(EXTLIBS)
+	$(LINK.o) $^ $(EXTLIBS)
+
+$(BUILD)/%.o: $(SOURCE)/%.c
+$(BUILD)/%.o: $(SOURCE)/%.c $(DEP)/%.d
+	$(PRECOMPILE)
+	$(COMPILE.c) $<
+	$(POSTCOMPILE)
+
+$(BUILD)/%.o: $(SOURCE)/%.cpp
+$(BUILD)/%.o: $(SOURCE)/%.cpp $(DEP)/%.d
+	$(PRECOMPILE)
+	$(COMPILE.cpp) $<
+	$(POSTCOMPILE)
+
+.PRECIOUS = $(DEP)/%.d
+$(DEP)/%.d: ;
 
 -include $(DEPFILES)
 
