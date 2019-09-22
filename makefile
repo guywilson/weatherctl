@@ -10,39 +10,28 @@
 MAJOR_VERSION = 1
 MINOR_VERSION = 3
 
-# Source directory
+# Directories
 SOURCE = src
-
-# Build output directory
 BUILD = build
-
 DEP = dep
 
 # What is our target
 TARGET = wctl
-VBUILD = vbuild
 
-# C compiler
+# Tools
+VBUILD = vbuild
 CPP = g++
 C = gcc
+LINKER = g++
 
 # postcompile step
 PRECOMPILE = @ mkdir -p $(BUILD) $(DEP)
-
 # postcompile step
 POSTCOMPILE = @ mv -f $(DEP)/$*.Td $(DEP)/$*.d
 
-# Linker
-LINKER = g++
-
-# C compiler flags (Release)
 CPPFLAGS = -c -Wall -std=c++11
 CFLAGS = -c -Wall
-
-# Mongoose compiler flags
 MGFLAGS=
-
-# Dependency generation flags
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP)/$*.Td
 
 # Libraries
