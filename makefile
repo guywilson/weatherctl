@@ -52,8 +52,6 @@ all: $(TARGET)
 # Compile C/C++ source files
 #
 $(TARGET): $(OBJFILES)
-	$(VBUILD) -incfile wctl.ver -template version.c.template -out $(SOURCE)/version.c -major $(MAJOR_VERSION) -minor $(MINOR_VERSION)
-	$(C) $(CFLAGS) -o $(BUILD)/version.o $(SOURCE)/version.c
 	$(LINK.o) $^ $(EXTLIBS)
 
 $(BUILD)/%.o: $(SOURCE)/%.c
@@ -78,3 +76,11 @@ install: $(TARGET)
 	cp wctl.cfg /etc/weatherctl
 	cp resources/css/*.css /var/www/css
 	cp resources/html/avr/cmd/*.html /var/www/html/avr/cmd
+
+version:
+	$(VBUILD) -incfile wctl.ver -template version.c.template -out $(SOURCE)/version.c -major $(MAJOR_VERSION) -minor $(MINOR_VERSION)
+
+clean:
+	rm -r $(BUILD)
+	rm -r $(DEP)
+	rm $(TARGET)

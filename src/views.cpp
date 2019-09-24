@@ -18,6 +18,9 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 	char *							pszURI;
 	char							szCmdValue[32];
 	char							szRenderBuffer[256];
+	uint8_t							data[80];
+	uint8_t *						pData = NULL;
+	int								dataLength = 0;
 	int								rtn;
 	uint8_t							cmdCode;
 	bool							isSerialCommand = false;
@@ -93,6 +96,28 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 					isSerialCommand = true;
 					isRenderable = true;
 				}
+				else if (strncmp(szCmdValue, "get-calibration-data", sizeof(szCmdValue)) == 0) {
+					cmdCode = RX_CMD_GET_CALIBRATION_DATA;
+					isSerialCommand = true;
+					isRenderable = true;
+				}
+				else if (strncmp(szCmdValue, "set-calibration-data", sizeof(szCmdValue)) == 0) {
+					cmdCode = RX_CMD_SET_CALIBRATION_DATA;
+					isSerialCommand = true;
+					isRenderable = false;
+
+					pData = data;
+					dataLength = sizeof(CALIBRATION_DATA);
+
+					CALIBRATION_DATA cd;
+					cd.temperatureOffset = -5;
+					cd.pressureOffset = 4;
+					cd.humidityOffset = 0;
+					cd.windOffset = -3;
+					cd.rainOffset = 2;
+
+					memcpy(pData, &cd, dataLength);
+				}
 				else if (strncmp(szCmdValue, "reset-avr", sizeof(szCmdValue)) == 0) {
 					resetAVR();
 					isSerialCommand = false;
@@ -103,24 +128,47 @@ void avrCommandHandler(struct mg_connection * connection, int event, void * p)
 				}
 
 				if (isSerialCommand) {
-					TxFrame * pTxFrame = new TxFrame(NULL, 0, cmdCode);
+					TxFrame * pTxFrame = new TxFrame(pData, dataLength, cmdCode);
 					
 					if (isRenderable) {
 						RxFrame * pRxFrame = send_receive(pTxFrame);
 
-						memcpy(szRenderBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
-						szRenderBuffer[pRxFrame->getDataLength()] = 0;
-
-						delete pRxFrame;
-
 						if (pRxFrame->getResponseCode() == RX_RSP_GET_SCHED_VERSION) {
+							memcpy(szRenderBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
+							szRenderBuffer[pRxFrame->getDataLength()] = 0;
+
 							log.logInfo("Got scheduler version from Arduino [%s]", szRenderBuffer);
 							mg_printf(connection, "HTTP/1.1 200 OK\n\n Scheduler Version [%s]", szRenderBuffer);
 						}
 						else if (pRxFrame->getResponseCode() == RX_RSP_GET_AVR_VERSION) {
+							memcpy(szRenderBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
+							szRenderBuffer[pRxFrame->getDataLength()] = 0;
+
 							log.logInfo("Got avr version from Arduino [%s]", szRenderBuffer);
 							mg_printf(connection, "HTTP/1.1 200 OK\n\n AVR Version: %s", szRenderBuffer);
 						}
+						else if (pRxFrame->getResponseCode() == RX_RSP_GET_CALIBRATION_DATA) {
+							CALIBRATION_DATA cd;
+
+							memcpy(&cd, pRxFrame->getData(), pRxFrame->getDataLength());
+
+							sprintf(
+								szRenderBuffer,
+								"Calibration Data:\n\tTemperature: %d,\n\tPressure: %d,\n\tHumidity: %d,\n\tWindspeed: %d,\n\tRainfall: %d\n",
+								cd.temperatureOffset,
+								cd.pressureOffset,
+								cd.humidityOffset,
+								cd.windOffset,
+								cd.rainOffset);
+
+							log.logInfo("Got calibration data from Arduino %s", szRenderBuffer);
+							mg_printf(connection, "HTTP/1.1 200 OK\n\n %s", szRenderBuffer);
+						}
+						else {
+							mg_printf(connection, "HTTP/1.1 200 OK");
+						}
+
+						delete pRxFrame;
 					}
 					else {
 						fire_forget(pTxFrame);

@@ -75,6 +75,8 @@
 #define RX_CMD_WDT_DISABLE			0x08
 #define RX_CMD_GET_SCHED_VERSION	0x09
 #define RX_CMD_GET_AVR_VERSION		0x0A
+#define RX_CMD_GET_CALIBRATION_DATA	0x0B
+#define RX_CMD_SET_CALIBRATION_DATA	0x0C
 
 #define RX_RSP_PING					(RX_CMD_PING << 4)
 #define RX_RSP_AVG_TPH				(RX_CMD_AVG_TPH << 4)
@@ -87,8 +89,22 @@
 #define RX_RSP_WDT_DISABLE			(RX_CMD_WDT_DISABLE << 4)
 #define RX_RSP_GET_SCHED_VERSION	(RX_CMD_GET_SCHED_VERSION << 4)
 #define RX_RSP_GET_AVR_VERSION		(RX_CMD_GET_AVR_VERSION << 4)
+#define RX_RSP_GET_CALIBRATION_DATA	(RX_CMD_GET_CALIBRATION_DATA << 4)
+#define RX_RSP_SET_CALIBRATION_DATA	(RX_CMD_SET_CALIBRATION_DATA << 4)
 
 #define AVR_RESET_PIN				12
+
+typedef struct
+{
+    int16_t         temperatureOffset;
+    int16_t         pressureOffset;
+    int16_t         humidityOffset;
+    int16_t         windOffset;
+    int16_t         rainOffset;
+}
+CALIBRATION_DATA;
+
+typedef CALIBRATION_DATA *     PCALIBRATION_DATA;
 
 void 		resetAVR();
 RxFrame * 	send_receive(TxFrame * pTxFrame);

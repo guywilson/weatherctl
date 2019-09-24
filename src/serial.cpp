@@ -24,7 +24,9 @@ static uint8_t emulated_rsp_buffer[MAX_RESPONSE_MESSAGE_LENGTH];
 static int emulated_cmd_length = 0;
 static int emulated_rsp_length = 0;
 
-static void _build_response_frame(char * data, int dataLength)
+static CALIBRATION_DATA cd;
+
+static void _build_response_frame(uint8_t * data, int dataLength)
 {
 	uint16_t			checksumTotal = 0;
 	int					i;
@@ -38,7 +40,7 @@ static void _build_response_frame(char * data, int dataLength)
 	checksumTotal = (emulated_rsp_buffer[2] + emulated_rsp_buffer[3]) + emulated_rsp_buffer[4];
 
 	for (i = 0;i < dataLength;i++) {
-		emulated_rsp_buffer[i + 5] = (uint8_t)data[i];
+		emulated_rsp_buffer[i + 5] = data[i];
 
 		checksumTotal += emulated_rsp_buffer[i + 5];
 	}
@@ -53,6 +55,8 @@ SerialPort::SerialPort()
 {
 	isEmulationMode = false;
 	expectedBytes = 0;
+
+	memset(&cd, 0, sizeof(CALIBRATION_DATA));
 }
 
 SerialPort::~SerialPort()
@@ -206,7 +210,7 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 	int					bytesWritten;
 	uint8_t				cmdCode = 0;
 	int					dataLength;
-	char *				data;
+	uint8_t *			data;
 	static const char *	avgTPH = "T:25.28;P:1010.10;H:52.25;";
 	static const char *	minTPH = "T:21.21;P:1007.13;H:49.17;";
 	static const char *	maxTPH = "T:27.12;P:1012.23;H:57.74;";
@@ -227,63 +231,80 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 
 	switch (cmdCode) {
 		case RX_CMD_AVG_TPH:
-			data = (char *)avgTPH;
-			dataLength = strlen(data);
+			data = (uint8_t *)avgTPH;
+			dataLength = strlen(avgTPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_MAX_TPH:
-			data = (char *)maxTPH;
-			dataLength = strlen(data);
+			data = (uint8_t *)maxTPH;
+			dataLength = strlen(maxTPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_MIN_TPH:
-			data = (char *)minTPH;
-			dataLength = strlen(data);
+			data = (uint8_t *)minTPH;
+			dataLength = strlen(minTPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_WINDSPEED:
-			data = (char *)windMsg;
-			dataLength = strlen(data);
+			data = (uint8_t *)windMsg;
+			dataLength = strlen(windMsg);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_RAINFALL:
-			data = (char *)rainMsg;
-			dataLength = strlen(data);
+			data = (uint8_t *)rainMsg;
+			dataLength = strlen(rainMsg);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_PING:
-			data = (char *)NULL;
+			data = (uint8_t *)NULL;
 			dataLength = 0;
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_GET_AVR_VERSION:
-			data = (char *)avrVer;
-			dataLength = strlen(data);
+			data = (uint8_t *)avrVer;
+			dataLength = strlen(avrVer);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_GET_SCHED_VERSION:
-			data = (char *)schVer;
-			dataLength = strlen(data);
+			data = (uint8_t *)schVer;
+			dataLength = strlen(schVer);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_GET_CALIBRATION_DATA:
+			dataLength = sizeof(CALIBRATION_DATA);
+
+			data = (uint8_t *)(&cd);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_SET_CALIBRATION_DATA:
+			memcpy(&cd, &emulated_cmd_buffer[4], emulated_cmd_buffer[1] - 2);
+
+			data = (uint8_t *)NULL;
+			dataLength = 0;
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		default:
-			data = (char *)NULL;
+			data = (uint8_t *)NULL;
 			dataLength = 0;
 
 			_build_response_frame(data, dataLength);
