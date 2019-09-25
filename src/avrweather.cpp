@@ -168,7 +168,6 @@ void printFrame(uint8_t * buffer, int bufferLength)
 void processResponse(uint8_t * response, int responseLength)
 {
 	char				szResponse[MAX_RESPONSE_MESSAGE_LENGTH];
-	char *				reference;
 	static int			avgCount = 0;
 	static int			avgWindspeedCount = 0;
 	static int			avgRainfallCount = 0;
@@ -188,12 +187,6 @@ void processResponse(uint8_t * response, int responseLength)
 	RxFrame * pFrame = new RxFrame(response, responseLength);
 
 	Logger & log = Logger::getInstance();
-
-    /*
-    ** Retain pointer to original string for 
-    ** calling the re-entrant strtok_r() library function...
-    */
-	reference = szResponse;
 
 	if (pFrame->isACK() && pFrame->getFrameLength() < (pFrame->getDataLength() + NUM_ACK_RSP_FRAME_BYTES)) {
 		log.logInfo(
