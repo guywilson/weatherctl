@@ -168,13 +168,6 @@ void printFrame(uint8_t * buffer, int bufferLength)
 void processResponse(uint8_t * response, int responseLength)
 {
 	char				szResponse[MAX_RESPONSE_MESSAGE_LENGTH];
-	char 				szTemperature[20];
-	char 				szPressure[20];
-	char 				szHumidity[20];
-	char				szAvgWindspeed[20];
-	char				szMaxWindSpeed[20];
-	char				szAvgRainfall[20];
-	char				szTotalRainfall[20];
 	char *				reference;
 	static int			avgCount = 0;
 	static int			avgWindspeedCount = 0;
@@ -185,7 +178,10 @@ void processResponse(uint8_t * response, int responseLength)
 	static bool			avgWindspeedSave = true;
 	static bool			maxWindspeedSave = false;
 	static bool			totalRainfallSave = false;
-
+	
+	TPH 				tph;
+	WINDSPEED			ws;
+	RAINFALL			rf;
 	CurrentTime 		time;
 
 	QueueMgr & qmgr = QueueMgr::getInstance();
@@ -223,17 +219,21 @@ void processResponse(uint8_t * response, int responseLength)
 		switch (pFrame->getResponseCode()) {
 			case RX_RSP_AVG_TPH:
 				log.logDebug("AVG - Copying %d bytes", pFrame->getDataLength());
-				memcpy(szResponse, pFrame->getData(), pFrame->getDataLength());
+				
+				memcpy(&tph, pFrame->getData(), pFrame->getDataLength());
 
 				delete pFrame;
 
-				strcpy(szTemperature, strtok_r(szResponse, ";", &reference));
-				strcpy(szPressure, strtok_r(NULL, ";", &reference));
-				strcpy(szHumidity, strtok_r(NULL, ";", &reference));
+				log.logDebug(
+					"Got AVG data: T = %d.%02d, P = %d.%02d, H = %d.%02d", 
+					tph.temperature.integral, 
+					tph.temperature.mantissa,
+					tph.pressure.integral, 
+					tph.pressure.mantissa,
+					tph.humidity.integral,
+					tph.humidity.mantissa);
 
-				log.logDebug("Got AVG data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
-
-				qmgr.pushWebPost(new PostDataTPH("AVG", avgSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
+				qmgr.pushWebPost(new PostDataTPH("AVG", avgSave, &tph));
 				avgCount++;
 
 				/*
@@ -250,34 +250,42 @@ void processResponse(uint8_t * response, int responseLength)
 
 			case RX_RSP_MAX_TPH:
 				log.logDebug("MAX - Copying %d bytes", pFrame->getDataLength());
-				memcpy(szResponse, pFrame->getData(), pFrame->getDataLength());
+				
+				memcpy(&tph, pFrame->getData(), pFrame->getDataLength());
 
 				delete pFrame;
 
-				strcpy(szTemperature, strtok_r(szResponse, ";", &reference));
-				strcpy(szPressure, strtok_r(NULL, ";", &reference));
-				strcpy(szHumidity, strtok_r(NULL, ";", &reference));
+				log.logDebug(
+					"Got MAX data: T = %d.%02d, P = %d.%02d, H = %d.%02d", 
+					tph.temperature.integral, 
+					tph.temperature.mantissa,
+					tph.pressure.integral, 
+					tph.pressure.mantissa,
+					tph.humidity.integral,
+					tph.humidity.mantissa);
 
-				log.logDebug("Got MAX data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
-
-				qmgr.pushWebPost(new PostDataTPH("MAX", maxSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
+				qmgr.pushWebPost(new PostDataTPH("MAX", maxSave, &tph));
 
 				maxSave = false;
 				break;
 
 			case RX_RSP_MIN_TPH:
 				log.logDebug("MIN - Copying %d bytes", pFrame->getDataLength());
-				memcpy(szResponse, pFrame->getData(), pFrame->getDataLength());
+				
+				memcpy(&tph, pFrame->getData(), pFrame->getDataLength());
 
 				delete pFrame;
 
-				strcpy(szTemperature, strtok_r(szResponse, ";", &reference));
-				strcpy(szPressure, strtok_r(NULL, ";", &reference));
-				strcpy(szHumidity, strtok_r(NULL, ";", &reference));
+				log.logDebug(
+					"Got MIN data: T = %d.%02d, P = %d.%02d, H = %d.%02d", 
+					tph.temperature.integral, 
+					tph.temperature.mantissa,
+					tph.pressure.integral, 
+					tph.pressure.mantissa,
+					tph.humidity.integral,
+					tph.humidity.mantissa);
 
-				log.logDebug("Got MIN data: T = %s, P = %s, H = %s", szTemperature, szPressure, szHumidity);
-
-				qmgr.pushWebPost(new PostDataTPH("MIN", minSave, &szTemperature[2], &szPressure[2], &szHumidity[2]));
+				qmgr.pushWebPost(new PostDataTPH("MIN", minSave, &tph));
 
 				minSave = false;
 				break;
@@ -287,16 +295,19 @@ void processResponse(uint8_t * response, int responseLength)
 
 			case RX_RSP_WINDSPEED:
 				log.logDebug("Windspeed - Copying %d bytes", pFrame->getDataLength());
-				memcpy(szResponse, pFrame->getData(), pFrame->getDataLength());
+
+				memcpy(&ws, pFrame->getData(), pFrame->getDataLength());
 
 				delete pFrame;
 
-				strcpy(szAvgWindspeed, strtok_r(szResponse, ";", &reference));
-				strcpy(szMaxWindSpeed, strtok_r(NULL, ";", &reference));
+				log.logDebug(
+					"Got windspeed data: A = %d.%02d, M = %d.%02d", 
+					ws.avgWindspeed.integral, 
+					ws.avgWindspeed.mantissa,
+					ws.maxWindspeed.integral,
+					ws.maxWindspeed.mantissa);
 
-				log.logDebug("Got windspeed data: A = %s, M = %s", szAvgWindspeed, szMaxWindSpeed);
-
-				qmgr.pushWebPost(new PostDataWindspeed(avgWindspeedSave, maxWindspeedSave, &szAvgWindspeed[2], &szMaxWindSpeed[2]));
+				qmgr.pushWebPost(new PostDataWindspeed(avgWindspeedSave, maxWindspeedSave, &ws));
 				avgWindspeedCount++;
 
 				maxWindspeedSave = false;
@@ -315,19 +326,19 @@ void processResponse(uint8_t * response, int responseLength)
 
 			case RX_RSP_RAINFALL:
 				log.logDebug("Rainfall - Copying %d bytes", pFrame->getDataLength());
-				memcpy(szResponse, pFrame->getData(), pFrame->getDataLength());
+
+				memcpy(&rf, pFrame->getData(), pFrame->getDataLength());
 
 				delete pFrame;
 
-				strcpy(szAvgRainfall, strtok_r(szResponse, ";", &reference));
-				strcpy(szTotalRainfall, strtok_r(NULL, ";", &reference));
+				log.logDebug(
+					"Got rainfall data: A = %d.%02d, T = %d.%02d", 
+					rf.avgRainfall.integral, 
+					rf.avgRainfall.mantissa,
+					rf.totalRainfall.integral,
+					rf.totalRainfall.mantissa);
 
-				log.logDebug("Got rainfall data: A = %s, T = %s", szAvgRainfall, szTotalRainfall);
-
-				/*
-				** Rainfall messages are only received once per hour, so we always save...
-				*/
-				qmgr.pushWebPost(new PostDataRainfall(true, totalRainfallSave, &szAvgRainfall[2], &szTotalRainfall[2]));
+				qmgr.pushWebPost(new PostDataRainfall(true, totalRainfallSave, &rf));
 				avgRainfallCount++;
 
 				totalRainfallSave = false;

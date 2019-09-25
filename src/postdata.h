@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "avrweather.h"
 #include "currenttime.h"
 
 #ifndef _INCL_POSTDATA
@@ -95,10 +96,10 @@ private:
 	const char *	jsonTemplate = "{\n\t\"time\": \"%s\",\n\t\"save\": \"%s\",\n\t\"temperature\": \"%s\",\n\t\"pressure\": \"%s\",\n\t\"humidity\": \"%s\"\n}";
 
 public:
-	PostDataTPH(const char * type, bool doSave, char * pszTemperature, char * pszPressure, char * pszHumidity) {
-		strncpy(this->szTemperature, pszTemperature, sizeof(this->szTemperature));
-		strncpy(this->szPressure, pszPressure, sizeof(this->szPressure));
-		strncpy(this->szHumidity, pszHumidity, sizeof(this->szHumidity));
+	PostDataTPH(const char * type, bool doSave, TPH * pTPH) {
+		sprintf(this->szTemperature, "%d.%02d", pTPH->temperature.integral, pTPH->temperature.mantissa);
+		sprintf(this->szPressure, "%d.%02d", pTPH->pressure.integral, pTPH->pressure.mantissa);
+		sprintf(this->szHumidity, "%d.%02d", pTPH->humidity.integral, pTPH->humidity.mantissa);
 
 		this->doSave = doSave;
 		this->type = type;
@@ -184,12 +185,12 @@ private:
 	}
 
 public:
-	PostDataWindspeed(bool doSaveAvg, bool doSaveMax, char * pszAvgWindspeed, char * pszMaxWindspeed) {
+	PostDataWindspeed(bool doSaveAvg, bool doSaveMax, WINDSPEED * pWindspeed) {
 		this->doSaveAvg = doSaveAvg;
 		this->doSaveMax = doSaveMax;
 
-		strncpy(this->szAvgWindspeed, pszAvgWindspeed, sizeof(this->szAvgWindspeed));
-		strncpy(this->szMaxWindspeed, pszMaxWindspeed, sizeof(this->szMaxWindspeed));
+		sprintf(this->szAvgWindspeed, "%d.%02d", pWindspeed->avgWindspeed.integral, pWindspeed->avgWindspeed.mantissa);
+		sprintf(this->szMaxWindspeed, "%d.%02d", pWindspeed->maxWindspeed.integral, pWindspeed->maxWindspeed.mantissa);
 	}
 
 	~PostDataWindspeed() {
@@ -252,12 +253,12 @@ private:
 	}
 
 public:
-	PostDataRainfall(bool doSaveAvg, bool doSaveTotal, char * pszAvgRainfall, char * pszTotalRainfall) {
+	PostDataRainfall(bool doSaveAvg, bool doSaveTotal, RAINFALL * pRainfall) {
 		this->doSaveAvg = doSaveAvg;
 		this->doSaveTotal = doSaveTotal;
 
-		strncpy(this->szAvgRainfall, pszAvgRainfall, sizeof(this->szAvgRainfall));
-		strncpy(this->szTotalRainfall, pszTotalRainfall, sizeof(this->szTotalRainfall));
+		sprintf(this->szAvgRainfall, "%d.%02d", pRainfall->avgRainfall.integral, pRainfall->avgRainfall.mantissa);
+		sprintf(this->szTotalRainfall, "%d.%02d", pRainfall->totalRainfall.integral, pRainfall->totalRainfall.mantissa);
 	}
 
 	~PostDataRainfall() {

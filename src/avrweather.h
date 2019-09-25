@@ -96,6 +96,41 @@
 
 typedef struct
 {
+    int8_t      integral;
+    uint8_t     mantissa;
+}
+decimal16_t;
+
+typedef struct
+{
+    int16_t     integral;
+    uint8_t     mantissa;
+}
+decimal24_t;
+
+#define populate_decimal(i, m)      { .integral = i, .mantissa = m }
+
+typedef struct {
+    decimal24_t     temperature;
+    decimal24_t     pressure;
+    decimal24_t     humidity;
+}
+TPH;
+
+typedef struct {
+    decimal24_t     avgWindspeed;
+    decimal24_t     maxWindspeed;
+}
+WINDSPEED;
+
+typedef struct {
+    decimal24_t     avgRainfall;
+    decimal24_t     totalRainfall;
+}
+RAINFALL;
+
+typedef struct
+{
     int16_t         temperatureOffset;
     int16_t         pressureOffset;
     int16_t         humidityOffset;
