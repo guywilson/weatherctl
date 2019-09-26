@@ -118,7 +118,7 @@ void * txCmdThread(void * pArgs)
 			*/
 			pTxFrame = new TxFrame(NULL, 0, RX_CMD_AVG_TPH);
 
-			port.setExpectedBytes(16);
+			port.setExpectedBytes(12);
 
 			/*
 			** Schedule next tx in 20 seconds...
@@ -131,7 +131,7 @@ void * txCmdThread(void * pArgs)
 			*/
 			pTxFrame = new TxFrame(NULL, 0, RX_CMD_MIN_TPH);
 
-			port.setExpectedBytes(16);
+			port.setExpectedBytes(12);
 
 			/*
 			** Schedule next tx in 20 seconds...
@@ -144,7 +144,7 @@ void * txCmdThread(void * pArgs)
 			*/
 			pTxFrame = new TxFrame(NULL, 0, RX_CMD_MAX_TPH);
 
-			port.setExpectedBytes(16);
+			port.setExpectedBytes(12);
 
 			/*
 			** Schedule next tx in 20 seconds...
@@ -157,7 +157,7 @@ void * txCmdThread(void * pArgs)
 			*/
 			pTxFrame = new TxFrame(NULL, 0, RX_CMD_WINDSPEED);
 
-			port.setExpectedBytes(12);
+			port.setExpectedBytes(10);
 
 			/*
 			** Schedule next tx in 60 seconds...
@@ -170,7 +170,7 @@ void * txCmdThread(void * pArgs)
 			*/
 			pTxFrame = new TxFrame(NULL, 0, RX_CMD_RAINFALL);
 
-			port.setExpectedBytes(12);
+			port.setExpectedBytes(10);
 
 			/*
 			** Schedule next tx in 1 hour...
