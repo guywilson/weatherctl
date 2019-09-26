@@ -218,7 +218,7 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got AVG data: T = %.2f, P = %.2f, H = %.2f", 
+					"Got AVG data: T = %d, P = %d, H = %d", 
 					tph.temperature, 
 					tph.pressure, 
 					tph.humidity);
@@ -246,7 +246,7 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got MAX data: T = %.2f, P = %.2f, H = %.2f", 
+					"Got MAX data: T = %d, P = %d, H = %d", 
 					tph.temperature, 
 					tph.pressure, 
 					tph.humidity);
@@ -264,7 +264,7 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got MIN data: T = %.2f, P = %.2f, H = %.2f", 
+					"Got MIN data: T = %d, P = %d, H = %d", 
 					tph.temperature, 
 					tph.pressure, 
 					tph.humidity);
@@ -285,7 +285,7 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got windspeed data: A = %.2f, M = %.2f", 
+					"Got windspeed data: A = %d, M = %d", 
 					ws.avgWindspeed, 
 					ws.maxWindspeed);
 
@@ -314,7 +314,7 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got rainfall data: A = %.2f, T = %.2f", 
+					"Got rainfall data: A = %d, T = %d", 
 					rf.avgRainfall, 
 					rf.totalRainfall);
 
