@@ -61,6 +61,60 @@ void fire_forget(TxFrame * pTxFrame)
 	mgr.pushTx(pTxFrame);
 }
 
+/*
+** C = (((ADC / 1023) * 5) - 1.375) / 0.0225
+*/
+double getActualTemperature(uint16_t sensorValue)
+{
+	double		temperature;
+
+	temperature = ((((double)sensorValue / (double)1023) * (double)5) - (double)1.375) / (double)0.0225;
+
+	return temperature;
+}
+
+/*
+** Pmbar = (((adc / 1023) + 0.095) / 0.009) * 10
+*/
+double getActualPressure(uint16_t sensorValue)
+{
+	double		pressure;
+
+	pressure = ((((double)sensorValue / (double)1023) + (double)0.095) / (double)0.009) * (double)10;
+
+	return pressure;
+}
+
+/*
+** RH = ((ADC / 1023) - 0.16) / 0.0062
+*/
+double getActualHumidity(uint16_t sensorValue)
+{
+	double		humidity;
+
+	humidity = (((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062;
+
+	return humidity;
+}
+
+double getActualWindspeed(uint16_t sensorValue)
+{
+	double		windspeed;
+
+	windspeed = sensorValue * RPS_TO_KPH_SCALE_FACTOR;
+
+	return windspeed;
+}
+
+double getActualRainfall(uint16_t sensorValue)
+{
+	double		rainfall;
+
+	rainfall = sensorValue * TIPS_TO_MM_SCALE_FACTOR;
+	
+	return rainfall;
+}
+
 void printFrame(uint8_t * buffer, int bufferLength)
 {
 	int 				state = RX_STATE_START;

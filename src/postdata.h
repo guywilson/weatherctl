@@ -97,9 +97,9 @@ private:
 
 public:
 	PostDataTPH(const char * type, bool doSave, TPH * pTPH) {
-		sprintf(this->szTemperature, "%d", pTPH->temperature);
-		sprintf(this->szPressure, "%d", pTPH->pressure);
-		sprintf(this->szHumidity, "%d", pTPH->humidity);
+		sprintf(this->szTemperature, "%.2f", getActualTemperature(pTPH->temperature));
+		sprintf(this->szPressure, "%.2f", getActualPressure(pTPH->pressure));
+		sprintf(this->szHumidity, "%.2f", getActualHumidity(pTPH->humidity));
 
 		this->doSave = doSave;
 		this->type = type;
@@ -189,8 +189,8 @@ public:
 		this->doSaveAvg = doSaveAvg;
 		this->doSaveMax = doSaveMax;
 
-		sprintf(this->szAvgWindspeed, "%d", pWindspeed->avgWindspeed);
-		sprintf(this->szMaxWindspeed, "%d", pWindspeed->maxWindspeed);
+		sprintf(this->szAvgWindspeed, "%.2f", getActualWindspeed(pWindspeed->avgWindspeed));
+		sprintf(this->szMaxWindspeed, "%.2f", getActualWindspeed(pWindspeed->maxWindspeed));
 	}
 
 	~PostDataWindspeed() {
@@ -257,8 +257,8 @@ public:
 		this->doSaveAvg = doSaveAvg;
 		this->doSaveTotal = doSaveTotal;
 
-		sprintf(this->szAvgRainfall, "%d", pRainfall->avgRainfall);
-		sprintf(this->szTotalRainfall, "%d", pRainfall->totalRainfall);
+		sprintf(this->szAvgRainfall, "%.2f", getActualRainfall(pRainfall->avgRainfall));
+		sprintf(this->szTotalRainfall, "%.2f", getActualRainfall(pRainfall->totalRainfall));
 	}
 
 	~PostDataRainfall() {

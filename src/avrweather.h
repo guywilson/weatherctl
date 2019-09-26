@@ -94,6 +94,19 @@
 
 #define AVR_RESET_PIN				12
 
+/*
+** The diameter of the anemometer blades in metres...
+*/
+#define BLADE_DIAMETER					 0.1
+#define RPS_TO_KPH_SCALE_FACTOR			(11.30973355 * BLADE_DIAMETER)
+
+#define PI								3.14159265
+
+#define TIPPING_BUCKET_VOLUME			1750		// In mm^3 (1 cm^3 | 1 ml = 1000mm^3)
+#define COLLECTING_FUNNEL_RADIUS		50			// In mm
+
+#define TIPS_TO_MM_SCALE_FACTOR			(TIPPING_BUCKET_VOLUME / (PI * COLLECTING_FUNNEL_RADIUS * COLLECTING_FUNNEL_RADIUS))
+
 typedef struct
 {
     int8_t      integral;
@@ -146,5 +159,10 @@ RxFrame * 	send_receive(TxFrame * pTxFrame);
 void 		fire_forget(TxFrame * pTxFrame);
 void		printFrame(uint8_t * buffer, int bufferLength);
 void		processResponse(uint8_t * response, int responseLength);
+double      getActualTemperature(uint16_t sensorValue);
+double      getActualPressure(uint16_t sensorValue);
+double      getActualHumidity(uint16_t sensorValue);
+double      getActualWindspeed(uint16_t sensorValue);
+double      getActualRainfall(uint16_t sensorValue);
 
 #endif
