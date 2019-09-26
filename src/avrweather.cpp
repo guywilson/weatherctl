@@ -218,13 +218,10 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got AVG data: T = %d.%02d, P = %d.%02d, H = %d.%02d", 
-					tph.temperature.integral, 
-					tph.temperature.mantissa,
-					tph.pressure.integral, 
-					tph.pressure.mantissa,
-					tph.humidity.integral,
-					tph.humidity.mantissa);
+					"Got AVG data: T = %.2f, P = %.2f, H = %.2f", 
+					tph.temperature, 
+					tph.pressure, 
+					tph.humidity);
 
 				qmgr.pushWebPost(new PostDataTPH("AVG", avgSave, &tph));
 				avgCount++;
@@ -249,13 +246,10 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got MAX data: T = %d.%02d, P = %d.%02d, H = %d.%02d", 
-					tph.temperature.integral, 
-					tph.temperature.mantissa,
-					tph.pressure.integral, 
-					tph.pressure.mantissa,
-					tph.humidity.integral,
-					tph.humidity.mantissa);
+					"Got MAX data: T = %.2f, P = %.2f, H = %.2f", 
+					tph.temperature, 
+					tph.pressure, 
+					tph.humidity);
 
 				qmgr.pushWebPost(new PostDataTPH("MAX", maxSave, &tph));
 
@@ -270,13 +264,10 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got MIN data: T = %d.%02d, P = %d.%02d, H = %d.%02d", 
-					tph.temperature.integral, 
-					tph.temperature.mantissa,
-					tph.pressure.integral, 
-					tph.pressure.mantissa,
-					tph.humidity.integral,
-					tph.humidity.mantissa);
+					"Got MIN data: T = %.2f, P = %.2f, H = %.2f", 
+					tph.temperature, 
+					tph.pressure, 
+					tph.humidity);
 
 				qmgr.pushWebPost(new PostDataTPH("MIN", minSave, &tph));
 
@@ -294,11 +285,9 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got windspeed data: A = %d.%02d, M = %d.%02d", 
-					ws.avgWindspeed.integral, 
-					ws.avgWindspeed.mantissa,
-					ws.maxWindspeed.integral,
-					ws.maxWindspeed.mantissa);
+					"Got windspeed data: A = %.2f, M = %.2f", 
+					ws.avgWindspeed, 
+					ws.maxWindspeed);
 
 				qmgr.pushWebPost(new PostDataWindspeed(avgWindspeedSave, maxWindspeedSave, &ws));
 				avgWindspeedCount++;
@@ -325,11 +314,9 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				log.logDebug(
-					"Got rainfall data: A = %d.%02d, T = %d.%02d", 
-					rf.avgRainfall.integral, 
-					rf.avgRainfall.mantissa,
-					rf.totalRainfall.integral,
-					rf.totalRainfall.mantissa);
+					"Got rainfall data: A = %.2f, T = %.2f", 
+					rf.avgRainfall, 
+					rf.totalRainfall);
 
 				qmgr.pushWebPost(new PostDataRainfall(true, totalRainfallSave, &rf));
 				avgRainfallCount++;

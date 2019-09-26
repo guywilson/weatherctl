@@ -97,9 +97,9 @@ private:
 
 public:
 	PostDataTPH(const char * type, bool doSave, TPH * pTPH) {
-		sprintf(this->szTemperature, "%d.%02d", pTPH->temperature.integral, pTPH->temperature.mantissa);
-		sprintf(this->szPressure, "%d.%02d", pTPH->pressure.integral, pTPH->pressure.mantissa);
-		sprintf(this->szHumidity, "%d.%02d", pTPH->humidity.integral, pTPH->humidity.mantissa);
+		sprintf(this->szTemperature, "%.2f", pTPH->temperature);
+		sprintf(this->szPressure, "%.2f", pTPH->pressure);
+		sprintf(this->szHumidity, "%.2f", pTPH->humidity);
 
 		this->doSave = doSave;
 		this->type = type;
@@ -189,8 +189,8 @@ public:
 		this->doSaveAvg = doSaveAvg;
 		this->doSaveMax = doSaveMax;
 
-		sprintf(this->szAvgWindspeed, "%d.%02d", pWindspeed->avgWindspeed.integral, pWindspeed->avgWindspeed.mantissa);
-		sprintf(this->szMaxWindspeed, "%d.%02d", pWindspeed->maxWindspeed.integral, pWindspeed->maxWindspeed.mantissa);
+		sprintf(this->szAvgWindspeed, "%.2f", pWindspeed->avgWindspeed);
+		sprintf(this->szMaxWindspeed, "%.2f", pWindspeed->maxWindspeed);
 	}
 
 	~PostDataWindspeed() {
@@ -257,8 +257,8 @@ public:
 		this->doSaveAvg = doSaveAvg;
 		this->doSaveTotal = doSaveTotal;
 
-		sprintf(this->szAvgRainfall, "%d.%02d", pRainfall->avgRainfall.integral, pRainfall->avgRainfall.mantissa);
-		sprintf(this->szTotalRainfall, "%d.%02d", pRainfall->totalRainfall.integral, pRainfall->totalRainfall.mantissa);
+		sprintf(this->szAvgRainfall, "%.2f", pRainfall->avgRainfall);
+		sprintf(this->szTotalRainfall, "%.2f", pRainfall->totalRainfall);
 	}
 
 	~PostDataRainfall() {
