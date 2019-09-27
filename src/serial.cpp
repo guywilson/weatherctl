@@ -207,17 +207,17 @@ int SerialPort::_receive_serial(uint8_t * pBuffer, int requestedBytes)
 
 int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 {
-	int					bytesWritten;
-	uint8_t				cmdCode = 0;
-	int					dataLength;
-	uint8_t *			data;
-	static const char *	avgTPH = "T:25.28;P:1010.10;H:52.25;";
-	static const char *	minTPH = "T:21.21;P:1007.13;H:49.17;";
-	static const char *	maxTPH = "T:27.12;P:1012.23;H:57.74;";
-	static const char * windMsg = "A:12.37;M:21.46;";
-	static const char * rainMsg = "A:3.65;T:26.47;";
-	static const char * schVer = "1.2.01 2019-07-30 17:37:20";
-	static const char * avrVer = "1.2.009 [2019-09-14 17:37:20]";
+	int						bytesWritten;
+	uint8_t					cmdCode = 0;
+	int						dataLength;
+	uint8_t *				data;
+	static const TPH		avgTph = { .temperature = 374, .pressure = 812, .humidity = 463 };
+	static const TPH		maxTph = { .temperature = 392, .pressure = 874, .humidity = 562 };
+	static const TPH		minTph = { .temperature = 332, .pressure = 799, .humidity = 401 };
+	static const WINDSPEED	ws = { .avgWindspeed = 24, .maxWindspeed = 37 };
+	static const RAINFALL	rf = { .avgRainfall = 11, .totalRainfall = 64 };
+	static const char * 	schVer = "1.2.01 2019-07-30 17:37:20";
+	static const char * 	avrVer = "1.2.009 [2019-09-14 17:37:20]";
 
 	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
 	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
@@ -231,36 +231,36 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 
 	switch (cmdCode) {
 		case RX_CMD_AVG_TPH:
-			data = (uint8_t *)avgTPH;
-			dataLength = strlen(avgTPH);
+			data = (uint8_t *)&avgTph;
+			dataLength = sizeof(TPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_MAX_TPH:
-			data = (uint8_t *)maxTPH;
-			dataLength = strlen(maxTPH);
+			data = (uint8_t *)&maxTph;
+			dataLength = sizeof(TPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_MIN_TPH:
-			data = (uint8_t *)minTPH;
-			dataLength = strlen(minTPH);
+			data = (uint8_t *)&minTph;
+			dataLength = sizeof(TPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_WINDSPEED:
-			data = (uint8_t *)windMsg;
-			dataLength = strlen(windMsg);
+			data = (uint8_t *)&ws;
+			dataLength = sizeof(WINDSPEED);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_RAINFALL:
-			data = (uint8_t *)rainMsg;
-			dataLength = strlen(rainMsg);
+			data = (uint8_t *)&rf;
+			dataLength = sizeof(RAINFALL);
 
 			_build_response_frame(data, dataLength);
 			break;
