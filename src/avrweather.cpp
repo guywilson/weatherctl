@@ -101,7 +101,7 @@ double getActualWindspeed(uint16_t sensorValue)
 {
 	double		windspeed;
 
-	windspeed = sensorValue * RPS_TO_KPH_SCALE_FACTOR;
+	windspeed = (double)sensorValue * RPS_TO_KPH_SCALE_FACTOR;
 
 	return windspeed;
 }
@@ -110,7 +110,7 @@ double getActualRainfall(uint16_t sensorValue)
 {
 	double		rainfall;
 
-	rainfall = sensorValue * TIPS_TO_MM_SCALE_FACTOR;
+	rainfall = (double)sensorValue * TIPS_TO_MM_SCALE_FACTOR;
 	
 	return rainfall;
 }
