@@ -4,7 +4,8 @@
 /*
 ** View handlers
 */
-void avrViewHandler(struct mg_connection * connection, int event, void * p);
+void avrCmdViewHandler(struct mg_connection * connection, int event, void * p);
+void avrCalibViewHandler(struct mg_connection * connection, int event, void * p);
 void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p);
 void avrCalibCommandHandler(struct mg_connection * connection, int event, void * p);
 void cssHandler(struct mg_connection * connection, int event, void * p);

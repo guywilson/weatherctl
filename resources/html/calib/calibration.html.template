@@ -19,7 +19,7 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="thermometer-offset" value="52">
+                                        <input type="text" name="thermometer-offset" value="<tmpl_var temperature-offset>">
                                     </td>
                                 </tr>
                                 <tr>

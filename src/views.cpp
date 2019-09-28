@@ -10,6 +10,9 @@
 #include "queuemgr.h"
 #include "logger.h"
 #include "mongoose.h"
+#include "html_template.h"
+
+using namespace std;
 
 void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p)
 {
@@ -381,7 +384,39 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 	}
 }
 
-void avrViewHandler(struct mg_connection * connection, int event, void * p)
+char * getMethod(struct http_message * message)
+{
+	char *				pszMethod;
+
+	pszMethod = (char *)malloc(message->method.len + 1);
+
+	if (pszMethod == NULL) {
+		throw new Exception("Failed to allocate memory for method...");
+	}
+
+	memcpy(pszMethod, message->method.p, message->method.len);
+	pszMethod[message->method.len] = 0;
+
+	return pszMethod;
+}
+
+char * getURI(struct http_message * message)
+{
+	char *				pszURI;
+
+	pszURI = (char *)malloc(message->uri.len + 1);
+
+	if (pszURI == NULL) {
+		throw new Exception("Failed to allocate memory for URI...");
+	}
+
+	memcpy(pszURI, message->uri.p, message->uri.len);
+	pszURI[message->uri.len] = 0;
+
+	return pszURI;
+}
+
+void avrCmdViewHandler(struct mg_connection * connection, int event, void * p)
 {
 	struct http_message *			message;
 	char *							pszMethod;
@@ -393,23 +428,8 @@ void avrViewHandler(struct mg_connection * connection, int event, void * p)
 		case MG_EV_HTTP_REQUEST:
 			message = (struct http_message *)p;
 
-			pszMethod = (char *)malloc(message->method.len + 1);
-
-			if (pszMethod == NULL) {
-				throw new Exception("Failed to allocate memory for method...");
-			}
-
-			memcpy(pszMethod, message->method.p, message->method.len);
-			pszMethod[message->method.len] = 0;
-
-			pszURI = (char *)malloc(message->uri.len + 1);
-
-			if (pszURI == NULL) {
-				throw new Exception("Failed to allocate memory for URI...");
-			}
-
-			memcpy(pszURI, message->uri.p, message->uri.len);
-			pszURI[message->uri.len] = 0;
+			pszMethod = getMethod(message);
+			pszURI = getURI(message);
 
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 	
@@ -419,6 +439,59 @@ void avrViewHandler(struct mg_connection * connection, int event, void * p)
 				struct mg_serve_http_opts opts = { .document_root = web.getHTMLDocRoot() };
 
 				log.logInfo("Serving file '%s'", pszURI);
+
+				mg_serve_http(connection, message, opts);
+			}
+
+			free(pszMethod);
+			free(pszURI);
+			break;
+
+		default:
+			break;
+	}
+}
+
+void avrCalibViewHandler(struct mg_connection * connection, int event, void * p)
+{
+	struct http_message *			message;
+	char *							pszMethod;
+	char *							pszURI;
+
+	Logger & log = Logger::getInstance();
+
+	switch (event) {
+		case MG_EV_HTTP_REQUEST:
+			message = (struct http_message *)p;
+
+			pszMethod = getMethod(message);
+			pszURI = getURI(message);
+
+			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
+	
+			if (strncmp(pszMethod, "GET", 3) == 0) {
+				WebAdmin & web = WebAdmin::getInstance();
+
+				struct mg_serve_http_opts opts = { .document_root = web.getHTMLDocRoot() };
+
+				log.logInfo("Serving file '%s'", pszURI);
+
+				string htmlFileName(web.getHTMLDocRoot());
+				htmlFileName.append(pszURI);
+
+				string templateFileName(htmlFileName);
+				templateFileName.append(".template");
+
+				tmpl::html_template templ(templateFileName);
+
+				templ("temperature-offset") = "52";
+
+				templ.Process();
+
+				fstream fs;
+				fs.open(htmlFileName, ios::out);
+				fs << templ;
+				fs.close();
 
 				mg_serve_http(connection, message, opts);
 			}
@@ -444,23 +517,8 @@ void cssHandler(struct mg_connection * connection, int event, void * p)
 		case MG_EV_HTTP_REQUEST:
 			message = (struct http_message *)p;
 
-			pszMethod = (char *)malloc(message->method.len + 1);
-
-			if (pszMethod == NULL) {
-				throw new Exception("Failed to allocate memory for method...");
-			}
-
-			memcpy(pszMethod, message->method.p, message->method.len);
-			pszMethod[message->method.len] = 0;
-
-			pszURI = (char *)malloc(message->uri.len + 1);
-
-			if (pszURI == NULL) {
-				throw new Exception("Failed to allocate memory for URI...");
-			}
-
-			memcpy(pszURI, message->uri.p, message->uri.len);
-			pszURI[message->uri.len] = 0;
+			pszMethod = getMethod(message);
+			pszURI = getURI(message);
 
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 
