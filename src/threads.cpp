@@ -21,7 +21,7 @@ pthread_t			tidWebListener;
 pthread_t			tidWebPost;
 pthread_t			tidVersionPost;
 
-int startThreads()
+int startThreads(bool isAdminOnly)
 {
 	int	err;
 
@@ -29,14 +29,16 @@ int startThreads()
 
 	log.logInfo("Starting threads...");
 
-	err = pthread_create(&tidTxCmd, NULL, &txCmdThread, NULL);
+	if (!isAdminOnly) {
+		err = pthread_create(&tidTxCmd, NULL, &txCmdThread, NULL);
 
-	if (err != 0) {
-		log.logError("ERROR! Can't create txCmdThread() :[%s]", strerror(err));
-		return -1;
-	}
-	else {
-		log.logInfo("Thread txCmdThread() created successfully");
+		if (err != 0) {
+			log.logError("ERROR! Can't create txCmdThread() :[%s]", strerror(err));
+			return -1;
+		}
+		else {
+			log.logInfo("Thread txCmdThread() created successfully");
+		}
 	}
 
 	err = pthread_create(&tidWebListener, NULL, &webListenerThread, NULL);
@@ -49,24 +51,28 @@ int startThreads()
 		log.logInfo("Thread webListenerThread() created successfully");
 	}
 
-	err = pthread_create(&tidWebPost, NULL, &webPostThread, NULL);
+	if (!isAdminOnly) {
+		err = pthread_create(&tidWebPost, NULL, &webPostThread, NULL);
 
-	if (err != 0) {
-		log.logError("ERROR! Can't create webPostThread() :[%s]", strerror(err));
-		return -1;
-	}
-	else {
-		log.logInfo("Thread webPostThread() created successfully");
+		if (err != 0) {
+			log.logError("ERROR! Can't create webPostThread() :[%s]", strerror(err));
+			return -1;
+		}
+		else {
+			log.logInfo("Thread webPostThread() created successfully");
+		}
 	}
 
-	err = pthread_create(&tidVersionPost, NULL, &versionPostThread, NULL);
+	if (!isAdminOnly) {
+		err = pthread_create(&tidVersionPost, NULL, &versionPostThread, NULL);
 
-	if (err != 0) {
-		log.logError("ERROR! Can't create versionPostThread() :[%s]", strerror(err));
-		return -1;
-	}
-	else {
-		log.logInfo("Thread versionPostThread() created successfully");
+		if (err != 0) {
+			log.logError("ERROR! Can't create versionPostThread() :[%s]", strerror(err));
+			return -1;
+		}
+		else {
+			log.logInfo("Thread versionPostThread() created successfully");
+		}
 	}
 
 	return 0;

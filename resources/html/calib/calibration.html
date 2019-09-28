@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>AVR Calibration</title>
+		<link rel="stylesheet" type="text/css" href="/css/style.css">
+    </head>
+    <body>
+        <h1 style="text-align: center">AVR Sensor Calibration</h1>
+        <div class="container">
+            <form action="/calib/post" method="GET">
+                <table style="width: 100%; margin-left: auto; margin-right: auto">
+                    <tr>
+                        <td style="padding: 8px">
+                            <table class="pretty-table">
+                                <tr>
+                                    <td class="column-heading" style="text-align: left"><font size="4"><b>Thermometer</b></font></td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="thermometer-offset" value="21">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="thermometer-factor" value="0.03">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px">
+                            <table class="pretty-table">
+                                <tr>
+                                    <td class="column-heading" style="text-align: left"><font size="4"><b>Barometer</b></font></td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="barometer-offset" value="7">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="barometer-factor" value="0.13">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px">
+                            <table class="pretty-table">
+                                <tr>
+                                    <td class="column-heading" style="text-align: left"><font size="4"><b>Humidity</b></font></td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="humidity-offset" value="11">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="humidity-factor" value="0.09">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px">
+                            <table class="pretty-table">
+                                <tr>
+                                    <td class="column-heading" style="text-align: left"><font size="4"><b>Anemometer</b></font></td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="anemometer-offset" value="3">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="amemometer-factor" value="0.05">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px">
+                            <table class="pretty-table">
+                                <tr>
+                                    <td class="column-heading" style="text-align: left"><font size="4"><b>Rain Guage</b></font></td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="rain-offset" value="15">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
+                                    <td class="table-cell" style="text-align: right">
+                                        <input type="text" name="rain-factor" value="0.07">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <div class="row">
+                    <input type="submit" value="Submit">
+                </div>
+            </form>
+          </div>
+    </body>
+</html>

@@ -196,6 +196,7 @@ int main(int argc, char *argv[])
 	char			szPidFileName[PATH_MAX];
 	int				i;
 	bool			isDaemonised = false;
+	bool			isAdminOnly = false;
 	char			cwd[PATH_MAX];
 	int				defaultLoggingLevel = LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL;
 
@@ -240,6 +241,9 @@ int main(int argc, char *argv[])
 				}
 				else if (strcmp(&argv[i][1], "cfg") == 0) {
 					pszConfigFileName = strdup(&argv[++i][0]);
+				}
+				else if (strcmp(&argv[i][1], "-admin-only") == 0) {
+					isAdminOnly = true;
 				}
 				else if (argv[i][1] == 'h' || argv[i][1] == '?') {
 					printUsage(pszAppName);
@@ -334,61 +338,69 @@ int main(int argc, char *argv[])
 		log.logError("Failed to register signal handler for SIGUSR2");
 		return -1;
 	}
-	
-	/*
-	 * Open the serial port...
-	 */
-	SerialPort & port = SerialPort::getInstance();
 
-	try {
-		if (pszPort != NULL) {
-			port.openPort(
-					pszPort, 
-					SerialPort::mapBaudRate(atoi(pszBaud)), 
-					false, 
-					false);
-		}
-		else {
-			port.openPort(
-					mgr.getValueAsCstr("serial.port"), 
-					SerialPort::mapBaudRate(mgr.getValueAsInteger("serial.baud")), 
-					mgr.getValueAsBoolean("serial.isblocking"),
-					mgr.getValueAsBoolean("serial.isemulation"));
-		}
-	}
-	catch (Exception * e) {
-		log.logFatal("Failed to open serial port %s", e->getMessage().c_str());
-		syslog(LOG_ERR, "Failed to open serial port %s", e->getMessage().c_str());
-		return -1;
-	}
+	if (!isAdminOnly) {
+		/*
+		* Open the serial port...
+		*/
+		SerialPort & port = SerialPort::getInstance();
 
-	log.logInfo("Opened serial port...");
+		try {
+			if (pszPort != NULL) {
+				port.openPort(
+						pszPort, 
+						SerialPort::mapBaudRate(atoi(pszBaud)), 
+						false, 
+						false);
+			}
+			else {
+				port.openPort(
+						mgr.getValueAsCstr("serial.port"), 
+						SerialPort::mapBaudRate(mgr.getValueAsInteger("serial.baud")), 
+						mgr.getValueAsBoolean("serial.isblocking"),
+						mgr.getValueAsBoolean("serial.isemulation"));
+			}
+		}
+		catch (Exception * e) {
+			log.logFatal("Failed to open serial port %s", e->getMessage().c_str());
+			syslog(LOG_ERR, "Failed to open serial port %s", e->getMessage().c_str());
+			return -1;
+		}
+
+		log.logInfo("Opened serial port...");
+	}	
 
 	/*
 	** Setup admin server...
 	*/
 	WebAdmin & web = WebAdmin::getInstance();
 
-	web.registerHandler("/avr/cmd", avrViewHandler);
-	web.registerHandler("/avr/cmd/post", avrCommandHandler);
+	web.registerHandler("/cmd", avrViewHandler);
+	web.registerHandler("/cmd/post", avrCmdCommandHandler);
+
+	web.registerHandler("/calib", avrViewHandler);
+	web.registerHandler("/calib/post", avrCalibCommandHandler);
+
 	web.registerHandler("/css", cssHandler);
 
-	/*
-	** Initialise backup manager...
-	*/
-	BackupManager & backup = BackupManager::getInstance();
+	if (!isAdminOnly) {
+		/*
+		** Initialise backup manager...
+		*/
+		BackupManager & backup = BackupManager::getInstance();
 
-	backup.setupCSV(
-			mgr.getValueAsCstr("backup.tph.csv"), 
-			mgr.getValueAsCstr("backup.wind.csv"), 
-			mgr.getValueAsCstr("backup.rain.csv"));
-	backup.setupPrimaryDB(mgr.getValueAsCstr("backup.primaryhost"), mgr.getValueAsCstr("backup.primarydb"));
-	backup.setupSecondaryDB(mgr.getValueAsCstr("backup.secondaryhost"), mgr.getValueAsCstr("backup.secondarydb"));
+		backup.setupCSV(
+				mgr.getValueAsCstr("backup.tph.csv"), 
+				mgr.getValueAsCstr("backup.wind.csv"), 
+				mgr.getValueAsCstr("backup.rain.csv"));
+		backup.setupPrimaryDB(mgr.getValueAsCstr("backup.primaryhost"), mgr.getValueAsCstr("backup.primarydb"));
+		backup.setupSecondaryDB(mgr.getValueAsCstr("backup.secondaryhost"), mgr.getValueAsCstr("backup.secondarydb"));
+	}
 
 	/*
 	 * Start threads...
 	 */
-	int rtn = startThreads();
+	int rtn = startThreads(isAdminOnly);
 
 	if (rtn < 0) {
 		return rtn;
