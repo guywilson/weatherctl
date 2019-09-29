@@ -107,22 +107,6 @@
 
 #define TIPS_TO_MM_SCALE_FACTOR			(TIPPING_BUCKET_VOLUME / (PI * COLLECTING_FUNNEL_RADIUS * COLLECTING_FUNNEL_RADIUS))
 
-typedef struct
-{
-    int8_t      integral;
-    uint8_t     mantissa;
-}
-decimal16_t;
-
-typedef struct
-{
-    int16_t     integral;
-    uint8_t     mantissa;
-}
-decimal24_t;
-
-#define populate_decimal(i, m)      { .integral = i, .mantissa = m }
-
 typedef struct {
     uint16_t           temperature;
     uint16_t           pressure;
@@ -144,11 +128,20 @@ RAINFALL;
 
 typedef struct
 {
-    int16_t         temperatureOffset;
-    int16_t         pressureOffset;
+    int16_t         thermometerOffset;
+    double          thermometerFactor;
+
+    int16_t         barometerOffset;
+    double          barometerFactor;
+
     int16_t         humidityOffset;
-    int16_t         windOffset;
-    int16_t         rainOffset;
+    double          humidityFactor;
+
+    int16_t         anemometerOffset;
+    double          anemometerFactor;
+
+    int16_t         rainGaugeOffset;
+    double          rainGaugeFactor;
 }
 CALIBRATION_DATA;
 

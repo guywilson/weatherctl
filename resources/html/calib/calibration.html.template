@@ -25,7 +25,7 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="thermometer-factor" value="0.03">
+                                        <input type="text" name="thermometer-factor" value="<tmpl_var temperature-factor>">
                                     </td>
                                 </tr>
                             </table>
@@ -40,13 +40,13 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="barometer-offset" value="7">
+                                        <input type="text" name="barometer-offset" value="<tmpl_var pressure-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="barometer-factor" value="0.13">
+                                        <input type="text" name="barometer-factor" value="<tmpl_var pressure-factor>">
                                     </td>
                                 </tr>
                             </table>
@@ -61,13 +61,13 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="humidity-offset" value="11">
+                                        <input type="text" name="humidity-offset" value="<tmpl_var humidity-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="humidity-factor" value="0.09">
+                                        <input type="text" name="humidity-factor" value="<tmpl_var humidity-factor>">
                                     </td>
                                 </tr>
                             </table>
@@ -82,13 +82,13 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="anemometer-offset" value="3">
+                                        <input type="text" name="anemometer-offset" value="<tmpl_var wind-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="amemometer-factor" value="0.05">
+                                        <input type="text" name="amemometer-factor" value="<tmpl_var wind-factor>">
                                     </td>
                                 </tr>
                             </table>
@@ -103,13 +103,13 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="rain-offset" value="15">
+                                        <input type="text" name="rain-offset" value="<tmpl_var rain-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="rain-factor" value="0.07">
+                                        <input type="text" name="rain-factor" value="<tmpl_var rain-factor>">
                                     </td>
                                 </tr>
                             </table>

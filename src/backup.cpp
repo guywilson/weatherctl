@@ -12,6 +12,7 @@
 #endif
 
 #include "exception.h"
+#include "postgres.h"
 #include "postdata.h"
 #include "backup.h"
 #include "logger.h"
@@ -34,8 +35,6 @@ void BackupManager::close()
     if (fptr_rain != NULL) {
         fclose(fptr_rain);
     }
-
-    PQfinish(dbConnection);
 }
 
 void BackupManager::setupCSV(const char * pszTphFilename, const char * pszWindFilename, const char * pszRainFilename)
@@ -271,6 +270,7 @@ void BackupManager::writeCSVRecord(PostData * pPostData)
 
 void BackupManager::insertDB(const char * pszHost, const char * pszDbName, char * pszInsertStatement)
 {
+/*
 	char				szConnection[128];
 	PGresult *			queryResult;
 
@@ -323,10 +323,12 @@ void BackupManager::insertDB(const char * pszHost, const char * pszDbName, char 
     PQfinish(dbConnection);
 
     log.logDebug("PQfinish()");
+*/
 }
 
 void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, PostData * pPostData)
 {
+    Postgres            pg(pszHost, 5432, pszDbName, "guy", "password");
     PostDataTPH *       pPostDataTPH;
     PostDataWindspeed * pPostDataWind;
     PostDataRainfall *  pPostDataRain;
@@ -351,7 +353,7 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     pPostDataTPH->getPressure(), 
                     pPostDataTPH->getHumidity());
                 
-                insertDB(pszHost, pszDbName, szInsertStr);
+                pg.INSERT(szInsertStr);
             }
             break;
 
@@ -368,7 +370,7 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     "AVG", 
                     pPostDataWind->getAvgWindspeed());
             
-                insertDB(pszHost, pszDbName, szInsertStr);
+                pg.INSERT(szInsertStr);
             }
             if (pPostDataWind->isDoSaveMax()) {
                 sprintf(
@@ -378,7 +380,7 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     "MAX", 
                     pPostDataWind->getMaxWindspeed());
             
-                insertDB(pszHost, pszDbName, szInsertStr);
+                pg.INSERT(szInsertStr);
             }
             break;
 
@@ -395,7 +397,7 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     "AVG", 
                     pPostDataRain->getAvgRainfall());
             
-                insertDB(pszHost, pszDbName, szInsertStr);
+                pg.INSERT(szInsertStr);
             }
             if (pPostDataRain->isDoSaveTotal()) {
                 sprintf(
@@ -405,7 +407,7 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     "TOT", 
                     pPostDataRain->getTotalRainfall());
             
-                insertDB(pszHost, pszDbName, szInsertStr);
+                pg.INSERT(szInsertStr);
             }
             break;
     }

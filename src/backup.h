@@ -48,7 +48,6 @@ private:
     FILE *          fptr_tph = NULL;
     FILE *          fptr_wind = NULL;
     FILE *          fptr_rain = NULL;
-    PGconn *		dbConnection = NULL;
     Logger &        log = Logger::getInstance();
 
     BackupManager() {}
