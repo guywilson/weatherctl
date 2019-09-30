@@ -24,8 +24,6 @@ static uint8_t emulated_rsp_buffer[MAX_RESPONSE_MESSAGE_LENGTH];
 static int emulated_cmd_length = 0;
 static int emulated_rsp_length = 0;
 
-static CALIBRATION_DATA cd;
-
 static void _build_response_frame(uint8_t * data, int dataLength)
 {
 	uint16_t			checksumTotal = 0;
@@ -55,8 +53,6 @@ SerialPort::SerialPort()
 {
 	isEmulationMode = false;
 	expectedBytes = 0;
-
-	memset(&cd, 0, sizeof(CALIBRATION_DATA));
 }
 
 SerialPort::~SerialPort()
@@ -282,23 +278,6 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 		case RX_CMD_GET_SCHED_VERSION:
 			data = (uint8_t *)schVer;
 			dataLength = strlen(schVer);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		case RX_CMD_GET_CALIBRATION_DATA:
-			dataLength = sizeof(CALIBRATION_DATA);
-
-			data = (uint8_t *)(&cd);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		case RX_CMD_SET_CALIBRATION_DATA:
-			memcpy(&cd, &emulated_cmd_buffer[4], emulated_cmd_buffer[1] - 2);
-
-			data = (uint8_t *)NULL;
-			dataLength = 0;
 
 			_build_response_frame(data, dataLength);
 			break;

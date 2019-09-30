@@ -148,52 +148,24 @@ PGresult * Postgres::_execute(const char * sql)
     return queryResult;
 }
 
-void Postgres::getCalibrationData(PCALIBRATION_DATA data)
+void Postgres::getCalibrationData(char * szRowName, int16_t * offset, double * factor)
 {
     PGresult *                      r;
     int                             rows = 0;
     int                             row;
-    char *                          name;
+    char                            szSelectStatement[256];
 
-    r = _execute("select id, name, offset_amount, factor from calibration");
+    sprintf(szSelectStatement, "SELECT offset_amount, factor from calibration where name = '%s'", szRowName);
+    
+    r = _execute(szSelectStatement);
 
     rows = PQntuples(r);
 
     for (row = 0;row < rows;row++) {
-        name = PQgetvalue(r, row, 1);
+        *offset = atoi(PQgetvalue(r, row, 0));
+        *factor = atof(PQgetvalue(r, row, 1));
 
-        log.logDebug("Got calibration values for '%s'", name);
-
-        if (strcmp(name, "thermometer") == 0) {
-            data->thermometerOffset = atoi(PQgetvalue(r, row, 2));
-            data->thermometerFactor = atof(PQgetvalue(r, row, 3));
-
-            log.logDebug("Got offset [%d] factor [%.3f] '%s'", data->thermometerOffset, data->thermometerFactor, name);
-        }
-        else if (strcmp(name, "barometer") == 0) {
-            data->barometerOffset = atoi(PQgetvalue(r, row, 2));
-            data->barometerFactor = atof(PQgetvalue(r, row, 3));
-
-            log.logDebug("Got offset [%d] factor [%.3f] '%s'", data->barometerOffset, data->barometerFactor, name);
-        }
-        else if (strcmp(name, "humidity") == 0) {
-            data->humidityOffset = atoi(PQgetvalue(r, row, 2));
-            data->humidityFactor = atof(PQgetvalue(r, row, 3));
-
-            log.logDebug("Got offset [%d] factor [%.3f] '%s'", data->humidityOffset, data->humidityFactor, name);
-        }
-        else if (strcmp(name, "anemometer") == 0) {
-            data->anemometerOffset = atoi(PQgetvalue(r, row, 2));
-            data->anemometerFactor = atof(PQgetvalue(r, row, 3));
-
-            log.logDebug("Got offset [%d] factor [%.3f] '%s'", data->anemometerOffset, data->anemometerFactor, name);
-        }
-        else if (strcmp(name, "rain") == 0) {
-            data->rainGaugeOffset = atoi(PQgetvalue(r, row, 2));
-            data->rainGaugeFactor = atof(PQgetvalue(r, row, 3));
-
-            log.logDebug("Got offset [%d] factor [%.3f] '%s'", data->rainGaugeOffset, data->rainGaugeFactor, name);
-        }
+        log.logDebug("Got offset [%d] factor [%.3f] '%s'", *offset, *factor, szRowName);
     }
 }
 

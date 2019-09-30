@@ -8,6 +8,7 @@
 #include "webadmin.h"
 #include "exception.h"
 #include "avrweather.h"
+#include "calibration.h"
 #include "queuemgr.h"
 #include "logger.h"
 #include "postgres.h"
@@ -53,10 +54,9 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 	struct http_message *			message;
 	char *							pszMethod;
 	char *							pszURI;
+	uint8_t *						pData = NULL;
 	char							szCmdValue[32];
 	char							szRenderBuffer[256];
-	uint8_t							data[80];
-	uint8_t *						pData = NULL;
 	int								dataLength = 0;
 	int								rtn;
 	uint8_t							cmdCode;
@@ -118,28 +118,6 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 					isSerialCommand = true;
 					isRenderable = true;
 				}
-				else if (strncmp(szCmdValue, "get-calibration-data", sizeof(szCmdValue)) == 0) {
-					cmdCode = RX_CMD_GET_CALIBRATION_DATA;
-					isSerialCommand = true;
-					isRenderable = true;
-				}
-				else if (strncmp(szCmdValue, "set-calibration-data", sizeof(szCmdValue)) == 0) {
-					cmdCode = RX_CMD_SET_CALIBRATION_DATA;
-					isSerialCommand = true;
-					isRenderable = false;
-
-					pData = data;
-					dataLength = sizeof(CALIBRATION_DATA);
-
-					CALIBRATION_DATA cd;
-					cd.thermometerOffset = -5;
-					cd.barometerOffset = 4;
-					cd.humidityOffset = 0;
-					cd.anemometerOffset = -3;
-					cd.rainGaugeOffset = 2;
-
-					memcpy(pData, &cd, dataLength);
-				}
 				else if (strncmp(szCmdValue, "reset-avr", sizeof(szCmdValue)) == 0) {
 					resetAVR();
 					isSerialCommand = false;
@@ -168,23 +146,6 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 
 							log.logInfo("Got avr version from Arduino [%s]", szRenderBuffer);
 							mg_printf(connection, "HTTP/1.1 200 OK\n\n AVR Version: %s", szRenderBuffer);
-						}
-						else if (pRxFrame->getResponseCode() == RX_RSP_GET_CALIBRATION_DATA) {
-							CALIBRATION_DATA cd;
-
-							memcpy(&cd, pRxFrame->getData(), pRxFrame->getDataLength());
-
-							sprintf(
-								szRenderBuffer,
-								"Calibration Data:\n\tTemperature: %d,\n\tPressure: %d,\n\tHumidity: %d,\n\tWindspeed: %d,\n\tRainfall: %d\n",
-								cd.thermometerOffset,
-								cd.barometerOffset,
-								cd.humidityOffset,
-								cd.anemometerOffset,
-								cd.rainGaugeOffset);
-
-							log.logInfo("Got calibration data from Arduino %s", szRenderBuffer);
-							mg_printf(connection, "HTTP/1.1 200 OK\n\n %s", szRenderBuffer);
 						}
 						else {
 							mg_printf(connection, "HTTP/1.1 200 OK");
@@ -371,8 +332,6 @@ void avrCalibViewHandler(struct mg_connection * connection, int event, void * p)
 	struct http_message *			message;
 	char *							pszMethod;
 	char *							pszURI;
-	char							szCalibrationData[32];
-	CALIBRATION_DATA				calibrationData;
 
 	Postgres pg("localhost", 5432, "data", "guy", "password");
 
@@ -402,37 +361,23 @@ void avrCalibViewHandler(struct mg_connection * connection, int event, void * p)
 
 				tmpl::html_template templ(templateFileName);
 
-				pg.getCalibrationData(&calibrationData);
+				CalibrationData & cd = CalibrationData::getInstance();
+				cd.retrieve();
 
-				sprintf(szCalibrationData, "%d", calibrationData.thermometerOffset);
-				templ("temperature-offset") = szCalibrationData;
+				templ("temperature-offset") = cd.getOffsetAsCStr(cd.thermometer);
+				templ("temperature-factor") = cd.getFactorAsCStr(cd.thermometer);
 
-				sprintf(szCalibrationData, "%.3f", calibrationData.thermometerFactor);
-				templ("temperature-factor") = szCalibrationData;
+				templ("pressure-offset") = cd.getOffsetAsCStr(cd.barometer);
+				templ("pressure-factor") = cd.getFactorAsCStr(cd.barometer);
 
-				sprintf(szCalibrationData, "%d", calibrationData.barometerOffset);
-				templ("pressure-offset") = szCalibrationData;
+				templ("humidity-offset") = cd.getOffsetAsCStr(cd.hygrometer);
+				templ("humidity-factor") = cd.getFactorAsCStr(cd.hygrometer);
 
-				sprintf(szCalibrationData, "%.3f", calibrationData.barometerFactor);
-				templ("pressure-factor") = szCalibrationData;
+				templ("wind-offset") = cd.getOffsetAsCStr(cd.anemometer);
+				templ("wind-factor") = cd.getFactorAsCStr(cd.anemometer);
 
-				sprintf(szCalibrationData, "%d", calibrationData.humidityOffset);
-				templ("humidity-offset") = szCalibrationData;
-
-				sprintf(szCalibrationData, "%.3f", calibrationData.humidityFactor);
-				templ("humidity-factor") = szCalibrationData;
-
-				sprintf(szCalibrationData, "%d", calibrationData.anemometerOffset);
-				templ("wind-offset") = szCalibrationData;
-
-				sprintf(szCalibrationData, "%.3f", calibrationData.anemometerFactor);
-				templ("wind-factor") = szCalibrationData;
-
-				sprintf(szCalibrationData, "%d", calibrationData.rainGaugeOffset);
-				templ("rain-offset") = szCalibrationData;
-
-				sprintf(szCalibrationData, "%.3f", calibrationData.rainGaugeFactor);
-				templ("rain-factor") = szCalibrationData;
+				templ("rain-offset") = cd.getOffsetAsCStr(cd.rainGauge);
+				templ("rain-factor") = cd.getFactorAsCStr(cd.rainGauge);
 
 				templ.Process();
 

@@ -71,7 +71,7 @@ public:
     Postgres(const char * host, int port, const char * dbName, const char * user, const char * password);
     ~Postgres();
 
-    void                            getCalibrationData(PCALIBRATION_DATA data);
+    void                            getCalibrationData(char * szRowName, int16_t * offset, double * factor);
     PGResult *                      find(const char * sql);
     PGResult *                      SELECT(const char * sql);
     int                             INSERT(const char * sql);

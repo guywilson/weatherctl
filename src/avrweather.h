@@ -126,27 +126,6 @@ typedef struct {
 }
 RAINFALL;
 
-typedef struct
-{
-    int16_t         thermometerOffset;
-    double          thermometerFactor;
-
-    int16_t         barometerOffset;
-    double          barometerFactor;
-
-    int16_t         humidityOffset;
-    double          humidityFactor;
-
-    int16_t         anemometerOffset;
-    double          anemometerFactor;
-
-    int16_t         rainGaugeOffset;
-    double          rainGaugeFactor;
-}
-CALIBRATION_DATA;
-
-typedef CALIBRATION_DATA *     PCALIBRATION_DATA;
-
 void 		resetAVR();
 RxFrame * 	send_receive(TxFrame * pTxFrame);
 void 		fire_forget(TxFrame * pTxFrame);
