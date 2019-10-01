@@ -11,7 +11,6 @@
 #include "calibration.h"
 #include "queuemgr.h"
 #include "logger.h"
-#include "postgres.h"
 #include "mongoose.h"
 #include "html_template.h"
 
@@ -185,8 +184,6 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 	char *							pszMethod;
 	char *							pszURI;
 	char							szValue[32];
-	char							szUpdateStatement[512];
-	CALIBRATION_DATA				cdata;
 	int								rtn;
 
 	Logger & log = Logger::getInstance();
@@ -201,78 +198,40 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 
 			if (strncmp(pszMethod, "GET", 4) == 0) {
-				Postgres pg("localhost", 5432, "data", "guy", "password");
+				CalibrationData & cd = CalibrationData::getInstance();
 
 				rtn = mg_get_http_var(&message->query_string, "thermometer-offset", szValue, 32);
-				cdata.thermometerOffset = atoi(szValue);
+				cd.setOffset(cd.thermometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "thermometer-factor", szValue, 32);
-				cdata.thermometerFactor = atof(szValue);
-
-				sprintf(
-					szUpdateStatement, 
-					"UPDATE calibration SET OFFSET_AMOUNT = '%d', FACTOR = '%.3f' WHERE NAME = 'thermometer'",
-					cdata.thermometerOffset,
-					cdata.thermometerFactor);
-
-				pg.UPDATE(szUpdateStatement);
+				cd.setFactor(cd.thermometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "barometer-offset", szValue, 32);
-				cdata.barometerOffset = atoi(szValue);
+				cd.setOffset(cd.barometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "barometer-factor", szValue, 32);
-				cdata.barometerFactor = atof(szValue);
-
-				sprintf(
-					szUpdateStatement, 
-					"UPDATE calibration SET OFFSET_AMOUNT = '%d', FACTOR = '%.3f' WHERE NAME = 'barometer'",
-					cdata.barometerOffset,
-					cdata.barometerFactor);
-
-				pg.UPDATE(szUpdateStatement);
+				cd.setFactor(cd.barometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "humidity-offset", szValue, 32);
-				cdata.humidityOffset = atoi(szValue);
+				cd.setOffset(cd.hygrometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "humidity-factor", szValue, 32);
-				cdata.humidityFactor = atof(szValue);
-
-				sprintf(
-					szUpdateStatement, 
-					"UPDATE calibration SET OFFSET_AMOUNT = '%d', FACTOR = '%.3f' WHERE NAME = 'humidity'",
-					cdata.humidityOffset,
-					cdata.humidityFactor);
-
-				pg.UPDATE(szUpdateStatement);
+				cd.setFactor(cd.hygrometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "anemometer-offset", szValue, 32);
-				cdata.anemometerOffset = atoi(szValue);
+				cd.setOffset(cd.anemometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "anemometer-factor", szValue, 32);
-				cdata.anemometerFactor = atof(szValue);
-
-				sprintf(
-					szUpdateStatement, 
-					"UPDATE calibration SET OFFSET_AMOUNT = '%d', FACTOR = '%.3f' WHERE NAME = 'anemometer'",
-					cdata.anemometerOffset,
-					cdata.anemometerFactor);
-
-				pg.UPDATE(szUpdateStatement);
+				cd.setFactor(cd.anemometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "rain-offset", szValue, 32);
-				cdata.rainGaugeOffset = atoi(szValue);
+				cd.setOffset(cd.rainGauge, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "rain-factor", szValue, 32);
-				cdata.rainGaugeFactor = atof(szValue);
+				cd.setFactor(cd.rainGauge, szValue);
 
-				sprintf(
-					szUpdateStatement, 
-					"UPDATE calibration SET OFFSET_AMOUNT = '%d', FACTOR = '%.3f' WHERE NAME = 'rain'",
-					cdata.rainGaugeOffset,
-					cdata.rainGaugeFactor);
+				cd.save();
 
-				pg.UPDATE(szUpdateStatement);
-				
 				mg_http_send_redirect(
 								connection, 
 								302, 
@@ -332,8 +291,6 @@ void avrCalibViewHandler(struct mg_connection * connection, int event, void * p)
 	struct http_message *			message;
 	char *							pszMethod;
 	char *							pszURI;
-
-	Postgres pg("localhost", 5432, "data", "guy", "password");
 
 	Logger & log = Logger::getInstance();
 

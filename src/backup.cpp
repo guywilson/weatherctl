@@ -353,7 +353,13 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     pPostDataTPH->getPressure(), 
                     pPostDataTPH->getHumidity());
                 
-                pg.INSERT(szInsertStr);
+                try {
+                    pg.INSERT(szInsertStr);
+                }
+                catch (Exception * e) {
+                    log.logError("Error inserting backup record...");
+                    throw new Exception("Error inserting backup record...");
+                }
             }
             break;
 
@@ -370,7 +376,13 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     "AVG", 
                     pPostDataWind->getAvgWindspeed());
             
-                pg.INSERT(szInsertStr);
+                try {
+                    pg.INSERT(szInsertStr);
+                }
+                catch (Exception * e) {
+                    log.logError("Error inserting backup record...");
+                    throw new Exception("Error inserting backup record...");
+                }
             }
             if (pPostDataWind->isDoSaveMax()) {
                 sprintf(
@@ -380,7 +392,13 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     "MAX", 
                     pPostDataWind->getMaxWindspeed());
             
-                pg.INSERT(szInsertStr);
+                try {
+                    pg.INSERT(szInsertStr);
+                }
+                catch (Exception * e) {
+                    log.logError("Error inserting backup record...");
+                    throw new Exception("Error inserting backup record...");
+                }
             }
             break;
 
@@ -397,7 +415,13 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     "AVG", 
                     pPostDataRain->getAvgRainfall());
             
-                pg.INSERT(szInsertStr);
+                try {
+                    pg.INSERT(szInsertStr);
+                }
+                catch (Exception * e) {
+                    log.logError("Error inserting backup record...");
+                    throw new Exception("Error inserting backup record...");
+                }
             }
             if (pPostDataRain->isDoSaveTotal()) {
                 sprintf(
@@ -407,7 +431,13 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                     "TOT", 
                     pPostDataRain->getTotalRainfall());
             
-                pg.INSERT(szInsertStr);
+                try {
+                    pg.INSERT(szInsertStr);
+                }
+                catch (Exception * e) {
+                    log.logError("Error inserting backup record...");
+                    throw new Exception("Error inserting backup record...");
+                }
             }
             break;
     }

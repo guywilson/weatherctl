@@ -13,6 +13,7 @@
 
 #include "postgres.h"
 #include "exception.h"
+#include "configmgr.h"
 #include "logger.h"
 
 using namespace std;
@@ -112,38 +113,73 @@ Postgres::~Postgres()
     }
 }
 
-PGresult * Postgres::_execute(const char * sql)
+void Postgres::beginTransaction()
 {
 	PGresult *			queryResult;
-
+    
     queryResult = PQexec(dbConnection, "BEGIN");
 
     if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
         log.logError("Error beginning transaction [%s]", PQerrorMessage(dbConnection));
         PQclear(queryResult);
-        PQfinish(dbConnection);
         throw new Exception("Error opening transaction");
     }
 
-    log.logDebug("Opened DB transaction");
+    isTransactionActive = true;
+
+    log.logDebug("Transaction - Open");
 
     PQclear(queryResult);
+}
+
+void Postgres::endTransaction()
+{
+	PGresult *			queryResult;
+    
+    if (isTransactionActive && isAutoTransaction) {
+        isTransactionActive = false;
+        isAutoTransaction = false;
+
+        queryResult = PQexec(dbConnection, "END");
+
+        if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
+            log.logError("Error ending transaction [%s]", PQerrorMessage(dbConnection));
+            PQclear(queryResult);
+            throw new Exception("Error ending transaction");
+        }
+
+        log.logDebug("Transaction - Close");
+
+        PQclear(queryResult);
+    }
+}
+
+PGresult * Postgres::_execute(const char * sql)
+{
+	PGresult *			queryResult;
+
+    if (!isTransactionActive) {
+        beginTransaction();
+        isAutoTransaction = true;
+    }
 
     queryResult = PQexec(dbConnection, sql);
 
     if (PQresultStatus(queryResult) != PGRES_COMMAND_OK && PQresultStatus(queryResult) != PGRES_TUPLES_OK) {
         log.logError("Error issuing statement [%s]: '%s'", sql, PQerrorMessage(dbConnection));
-        PQclear(queryResult);
-        PQfinish(dbConnection);
+
+        if (queryResult != NULL) {
+            PQclear(queryResult);
+        }
+
+        endTransaction();
         throw new Exception("Error issuing statement");
     }
     else {
         log.logInfo("Successfully executed statement [%s]", sql);
     }
 
-    PQexec(dbConnection, "END");
-
-    log.logDebug("Closed DB transaction");
+    endTransaction();
 
     return queryResult;
 }
@@ -155,7 +191,11 @@ void Postgres::getCalibrationData(char * szRowName, int16_t * offset, double * f
     int                             row;
     char                            szSelectStatement[256];
 
-    sprintf(szSelectStatement, "SELECT offset_amount, factor from calibration where name = '%s'", szRowName);
+    sprintf(
+        szSelectStatement, 
+        "SELECT offset_amount, factor from %s where name = '%s'", 
+        cfg.getValueAsCstr("calibration.dbtable"), 
+        szRowName);
     
     r = _execute(szSelectStatement);
 
@@ -205,7 +245,13 @@ int Postgres::INSERT(const char * sql)
     PGresult *      r;
     int             numRowsAffected = 0;
 
-    r = _execute(sql);
+    try {
+        r = _execute(sql);
+    }
+    catch (Exception * e) {
+        log.logError("Error issuing INSERT statement [%s]", sql);
+        throw new Exception("Error issuing INSERT statement");
+    }
 
     numRowsAffected = atoi(PQcmdTuples(r));
 

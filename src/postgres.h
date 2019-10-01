@@ -8,6 +8,7 @@
 #endif
 
 #include "avrweather.h"
+#include "configmgr.h"
 #include "logger.h"
 
 using namespace std;
@@ -64,12 +65,19 @@ class Postgres
 private:
     PGconn *		dbConnection = NULL;
     Logger &        log = Logger::getInstance();
+    ConfigManager & cfg = ConfigManager::getInstance();
+
+    bool                            isTransactionActive = false;
+    bool                            isAutoTransaction = false;
 
     PGresult *                      _execute(const char * sql);
 
 public:
     Postgres(const char * host, int port, const char * dbName, const char * user, const char * password);
     ~Postgres();
+
+    void                            beginTransaction();
+    void                            endTransaction();
 
     void                            getCalibrationData(char * szRowName, int16_t * offset, double * factor);
     PGResult *                      find(const char * sql);

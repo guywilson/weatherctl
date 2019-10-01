@@ -12,6 +12,7 @@ extern "C" {
 #include "avrweather.h"
 #include "queuemgr.h"
 #include "exception.h"
+#include "calibration.h"
 #include "postdata.h"
 #include "currenttime.h"
 #include "logger.h"
@@ -68,7 +69,11 @@ double getActualTemperature(uint16_t sensorValue)
 {
 	double		temperature;
 
-	temperature = ((((double)sensorValue / (double)1023) * (double)5) - (double)1.375) / (double)0.0225;
+	CalibrationData & cd = CalibrationData::getInstance();
+
+	sensorValue += cd.getOffset(cd.thermometer);
+
+	temperature = (((((double)sensorValue / (double)1023) * (double)5) - (double)1.375) / (double)0.0225) * cd.getFactor(cd.thermometer);
 
 	return temperature;
 }
@@ -80,7 +85,11 @@ double getActualPressure(uint16_t sensorValue)
 {
 	double		pressure;
 
-	pressure = ((((double)sensorValue / (double)1023) + (double)0.095) / (double)0.009) * (double)10;
+	CalibrationData & cd = CalibrationData::getInstance();
+
+	sensorValue += cd.getOffset(cd.barometer);
+
+	pressure = (((((double)sensorValue / (double)1023) + (double)0.095) / (double)0.009) * (double)10) * cd.getFactor(cd.barometer);
 
 	return pressure;
 }
@@ -92,7 +101,11 @@ double getActualHumidity(uint16_t sensorValue)
 {
 	double		humidity;
 
-	humidity = (((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062;
+	CalibrationData & cd = CalibrationData::getInstance();
+
+	sensorValue += cd.getOffset(cd.hygrometer);
+
+	humidity = ((((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062) * cd.getFactor(cd.hygrometer);
 
 	return humidity;
 }
@@ -101,7 +114,11 @@ double getActualWindspeed(uint16_t sensorValue)
 {
 	double		windspeed;
 
-	windspeed = (double)sensorValue * RPS_TO_KPH_SCALE_FACTOR;
+	CalibrationData & cd = CalibrationData::getInstance();
+
+	sensorValue += cd.getOffset(cd.anemometer);
+
+	windspeed = (double)sensorValue * RPS_TO_KPH_SCALE_FACTOR * cd.getFactor(cd.anemometer);
 
 	return windspeed;
 }
@@ -110,7 +127,11 @@ double getActualRainfall(uint16_t sensorValue)
 {
 	double		rainfall;
 
-	rainfall = (double)sensorValue * TIPS_TO_MM_SCALE_FACTOR;
+	CalibrationData & cd = CalibrationData::getInstance();
+
+	sensorValue += cd.getOffset(cd.rainGauge);
+
+	rainfall = (double)sensorValue * TIPS_TO_MM_SCALE_FACTOR * cd.getFactor(cd.rainGauge);
 	
 	return rainfall;
 }

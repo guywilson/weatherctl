@@ -42,6 +42,8 @@ void CalibrationData::retrieve()
         setOffset((SensorType)i, offset);
         setFactor((SensorType)i, factor);
     }
+
+    isStale = false;
 }
 
 void CalibrationData::save()
@@ -67,14 +69,24 @@ void CalibrationData::save()
 
         pg.UPDATE(szUpdateStatement);
     }
+
+    isStale = true;
 }
 
 int16_t CalibrationData::getOffset(SensorType t)
 {
+    if (isStale) {
+        retrieve();
+    }
+
     return _offsets[t];
 }
 char * CalibrationData::getOffsetAsCStr(SensorType t)
 {
+    if (isStale) {
+        retrieve();
+    }
+    
     return &_strOffsets[t][0];
 }
 void CalibrationData::setOffset(SensorType t, int16_t offset)
@@ -90,10 +102,18 @@ void CalibrationData::setOffset(SensorType t, char * pszOffset)
 
 double CalibrationData::getFactor(SensorType t)
 {
+    if (isStale) {
+        retrieve();
+    }
+    
     return _factors[t];
 }
 char * CalibrationData::getFactorAsCStr(SensorType t)
 {
+    if (isStale) {
+        retrieve();
+    }
+    
     return &_strFactors[t][0];
 }
 void CalibrationData::setFactor(SensorType t, double factor)

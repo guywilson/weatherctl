@@ -53,6 +53,8 @@ private:
     char            _strOffsets[NUM_CALIBRATION_PAIRS][STR_VALUE_LENGTH];
     char            _strFactors[NUM_CALIBRATION_PAIRS][STR_VALUE_LENGTH];
 
+    bool            isStale = true;
+
 public:
     ~CalibrationData() {}
 
