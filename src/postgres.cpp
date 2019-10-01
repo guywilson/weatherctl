@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <vector>
 #include <map>
 #include <stdio.h>
@@ -18,9 +19,22 @@
 
 using namespace std;
 
-PGField::PGField(char * name, char * value)
+PGField::PGField()
 {
+    this->_name[0] = 0;
+    this->_value[0] = 0;
+}
+PGField::PGField(const char * name, const char * value)
+{
+    strcpy(this->_name, name);
 
+    if (value == NULL) {
+        this->_isNull = true;
+    }
+    else {
+        this->_isNull = false;
+        strcpy(this->_value, value);
+    }
 }
 
 PGField::~PGField()
@@ -30,22 +44,17 @@ PGField::~PGField()
 
 bool PGField::isNull()
 {
-    return true;
+    return this->_isNull;
 }
 
-string PGField::getName()
+char * PGField::getName()
 {
-    return "";
+    return this->_name;
 }
 
-string PGField::getValue()
+char * PGField::getValue()
 {
-    return "";
-}
-
-const char * PGField::getValueAsCStr()
-{
-    return getValue().c_str();
+    return this->_value;
 }
 
 PGRow::PGRow()
@@ -53,14 +62,60 @@ PGRow::PGRow()
 
 }
 
+int PGRow::getNumFields()
+{
+    return _fields.size();
+}
 void PGRow::addField(PGField & field)
 {
+    _fields.push_back(field);
+}
+PGField & PGRow::getField(string name)
+{
+    int         i;
 
+    for (i = 0;i < getNumFields();i++) {
+        PGField & field = _fields.at(i);
+
+        if (strcmp(field.getName(), name.c_str()) == 0) {
+            return field;
+        }
+    }
+
+    return emptyField;
+}
+PGField & PGRow::getField(int fieldNum)
+{
+    PGField & field = _fields.at(fieldNum);
+    return field;
 }
 
 PGResult::PGResult(PGresult * results)
 {
+    int         rows;
+    int         columns;
+    int         r;
+    int         c;
 
+    rows = PQntuples(results);
+    columns = PQnfields(results);
+
+    _numRows = rows;
+
+    for (r = 0;r < rows;r++) {
+        PGRow row;
+
+        for (c = 0;c < columns;c++) {
+            char * name = PQfname(results, c);
+            char * value = PQgetvalue(results, r, c);
+
+            PGField field(name, value);
+
+            row.addField(field);
+        }
+
+        this->_rows.push_back(row);
+    }
 }
 
 PGResult::~PGResult()
@@ -70,16 +125,15 @@ PGResult::~PGResult()
 
 int PGResult::getNumRows()
 {
-    return 0;
+    return _numRows;
 }
 
-PGRow PGResult::getRow(int index)
+PGRow & PGResult::getRow(int index)
 {
-    PGRow r;
-    return r;
+    return _rows.at(index);
 }
 
-PGRow PGResult::getFirst()
+PGRow & PGResult::getFirst()
 {
     return getRow(0);
 }
@@ -136,7 +190,7 @@ void Postgres::endTransaction()
 {
 	PGresult *			queryResult;
     
-    if (isTransactionActive && isAutoTransaction) {
+    if (isTransactionActive) {
         isTransactionActive = false;
         isAutoTransaction = false;
 
@@ -179,7 +233,9 @@ PGresult * Postgres::_execute(const char * sql)
         log.logInfo("Successfully executed statement [%s]", sql);
     }
 
-    endTransaction();
+    if (isAutoTransaction) {
+        endTransaction();
+    }
 
     return queryResult;
 }
@@ -209,35 +265,18 @@ void Postgres::getCalibrationData(char * szRowName, int16_t * offset, double * f
     }
 }
 
-PGResult * Postgres::SELECT(const char * sql)
+PGResult & Postgres::SELECT(const char * sql)
 {
-    PGResult *                      pResults;
-    PGresult *                      r;
-    int                             rows = 0;
-    int                             columns = 0;
-    int                             row;
-    int                             col;
+    PGResult * r = new PGResult(_execute(sql));
 
-    pResults = new PGResult(_execute(sql));
-
-    rows = PQntuples(r);
-    columns = PQnfields(r);
-
-    for (row = 0;row < rows;row++) {
-        for (col = 0;col < columns;col++) {
-        }
-    }
-
-    return pResults;
+    return *r;
 }
 
-PGResult * Postgres::find(const char * sql)
+PGRow & Postgres::find(const char * sql)
 {
-    PGResult *                      pResults;
+    PGResult results = SELECT(sql);
 
-    pResults = SELECT(sql);
-
-    return pResults;
+    return results.getFirst();
 }
 
 int Postgres::INSERT(const char * sql)

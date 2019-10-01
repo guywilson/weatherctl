@@ -45,7 +45,7 @@ private:
     ConfigManager & cfg = ConfigManager::getInstance();
 
     char            _dbTableName[64];
-    const char *    _dbRowNames[NUM_CALIBRATION_PAIRS] = {"thermometer", "barometer", "humidity", "anemometer", "rain"};
+    const char *    _dbRowNames[NUM_CALIBRATION_PAIRS] = {"thermometer", "barometer", "hygrometer", "anemometer", "rainGauge"};
 
     int16_t         _offsets[NUM_CALIBRATION_PAIRS];
     double          _factors[NUM_CALIBRATION_PAIRS];
@@ -73,11 +73,13 @@ public:
     char *          getOffsetAsCStr(SensorType t);
     void            setOffset(SensorType t, int16_t offset);
     void            setOffset(SensorType t, char * pszOffset);
+    void            setOffset(SensorType t, const char * pszOffset);
 
     double          getFactor(SensorType t);
     char *          getFactorAsCStr(SensorType t);
     void            setFactor(SensorType t, double factor);
     void            setFactor(SensorType t, char * pszFactor);
+    void            setFactor(SensorType t, const char * pszFactor);
 };
 
 #endif

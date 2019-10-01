@@ -19,13 +19,13 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="thermometer-offset" value="<tmpl_var temperature-offset>">
+                                        <input type="text" name="thermometer-offset" value="<tmpl_var thermometer-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="thermometer-factor" value="<tmpl_var temperature-factor>">
+                                        <input type="text" name="thermometer-factor" value="<tmpl_var thermometer-factor>">
                                     </td>
                                 </tr>
                             </table>
@@ -40,13 +40,13 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="barometer-offset" value="<tmpl_var pressure-offset>">
+                                        <input type="text" name="barometer-offset" value="<tmpl_var barometer-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="barometer-factor" value="<tmpl_var pressure-factor>">
+                                        <input type="text" name="barometer-factor" value="<tmpl_var barometer-factor>">
                                     </td>
                                 </tr>
                             </table>
@@ -56,18 +56,18 @@
                         <td style="padding: 8px">
                             <table class="pretty-table">
                                 <tr>
-                                    <td class="column-heading" style="text-align: left"><font size="4"><b>Humidity</b></font></td>
+                                    <td class="column-heading" style="text-align: left"><font size="4"><b>Hygrometer</b></font></td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="humidity-offset" value="<tmpl_var humidity-offset>">
+                                        <input type="text" name="hygrometer-offset" value="<tmpl_var hygrometer-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="humidity-factor" value="<tmpl_var humidity-factor>">
+                                        <input type="text" name="hygrometer-factor" value="<tmpl_var hygrometer-factor>">
                                     </td>
                                 </tr>
                             </table>
@@ -82,13 +82,13 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="anemometer-offset" value="<tmpl_var wind-offset>">
+                                        <input type="text" name="anemometer-offset" value="<tmpl_var anemometer-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="anemometer-factor" value="<tmpl_var wind-factor>">
+                                        <input type="text" name="anemometer-factor" value="<tmpl_var anemometer-factor>">
                                     </td>
                                 </tr>
                             </table>
@@ -103,13 +103,13 @@
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Offset</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="rain-offset" value="<tmpl_var rain-offset>">
+                                        <input type="text" name="raingauge-offset" value="<tmpl_var raingauge-offset>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="table-cell" style="text-align: left"><font size="3"><b>Scale factor</b></font></td>
                                     <td class="table-cell" style="text-align: right">
-                                        <input type="text" name="rain-factor" value="<tmpl_var rain-factor>">
+                                        <input type="text" name="raingauge-factor" value="<tmpl_var raingauge-factor>">
                                     </td>
                                 </tr>
                             </table>

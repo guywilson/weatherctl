@@ -22,9 +22,7 @@ CalibrationData::CalibrationData()
 
 void CalibrationData::retrieve()
 {
-    char        szRowName[32];
-    int16_t     offset;
-    double      factor;
+    char        szSelectStatement[256];
     int         i;
 
     Postgres pg(
@@ -34,13 +32,53 @@ void CalibrationData::retrieve()
         "guy", 
         "password");
 
-    for (i = 0;i < NUM_CALIBRATION_PAIRS;i++) {
-        strcpy(szRowName, &_dbRowNames[i][0]);
+    sprintf(
+        szSelectStatement, 
+        "SELECT name, offset_amount, factor from %s", 
+        cfg.getValueAsCstr("calibration.dbtable"));
 
-        pg.getCalibrationData(szRowName, &offset, &factor);
+    PGResult result = pg.SELECT(szSelectStatement);
 
-        setOffset((SensorType)i, offset);
-        setFactor((SensorType)i, factor);
+    for (i = 0;i < result.getNumRows();i++) {
+        PGRow row = result.getRow(i);
+
+        PGField name = row.getField(string("name"));
+
+        if (strcmp(name.getValue(), "thermometer") == 0) {
+            PGField offset = row.getField(string("offset_amount"));
+            PGField factor = row.getField(string("factor"));
+
+            setOffset(thermometer, offset.getValue());
+            setFactor(thermometer, factor.getValue());
+        }
+        else if (strcmp(name.getValue(), "barometer") == 0) {
+            PGField offset = row.getField(string("offset_amount"));
+            PGField factor = row.getField(string("factor"));
+
+            setOffset(barometer, offset.getValue());
+            setFactor(barometer, factor.getValue());
+        }
+        else if (strcmp(name.getValue(), "hygrometer") == 0) {
+            PGField offset = row.getField(string("offset_amount"));
+            PGField factor = row.getField(string("factor"));
+
+            setOffset(hygrometer, offset.getValue());
+            setFactor(hygrometer, factor.getValue());
+        }
+        else if (strcmp(name.getValue(), "anemometer") == 0) {
+            PGField offset = row.getField(string("offset_amount"));
+            PGField factor = row.getField(string("factor"));
+
+            setOffset(anemometer, offset.getValue());
+            setFactor(anemometer, factor.getValue());
+        }
+        else if (strcmp(name.getValue(), "rainGauge") == 0) {
+            PGField offset = row.getField(string("offset_amount"));
+            PGField factor = row.getField(string("factor"));
+
+            setOffset(rainGauge, offset.getValue());
+            setFactor(rainGauge, factor.getValue());
+        }
     }
 
     isStale = false;
@@ -58,6 +96,8 @@ void CalibrationData::save()
         "guy", 
         "password");
 
+    pg.beginTransaction();
+
     for (i = 0;i < NUM_CALIBRATION_PAIRS;i++) {
         sprintf(
             szUpdateStatement, 
@@ -69,6 +109,8 @@ void CalibrationData::save()
 
         pg.UPDATE(szUpdateStatement);
     }
+
+    pg.endTransaction();
 
     isStale = true;
 }
@@ -99,6 +141,11 @@ void CalibrationData::setOffset(SensorType t, char * pszOffset)
 {
     setOffset(t, atoi(pszOffset));
 }
+void CalibrationData::setOffset(SensorType t, const char * pszOffset)
+{
+    strcpy(&_strOffsets[t][0], pszOffset);
+    setOffset(t, &_strOffsets[t][0]);
+}
 
 double CalibrationData::getFactor(SensorType t)
 {
@@ -125,4 +172,9 @@ void CalibrationData::setFactor(SensorType t, double factor)
 void CalibrationData::setFactor(SensorType t, char * pszFactor)
 {
     setFactor(t, atof(pszFactor));
+}
+void CalibrationData::setFactor(SensorType t, const char * pszFactor)
+{
+    strcpy(&_strFactors[t][0], pszFactor);
+    setFactor(t, &_strFactors[t][0]);
 }

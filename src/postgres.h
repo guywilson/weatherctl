@@ -19,45 +19,51 @@ using namespace std;
 class PGField
 {
 private:
-    string      name;
-    string      value;
+    char        _name[64];
+    char        _value[64];
+
+    bool        _isNull;
 
 public:
-    PGField(char * name, char * value);
+    PGField();
+    PGField(const char * name, const char * value);
     ~PGField();
 
     bool            isNull();
 
-    string          getName();
-
-    string          getValue();
-    const char *    getValueAsCStr();
+    char *          getName();
+    char *          getValue();
 };
 
 class PGRow
 {
 private:
-    map<string, PGField>    _row;
+    vector<PGField>    _fields;
+    PGField             emptyField;
 
 public:
     PGRow();
 
+    int             getNumFields();
+
     void            addField(PGField & field);
+    PGField &       getField(int fieldNum);
+    PGField &       getField(string name);
 };
 
 class PGResult
 {
 private:
-//    PGresult *      _results;
-    vector<PGRow>   rows;
+    vector<PGRow>   _rows;
+    int             _numRows = 0;
 
 public:
     PGResult(PGresult * results);
     ~PGResult();
 
     int             getNumRows();
-    PGRow           getRow(int index);
-    PGRow           getFirst();
+    PGRow &         getRow(int index);
+    PGRow &         getFirst();
 };
 
 class Postgres
@@ -80,8 +86,8 @@ public:
     void                            endTransaction();
 
     void                            getCalibrationData(char * szRowName, int16_t * offset, double * factor);
-    PGResult *                      find(const char * sql);
-    PGResult *                      SELECT(const char * sql);
+    PGRow &                         find(const char * sql);
+    PGResult &                      SELECT(const char * sql);
     int                             INSERT(const char * sql);
     int                             UPDATE(const char * sql);
     int                             DELETE(const char * sql);

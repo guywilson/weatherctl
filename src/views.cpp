@@ -212,10 +212,10 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 				rtn = mg_get_http_var(&message->query_string, "barometer-factor", szValue, 32);
 				cd.setFactor(cd.barometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "humidity-offset", szValue, 32);
+				rtn = mg_get_http_var(&message->query_string, "hygrometer-offset", szValue, 32);
 				cd.setOffset(cd.hygrometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "humidity-factor", szValue, 32);
+				rtn = mg_get_http_var(&message->query_string, "hygrometer-factor", szValue, 32);
 				cd.setFactor(cd.hygrometer, szValue);
 
 				rtn = mg_get_http_var(&message->query_string, "anemometer-offset", szValue, 32);
@@ -224,10 +224,10 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 				rtn = mg_get_http_var(&message->query_string, "anemometer-factor", szValue, 32);
 				cd.setFactor(cd.anemometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "rain-offset", szValue, 32);
+				rtn = mg_get_http_var(&message->query_string, "raingauge-offset", szValue, 32);
 				cd.setOffset(cd.rainGauge, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "rain-factor", szValue, 32);
+				rtn = mg_get_http_var(&message->query_string, "raingauge-factor", szValue, 32);
 				cd.setFactor(cd.rainGauge, szValue);
 
 				cd.save();
@@ -321,20 +321,20 @@ void avrCalibViewHandler(struct mg_connection * connection, int event, void * p)
 				CalibrationData & cd = CalibrationData::getInstance();
 				cd.retrieve();
 
-				templ("temperature-offset") = cd.getOffsetAsCStr(cd.thermometer);
-				templ("temperature-factor") = cd.getFactorAsCStr(cd.thermometer);
+				templ("thermometer-offset") = cd.getOffsetAsCStr(cd.thermometer);
+				templ("thermometer-factor") = cd.getFactorAsCStr(cd.thermometer);
 
-				templ("pressure-offset") = cd.getOffsetAsCStr(cd.barometer);
-				templ("pressure-factor") = cd.getFactorAsCStr(cd.barometer);
+				templ("barometer-offset") = cd.getOffsetAsCStr(cd.barometer);
+				templ("barometer-factor") = cd.getFactorAsCStr(cd.barometer);
 
-				templ("humidity-offset") = cd.getOffsetAsCStr(cd.hygrometer);
-				templ("humidity-factor") = cd.getFactorAsCStr(cd.hygrometer);
+				templ("hygrometer-offset") = cd.getOffsetAsCStr(cd.hygrometer);
+				templ("hygrometer-factor") = cd.getFactorAsCStr(cd.hygrometer);
 
-				templ("wind-offset") = cd.getOffsetAsCStr(cd.anemometer);
-				templ("wind-factor") = cd.getFactorAsCStr(cd.anemometer);
+				templ("anemometer-offset") = cd.getOffsetAsCStr(cd.anemometer);
+				templ("anemometer-factor") = cd.getFactorAsCStr(cd.anemometer);
 
-				templ("rain-offset") = cd.getOffsetAsCStr(cd.rainGauge);
-				templ("rain-factor") = cd.getFactorAsCStr(cd.rainGauge);
+				templ("raingauge-offset") = cd.getOffsetAsCStr(cd.rainGauge);
+				templ("raingauge-factor") = cd.getFactorAsCStr(cd.rainGauge);
 
 				templ.Process();
 
