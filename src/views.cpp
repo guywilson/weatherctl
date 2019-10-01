@@ -184,7 +184,6 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 	char *							pszMethod;
 	char *							pszURI;
 	char							szValue[32];
-	int								rtn;
 
 	Logger & log = Logger::getInstance();
 
@@ -200,34 +199,34 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 			if (strncmp(pszMethod, "GET", 4) == 0) {
 				CalibrationData & cd = CalibrationData::getInstance();
 
-				rtn = mg_get_http_var(&message->query_string, "thermometer-offset", szValue, 32);
+				mg_get_http_var(&message->query_string, "thermometer-offset", szValue, 32);
 				cd.setOffset(cd.thermometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "thermometer-factor", szValue, 32);
+				mg_get_http_var(&message->query_string, "thermometer-factor", szValue, 32);
 				cd.setFactor(cd.thermometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "barometer-offset", szValue, 32);
+				mg_get_http_var(&message->query_string, "barometer-offset", szValue, 32);
 				cd.setOffset(cd.barometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "barometer-factor", szValue, 32);
+				mg_get_http_var(&message->query_string, "barometer-factor", szValue, 32);
 				cd.setFactor(cd.barometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "hygrometer-offset", szValue, 32);
+				mg_get_http_var(&message->query_string, "hygrometer-offset", szValue, 32);
 				cd.setOffset(cd.hygrometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "hygrometer-factor", szValue, 32);
+				mg_get_http_var(&message->query_string, "hygrometer-factor", szValue, 32);
 				cd.setFactor(cd.hygrometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "anemometer-offset", szValue, 32);
+				mg_get_http_var(&message->query_string, "anemometer-offset", szValue, 32);
 				cd.setOffset(cd.anemometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "anemometer-factor", szValue, 32);
+				mg_get_http_var(&message->query_string, "anemometer-factor", szValue, 32);
 				cd.setFactor(cd.anemometer, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "raingauge-offset", szValue, 32);
+				mg_get_http_var(&message->query_string, "raingauge-offset", szValue, 32);
 				cd.setOffset(cd.rainGauge, szValue);
 
-				rtn = mg_get_http_var(&message->query_string, "raingauge-factor", szValue, 32);
+				mg_get_http_var(&message->query_string, "raingauge-factor", szValue, 32);
 				cd.setFactor(cd.rainGauge, szValue);
 
 				cd.save();
