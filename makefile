@@ -74,8 +74,9 @@ $(DEP)/%.d: ;
 install: $(TARGET)
 	cp $(TARGET) /usr/local/bin
 	cp wctl.cfg /etc/weatherctl
-	cp resources/css/*.css /var/www/css
-	cp resources/html/avr/cmd/*.html /var/www/html/avr/cmd
+	rm -r /var/www/css
+	rm -r /var/www/html
+	cp -r resources/* /var/www
 
 version:
 	$(VBUILD) -incfile wctl.ver -template version.c.template -out $(SOURCE)/version.c -major $(MAJOR_VERSION) -minor $(MINOR_VERSION)
