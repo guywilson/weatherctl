@@ -30,7 +30,7 @@ input[type=submit] {
 }
 
 .pretty-table {
-	width: 40%;
+	width: 80%;
 	margin-left: auto;
 	margin-right: auto;
 	border: 0px solid rgb(83, 162, 243);

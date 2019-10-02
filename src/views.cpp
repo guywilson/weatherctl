@@ -48,6 +48,36 @@ static char * getURI(struct http_message * message)
 	return pszURI;
 }
 
+static char * addHTMLFileToURI(char * pszURI, const char * pszHTMLFile)
+{
+	int 		i;
+	bool		isHTMLFileExist = false;
+	char *		pszExtendedURI;
+	string		s;
+
+	for (i = 0;i < strlen(pszURI);i++) {
+		if (strncmp(&pszURI[i], pszHTMLFile, strlen(pszHTMLFile)) == 0) {
+			isHTMLFileExist = true;
+			return pszURI;
+		}
+		else {
+
+		}
+	}
+
+	if (!isHTMLFileExist) {
+		pszExtendedURI = (char *)malloc(strlen(pszURI) + strlen(pszHTMLFile) + 8);
+		strcpy(pszExtendedURI, pszURI);
+
+		if (pszURI[strlen(pszURI) - 1] == '/') {
+			strcat(pszExtendedURI, pszHTMLFile);
+		}
+		else {
+
+		}
+	}
+}
+
 void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p)
 {
 	struct http_message *			message;
