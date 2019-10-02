@@ -375,10 +375,10 @@ int main(int argc, char *argv[])
 	*/
 	WebAdmin & web = WebAdmin::getInstance();
 
-	web.registerHandler("/cmd", avrCmdViewHandler);
+	web.registerHandler("/cmd/cmd.html", avrCmdViewHandler);
 	web.registerHandler("/cmd/post", avrCmdCommandHandler);
 
-	web.registerHandler("/calib", avrCalibViewHandler);
+	web.registerHandler("/calib/calibration.html", avrCalibViewHandler);
 	web.registerHandler("/calib/post", avrCalibCommandHandler);
 
 	web.registerHandler("/css", cssHandler);

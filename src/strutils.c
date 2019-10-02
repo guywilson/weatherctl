@@ -70,3 +70,21 @@ char * str_trim(const char * str)
         return NULL;
     }
 }
+
+int str_endswith(char * src, const char * suffix)
+{
+    int         suffixPos = -1;
+    int         searchPos = 0;
+
+    if (strlen(suffix) > strlen(src)) {
+        return -1;
+    }
+
+    searchPos = strlen(src) - strlen(suffix);
+
+    if (strncmp(&src[searchPos], suffix, strlen(suffix)) == 0) {
+        suffixPos = searchPos;
+    }
+
+    return suffixPos;
+}

@@ -14,6 +14,10 @@
 #include "mongoose.h"
 #include "html_template.h"
 
+extern "C" {
+#include "strutils.h"
+}
+
 using namespace std;
 
 static char * getMethod(struct http_message * message)
@@ -50,31 +54,27 @@ static char * getURI(struct http_message * message)
 
 static char * addHTMLFileToURI(char * pszURI, const char * pszHTMLFile)
 {
-	int 		i;
-	bool		isHTMLFileExist = false;
 	char *		pszExtendedURI;
-	string		s;
 
-	for (i = 0;i < strlen(pszURI);i++) {
-		if (strncmp(&pszURI[i], pszHTMLFile, strlen(pszHTMLFile)) == 0) {
-			isHTMLFileExist = true;
-			return pszURI;
-		}
-		else {
-
-		}
+	if (str_endswith(pszURI, ".html") >= 0) {
+		pszExtendedURI = (char *)malloc(strlen(pszURI) + 1);
+		
+		strcpy(pszExtendedURI, pszURI);
+		
+		return pszExtendedURI;
 	}
-
-	if (!isHTMLFileExist) {
+	else {
 		pszExtendedURI = (char *)malloc(strlen(pszURI) + strlen(pszHTMLFile) + 8);
+		
 		strcpy(pszExtendedURI, pszURI);
 
-		if (pszURI[strlen(pszURI) - 1] == '/') {
-			strcat(pszExtendedURI, pszHTMLFile);
+		if (str_endswith(pszURI, "/") < 0) {
+			strcat(pszExtendedURI, "/");
 		}
-		else {
 
-		}
+		strcat(pszExtendedURI, pszHTMLFile);
+		
+		return pszExtendedURI;
 	}
 }
 
