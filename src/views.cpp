@@ -52,32 +52,6 @@ static char * getURI(struct http_message * message)
 	return pszURI;
 }
 
-static char * addHTMLFileToURI(char * pszURI, const char * pszHTMLFile)
-{
-	char *		pszExtendedURI;
-
-	if (str_endswith(pszURI, ".html") >= 0) {
-		pszExtendedURI = (char *)malloc(strlen(pszURI) + 1);
-		
-		strcpy(pszExtendedURI, pszURI);
-		
-		return pszExtendedURI;
-	}
-	else {
-		pszExtendedURI = (char *)malloc(strlen(pszURI) + strlen(pszHTMLFile) + 8);
-		
-		strcpy(pszExtendedURI, pszURI);
-
-		if (str_endswith(pszURI, "/") < 0) {
-			strcat(pszExtendedURI, "/");
-		}
-
-		strcat(pszExtendedURI, pszHTMLFile);
-		
-		return pszExtendedURI;
-	}
-}
-
 void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p)
 {
 	struct http_message *			message;
