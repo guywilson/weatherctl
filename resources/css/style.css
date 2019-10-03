@@ -29,6 +29,15 @@ input[type=submit] {
     float: right;
 }
 
+.btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
 .pretty-table {
 	width: 80%;
 	margin-left: auto;
@@ -61,7 +70,31 @@ input[type=submit] {
 	width: 25%;
 	padding: 10px;
 }
-  
+
+.pretty-frame {
+	border: 3px navy;
+	border-radius: 10px;
+	background: aliceblue;
+	vertical-align: middle;
+	padding: 15px;
+}
+
+.centred-outer {
+	position: relative;
+	text-align: center;
+	width: 800px;
+	height: 120px;
+	margin: auto;
+}
+
+.centred-inner {
+	position: absolute;
+	top: 50%; left: 50%;
+	transform: translate(-50%,-50%);
+	width: 800px;
+	height: 80px;
+}
+
 /* Style the container */
 .container {
     border-radius: 5px;

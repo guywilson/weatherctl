@@ -6,30 +6,54 @@
 		<link rel="stylesheet" type="text/css" href="/css/style.css">
     </head>
     <body>
-        <div class="container">
-            <form action="/cmd/post" method="GET">
-              <div class="row">
-                <div class="col-25">
-                  <label for="command">Command</label>
-                </div>
-                <div class="col-75">
-                  <select id="command" name="command">
-                    <option value="">Choose...</option>
-                    <option value="debug-logging-on">Switch on Debug Logging</option>
-                    <option value="debug-logging-off">Switch off Debug Logging</option>
-                    <option value="disable-wd-reset">Disable Watchdog Reset</option>
-                    <option value="reset-min-max">Reset Min/Max Values</option>
-                    <option value="get-wctl-version">Get Weather Controller Version</option>
-                    <option value="get-avr-version">Get AVR Version</option>
-                    <option value="get-scheduler-version">Get Scheduler Version</option>
-                    <option value="reset-avr">Reset AVR Device</option>
-                  </select>
-                </div>
-              </div>
-              <div class="row">
-                <input type="submit" value="Submit">
-              </div>
-            </form>
+      <h1 style="text-align: center">Issue AVR Command</h1>
+      <div class="centred-outer">
+        <div class="centred-inner">
+        <p class="pretty-frame" style="line-height: 1.5">
+          <button class="btn" onclick="getHREF('home')">Home</button>
+          <button class="btn" onclick="getHREF('command')">Issue Command</button>
+          <button class="btn" onclick="getHREF('calibration')">Calibration</button>
+        </p>
+        </div>
+  
+        <script>
+          function getHREF(ref) {
+            if (ref == 'home') {
+              window.location.href = "/";
+            }
+            else if (ref == 'command') {
+              window.location.href = "/cmd/cmd.html";
+            }
+            else if (ref == 'calibration') {
+              window.location.href = "/calib/calibration.html";
+            }
+          }
+        </script>
+      </div>
+      <div class="container">
+        <form action="/cmd/post" method="GET">
+          <div class="row">
+            <div class="col-25">
+              <label for="command">Command</label>
+            </div>
+            <div class="col-75">
+              <select id="command" name="command">
+                <option value="">Choose...</option>
+                <option value="debug-logging-on">Switch on Debug Logging</option>
+                <option value="debug-logging-off">Switch off Debug Logging</option>
+                <option value="disable-wd-reset">Disable Watchdog Reset</option>
+                <option value="reset-min-max">Reset Min/Max Values</option>
+                <option value="get-wctl-version">Get Weather Controller Version</option>
+                <option value="get-avr-version">Get AVR Version</option>
+                <option value="get-scheduler-version">Get Scheduler Version</option>
+                <option value="reset-avr">Reset AVR Device</option>
+              </select>
+            </div>
           </div>
+          <div class="row">
+            <input type="submit" value="Submit">
+          </div>
+        </form>
+      </div>
     </body>
 </html>

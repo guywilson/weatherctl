@@ -375,6 +375,8 @@ int main(int argc, char *argv[])
 	*/
 	WebAdmin & web = WebAdmin::getInstance();
 
+	web.registerHandler("/", homeViewHandler);
+
 	web.registerHandler("/cmd/cmd.html", avrCmdViewHandler);
 	web.registerHandler("/cmd/post", avrCmdCommandHandler);
 

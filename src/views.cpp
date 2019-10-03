@@ -253,6 +253,42 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 	}
 }
 
+void homeViewHandler(struct mg_connection * connection, int event, void * p)
+{
+	struct http_message *			message;
+	char *							pszMethod;
+	char *							pszURI;
+
+	Logger & log = Logger::getInstance();
+
+	switch (event) {
+		case MG_EV_HTTP_REQUEST:
+			message = (struct http_message *)p;
+
+			pszMethod = getMethod(message);
+			pszURI = getURI(message);
+
+			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
+	
+			if (strncmp(pszMethod, "GET", 3) == 0) {
+				WebAdmin & web = WebAdmin::getInstance();
+
+				struct mg_serve_http_opts opts = { .document_root = web.getHTMLDocRoot() };
+
+				log.logInfo("Serving file '%s'", pszURI);
+
+				mg_serve_http(connection, message, opts);
+			}
+
+			free(pszMethod);
+			free(pszURI);
+			break;
+
+		default:
+			break;
+	}
+}
+
 void avrCmdViewHandler(struct mg_connection * connection, int event, void * p)
 {
 	struct http_message *			message;

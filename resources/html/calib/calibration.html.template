@@ -10,6 +10,29 @@
     </head>
     <body>
         <h1 style="text-align: center">AVR Sensor Calibration</h1>
+        <div class="centred-outer">
+            <div class="centred-inner">
+            <p class="pretty-frame" style="line-height: 1.5">
+            <button class="btn" onclick="getHREF('home')">Home</button>
+            <button class="btn" onclick="getHREF('command')">Issue Command</button>
+            <button class="btn" onclick="getHREF('calibration')">Calibration</button>
+            </p>
+            </div>
+    
+            <script>
+            function getHREF(ref) {
+                if (ref == 'home') {
+                window.location.href = "/";
+                }
+                else if (ref == 'command') {
+                window.location.href = "/cmd/cmd.html";
+                }
+                else if (ref == 'calibration') {
+                window.location.href = "/calib/calibration.html";
+                }
+            }
+            </script>
+        </div>
         <div class="container">
             <form action="/calib/post" method="GET">
                 <table style="width: 100%; margin-left: auto; margin-right: auto">
