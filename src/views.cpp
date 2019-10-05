@@ -83,7 +83,8 @@ static struct mg_serve_http_opts getHTMLOpts()
 	static struct mg_serve_http_opts opts = {
 		.document_root = web.getHTMLDocRoot(), 
 		.enable_directory_listing = "no",
-		.global_auth_file =  cfg.getValueAsCstr("admin.authfile")};
+		.global_auth_file =  cfg.getValueAsCstr("admin.authfile")
+	};
 
 	return opts;
 }
