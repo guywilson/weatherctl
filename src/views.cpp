@@ -77,7 +77,7 @@ static int authenticate(struct mg_connection * connection, struct http_message *
 
 static struct mg_serve_http_opts getHTMLOpts()
 {
-	struct mg_serve_http_opts opts;
+	static struct mg_serve_http_opts opts;
 
 	ConfigManager & cfg = ConfigManager::getInstance();
 	WebAdmin & web = WebAdmin::getInstance();
@@ -91,7 +91,7 @@ static struct mg_serve_http_opts getHTMLOpts()
 
 static struct mg_serve_http_opts getCSSOpts()
 {
-	struct mg_serve_http_opts opts;
+	static struct mg_serve_http_opts opts;
 
 	ConfigManager & cfg = ConfigManager::getInstance();
 	WebAdmin & web = WebAdmin::getInstance();
