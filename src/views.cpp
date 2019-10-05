@@ -52,6 +52,55 @@ static char * getURI(struct http_message * message)
 	return pszURI;
 }
 
+static int authenticate(struct mg_connection * connection, struct http_message * message)
+{
+	FILE *		fpDigest;
+
+	ConfigManager & cfg = ConfigManager::getInstance();
+	Logger & log = Logger::getInstance();
+
+	fpDigest = fopen(cfg.getValueAsCstr("admin.authfile"), "r");
+
+	if (fpDigest == NULL) {
+		log.logError("Failed to open auth file %s", cfg.getValueAsCstr("admin.authfile"));
+		throw new Exception("Failed to open auth file");
+	}
+
+	if (!mg_http_check_digest_auth(message, "weatherctl", fpDigest)) {
+		mg_http_send_digest_auth_request(connection, "weatherctl");
+	}
+
+	fclose(fpDigest);
+	
+	return 0;
+}
+
+static struct mg_serve_http_opts getHTMLOpts()
+{
+	ConfigManager & cfg = ConfigManager::getInstance();
+	WebAdmin & web = WebAdmin::getInstance();
+
+	static struct mg_serve_http_opts opts = {
+		.document_root = web.getHTMLDocRoot(), 
+		.enable_directory_listing = "no",
+		.global_auth_file =  cfg.getValueAsCstr("admin.authfile")};
+
+	return opts;
+}
+
+static struct mg_serve_http_opts getCSSOpts()
+{
+	ConfigManager & cfg = ConfigManager::getInstance();
+	WebAdmin & web = WebAdmin::getInstance();
+
+	static struct mg_serve_http_opts opts = {
+		.document_root = web.getCSSDocRoot(), 
+		.enable_directory_listing = "no",
+		.global_auth_file =  cfg.getValueAsCstr("admin.authfile")};
+
+	return opts;
+}
+
 void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p)
 {
 	struct http_message *			message;
@@ -265,19 +314,17 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 		case MG_EV_HTTP_REQUEST:
 			message = (struct http_message *)p;
 
+			authenticate(connection, message);
+
 			pszMethod = getMethod(message);
 			pszURI = getURI(message);
 
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 	
 			if (strncmp(pszMethod, "GET", 3) == 0) {
-				WebAdmin & web = WebAdmin::getInstance();
-
-				struct mg_serve_http_opts opts = { .document_root = web.getHTMLDocRoot() };
-
 				log.logInfo("Serving file '%s'", pszURI);
 
-				mg_serve_http(connection, message, opts);
+				mg_serve_http(connection, message, getHTMLOpts());
 			}
 
 			free(pszMethod);
@@ -301,19 +348,17 @@ void avrCmdViewHandler(struct mg_connection * connection, int event, void * p)
 		case MG_EV_HTTP_REQUEST:
 			message = (struct http_message *)p;
 
+			authenticate(connection, message);
+
 			pszMethod = getMethod(message);
 			pszURI = getURI(message);
 
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 	
 			if (strncmp(pszMethod, "GET", 3) == 0) {
-				WebAdmin & web = WebAdmin::getInstance();
-
-				struct mg_serve_http_opts opts = { .document_root = web.getHTMLDocRoot() };
-
 				log.logInfo("Serving file '%s'", pszURI);
 
-				mg_serve_http(connection, message, opts);
+				mg_serve_http(connection, message, getHTMLOpts());
 			}
 
 			free(pszMethod);
@@ -337,6 +382,8 @@ void avrCalibViewHandler(struct mg_connection * connection, int event, void * p)
 		case MG_EV_HTTP_REQUEST:
 			message = (struct http_message *)p;
 
+			authenticate(connection, message);
+
 			pszMethod = getMethod(message);
 			pszURI = getURI(message);
 
@@ -344,8 +391,6 @@ void avrCalibViewHandler(struct mg_connection * connection, int event, void * p)
 	
 			if (strncmp(pszMethod, "GET", 3) == 0) {
 				WebAdmin & web = WebAdmin::getInstance();
-
-				struct mg_serve_http_opts opts = { .document_root = web.getHTMLDocRoot() };
 
 				log.logInfo("Serving file '%s'", pszURI);
 
@@ -382,7 +427,7 @@ void avrCalibViewHandler(struct mg_connection * connection, int event, void * p)
 				fs << templ;
 				fs.close();
 
-				mg_serve_http(connection, message, opts);
+				mg_serve_http(connection, message, getHTMLOpts());
 			}
 
 			free(pszMethod);
@@ -412,13 +457,9 @@ void cssHandler(struct mg_connection * connection, int event, void * p)
 			log.logInfo("Got %s request for '%s'", pszMethod, pszURI);
 
 			if (strncmp(pszMethod, "GET", 3) == 0) {
-				WebAdmin & web = WebAdmin::getInstance();
-
-				struct mg_serve_http_opts opts = { .document_root = web.getCSSDocRoot() };
-
 				log.logInfo("Serving file '%s'", pszURI);
 
-				mg_serve_http(connection, message, opts);
+				mg_serve_http(connection, message, getCSSOpts());
 			}
 
 			free(pszMethod);
