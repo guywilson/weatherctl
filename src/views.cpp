@@ -77,14 +77,14 @@ static int authenticate(struct mg_connection * connection, struct http_message *
 
 static struct mg_serve_http_opts getHTMLOpts()
 {
+	struct mg_serve_http_opts opts;
+
 	ConfigManager & cfg = ConfigManager::getInstance();
 	WebAdmin & web = WebAdmin::getInstance();
 
-	static struct mg_serve_http_opts opts = {
-		.document_root = web.getHTMLDocRoot(), 
-		.enable_directory_listing = "no",
-		.global_auth_file =  cfg.getValueAsCstr("admin.authfile")
-	};
+	opts.document_root = web.getHTMLDocRoot();
+	opts.enable_directory_listing = "no";
+	opts.global_auth_file = cfg.getValueAsCstr("admin.authfile");
 
 	return opts;
 }
