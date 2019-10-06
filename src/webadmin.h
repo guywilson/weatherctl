@@ -35,12 +35,12 @@ private:
 
 	WebAdmin();
 
-	void		initListener();
-
 public:
 	~WebAdmin();
 
 	void		registerHandler(const char * pszURI, void (* handler)(struct mg_connection *, int, void *));
+
+	void		initListener();
 	void		listen();
 
 	char *		getHTMLDocRoot() {

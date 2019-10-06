@@ -70,8 +70,6 @@ WebAdmin::WebAdmin()
 	strcpy(this->szHTMLDocRoot, pszToken);
 	strcat(this->szHTMLDocRoot, "/html");
 	strcpy(this->szCSSDocRoot, pszToken);
-
-	initListener();
 }
 
 WebAdmin::~WebAdmin()

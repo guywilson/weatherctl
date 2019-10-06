@@ -197,6 +197,7 @@ int main(int argc, char *argv[])
 	int				i;
 	bool			isDaemonised = false;
 	bool			isAdminOnly = false;
+	bool			isAdminEnabled = true;
 	char			cwd[PATH_MAX];
 	int				defaultLoggingLevel = LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL;
 
@@ -385,6 +386,14 @@ int main(int argc, char *argv[])
 
 	web.registerHandler("/css", cssHandler);
 
+	try {
+		web.initListener();
+	}
+	catch (Exception * e) {
+		log.logError("Failed to initialise admin console, console disabled...");
+		isAdminEnabled = false;
+	}
+
 	if (!isAdminOnly) {
 		/*
 		** Initialise backup manager...
@@ -402,7 +411,7 @@ int main(int argc, char *argv[])
 	/*
 	 * Start threads...
 	 */
-	int rtn = startThreads(isAdminOnly);
+	int rtn = startThreads(isAdminOnly, isAdminEnabled);
 
 	if (rtn < 0) {
 		return rtn;

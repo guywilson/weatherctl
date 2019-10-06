@@ -1,7 +1,7 @@
 #ifndef _INCL_RXTXTHREAD
 #define _INCL_RXTXTHREAD
 
-int         startThreads(bool isAdminOnly);
+int         startThreads(bool isAdminOnly, bool isAdminEnabled);
 void        killThreads();
 void *      txCmdThread(void * pArgs);
 void *      versionPostThread(void * pArgs);

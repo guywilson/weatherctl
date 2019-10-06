@@ -21,7 +21,7 @@ pthread_t			tidWebListener;
 pthread_t			tidWebPost;
 pthread_t			tidVersionPost;
 
-int startThreads(bool isAdminOnly)
+int startThreads(bool isAdminOnly, bool isAdminEnabled)
 {
 	int	err;
 
@@ -41,14 +41,16 @@ int startThreads(bool isAdminOnly)
 		}
 	}
 
-	err = pthread_create(&tidWebListener, NULL, &webListenerThread, NULL);
+	if (isAdminEnabled) {
+		err = pthread_create(&tidWebListener, NULL, &webListenerThread, NULL);
 
-	if (err != 0) {
-		log.logError("ERROR! Can't create webListenerThread() :[%s]", strerror(err));
-		return -1;
-	}
-	else {
-		log.logInfo("Thread webListenerThread() created successfully");
+		if (err != 0) {
+			log.logError("ERROR! Can't create webListenerThread() :[%s]", strerror(err));
+			return -1;
+		}
+		else {
+			log.logInfo("Thread webListenerThread() created successfully");
+		}
 	}
 
 	if (!isAdminOnly) {
