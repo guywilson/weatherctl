@@ -376,22 +376,24 @@ int main(int argc, char *argv[])
 	*/
 	WebAdmin & web = WebAdmin::getInstance();
 
-	web.registerHandler("/", homeViewHandler);
-
-	web.registerHandler("/cmd/cmd.html", avrCmdViewHandler);
-	web.registerHandler("/cmd/post", avrCmdCommandHandler);
-
-	web.registerHandler("/calib/calibration.html", avrCalibViewHandler);
-	web.registerHandler("/calib/post", avrCalibCommandHandler);
-
-	web.registerHandler("/css", cssHandler);
-
 	try {
 		web.initListener();
 	}
 	catch (Exception * e) {
 		log.logError("Failed to initialise admin console, console disabled...");
 		isAdminEnabled = false;
+	}
+
+	if (isAdminEnabled) {
+		web.registerHandler("/", homeViewHandler);
+
+		web.registerHandler("/cmd/cmd.html", avrCmdViewHandler);
+		web.registerHandler("/cmd/post", avrCmdCommandHandler);
+
+		web.registerHandler("/calib/calibration.html", avrCalibViewHandler);
+		web.registerHandler("/calib/post", avrCalibCommandHandler);
+
+		web.registerHandler("/css", cssHandler);
 	}
 
 	if (!isAdminOnly) {
