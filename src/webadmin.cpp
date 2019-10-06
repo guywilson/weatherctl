@@ -62,22 +62,11 @@ static void nullHandler(struct mg_connection * connection, int event, void * p)
 
 WebAdmin::WebAdmin()
 {
-	static const char * keys[] = {
-		"admin.listenport", 
-		"admin.docroot"};
-
 	const char *		pszToken;
-
-	Logger & log = Logger::getInstance();
 
 	ConfigManager & cfg = ConfigManager::getInstance();
 
-	pszToken = cfg.getValueAsCstr(keys[0]);
-	log.logDebug("Got '%s' as '%s'", keys[0], pszToken);
-	strcpy(this->szListenPort, pszToken);
-
-	pszToken = cfg.getValueAsCstr(keys[1]);
-	log.logDebug("Got '%s' as '%s'", keys[1], pszToken);
+	pszToken = cfg.getValueAsCstr("admin.docroot");
 	strcpy(this->szHTMLDocRoot, pszToken);
 	strcat(this->szHTMLDocRoot, "/html");
 	strcpy(this->szCSSDocRoot, pszToken);
@@ -91,20 +80,39 @@ WebAdmin::~WebAdmin()
 
 void WebAdmin::initListener()
 {
+	char				szPort[16];
+	struct mg_bind_opts opts;
+
+	ConfigManager & cfg = ConfigManager::getInstance();
 	Logger & log = Logger::getInstance();
 	
+	memset(&opts, 0, sizeof(mg_bind_opts));
+
+	strcpy(szPort, cfg.getValueAsCstr("admin.listenport"));
+
 	mg_mgr_init(&mgr, NULL);
 
-	log.logInfo("Setting up listener on port %s", szListenPort);
+	log.logInfo("Setting up listener on port %s", szPort);
 
-	connection = mg_bind(&mgr, szListenPort, nullHandler);
+#ifdef MG_ENABLE_SSL
+	if (cfg.getValueAsBoolean("admin.issecure")) {
+		opts.ssl_cert = cfg.getValueAsCstr("admin.sslcert");
+		opts.ssl_key = cfg.getValueAsCstr("admin.sslkey");
+	}
+#endif
+
+	connection = mg_bind_opt(
+					&mgr, 
+					szPort, 
+					nullHandler,
+					opts);
 
 	if (connection == NULL) {
-		log.logError("Failed to bind to port %s", szListenPort);
+		log.logError("Failed to bind to port %s", szPort);
 		throw new Exception("Faled to bind to address");
 	}
 
-	log.logInfo("Bound default handler...");
+	log.logInfo("Bound default handler to %s...", szPort);
 
 	mg_set_protocol_http_websocket(connection);
 }

@@ -7,3 +7,5 @@
 /*.pid
 test.cfg
 /resources/html/calib/calibration.html
+wctl.crt
+wctl.key

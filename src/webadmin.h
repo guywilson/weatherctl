@@ -27,7 +27,6 @@ public:
 	}
 
 private:
-	char			szListenPort[8];
 	char			szHTMLDocRoot[PATH_MAX];
 	char			szCSSDocRoot[PATH_MAX];
 

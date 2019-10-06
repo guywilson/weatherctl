@@ -31,14 +31,14 @@ POSTCOMPILE = @ mv -f $(DEP)/$*.Td $(DEP)/$*.d
 
 CPPFLAGS = -c -Wall -std=c++11
 CFLAGS = -c -Wall
-MGFLAGS=
+MGFLAGS=-DMG_ENABLE_SSL
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP)/$*.Td
 
 # Libraries
 STDLIBS = -pthread -lstdc++
-EXTLIBS = -lgpioc -lpq -lcurl
+EXTLIBS = -lssl -lcrypto -lgpioc -lpq -lcurl
 
-COMPILE.cpp = $(CPP) $(CPPFLAGS) $(DEPFLAGS) -o $@
+COMPILE.cpp = $(CPP) $(CPPFLAGS) $(DEPFLAGS) $(MGFLAGS) -o $@
 COMPILE.c = $(C) $(CFLAGS) $(DEPFLAGS) $(MGFLAGS) -o $@
 LINK.o = $(LINKER) $(STDLIBS) -o $@
 
