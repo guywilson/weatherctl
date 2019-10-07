@@ -168,7 +168,7 @@ void daemonise()
 	
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
+//	close(STDERR_FILENO);
 }
 
 void printUsage(char * pszAppName)
@@ -198,6 +198,7 @@ int main(int argc, char *argv[])
 	bool			isDaemonised = false;
 	bool			isAdminOnly = false;
 	bool			isAdminEnabled = true;
+	bool			isDumpConfig = false;
 	char			cwd[PATH_MAX];
 	int				defaultLoggingLevel = LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL;
 
@@ -246,6 +247,9 @@ int main(int argc, char *argv[])
 				else if (strcmp(&argv[i][1], "-admin-only") == 0) {
 					isAdminOnly = true;
 				}
+				else if (strcmp(&argv[i][1], "-dump-config") == 0) {
+					isDumpConfig = true;
+				}
 				else if (argv[i][1] == 'h' || argv[i][1] == '?') {
 					printUsage(pszAppName);
 					return 0;
@@ -280,7 +284,6 @@ int main(int argc, char *argv[])
 	}
 	
 	fprintf(fptr_pid, "%d\n", getpid());
-	
 	fclose(fptr_pid);
 
 	openlog(pszAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
@@ -292,8 +295,8 @@ int main(int argc, char *argv[])
 		mgr.initialise(pszConfigFileName);
 	}
 	catch (Exception * e) {
-		syslog(LOG_INFO, "Could not read config file %s", pszConfigFileName);
-		fprintf(stderr, "Could not read config file %s\n", pszConfigFileName);
+		syslog(LOG_INFO, "Could not read config file: %s", pszConfigFileName);
+		fprintf(stderr, "Could not read config file: %s\n", pszConfigFileName);
 		fprintf(stderr, "Aborting!\n\n");
 		fflush(stderr);
 		exit(EXIT_FAILURE);
@@ -303,7 +306,9 @@ int main(int argc, char *argv[])
 		free(pszConfigFileName);
 	}
 
-//	mgr.dumpConfig();
+	if (isDumpConfig) {
+		mgr.dumpConfig();
+	}
 
 	Logger & log = Logger::getInstance();
 
