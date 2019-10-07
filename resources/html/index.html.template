@@ -34,11 +34,11 @@
         <table id="version" class="pretty-table">
           <tr>
             <td class="table-cell" style="text-align: left">
-                <font size="4">WCTL v1.4.009 Build date: [2019-10-06 17:24:39]</font>
+                <font size="4">WCTL v<tmpl_var wctl-version> Build date: [<tmpl_var wctl-builddate>]</font>
               <br>
-                <font size="4">AVR Weather v1.2.009 Build date: [19-07-30 17:37:20]</font>
+                <font size="4">AVR Weather v<tmpl_var avr-version> Build date: [<tmpl_var avr-builddate>]</font>
               <br>
-                <font size="4">AVR Scheduler v1.2.01 2019-07-30 17:37:20</font>
+                <font size="4">AVR Scheduler v<tmpl_var rts-version></font>
             </td>
           </tr>
         </table>
