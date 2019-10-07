@@ -308,7 +308,8 @@ void avrCalibCommandHandler(struct mg_connection * connection, int event, void *
 void homeViewHandler(struct mg_connection * connection, int event, void * p)
 {
 	struct http_message *			message;
-	char							szBuffer[64];
+	char							szAVRVersionBuffer[64];
+	char							szSchedVersionBuffer[64];
 	char *							pszMethod;
 	char *							pszURI;
 	const char *					pszWCTLVersion;
@@ -342,12 +343,12 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 
 					RxFrame * pAVRRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION));
 
-					memcpy(szBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
-					szBuffer[pAVRRxFrame->getDataLength()] = 0;
+					memcpy(szAVRVersionBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
+					szAVRVersionBuffer[pAVRRxFrame->getDataLength()] = 0;
 
-					ref = szBuffer;
+					ref = szAVRVersionBuffer;
 
-					pszAVRVersion = str_trim_trailing(strtok_r(szBuffer, "[]", &ref));
+					pszAVRVersion = str_trim_trailing(strtok_r(szAVRVersionBuffer, "[]", &ref));
 					pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
 
 					delete pAVRRxFrame;
@@ -356,10 +357,10 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 
 					RxFrame * pSchedRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_SCHED_VERSION));
 
-					memcpy(szBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
-					szBuffer[pSchedRxFrame->getDataLength()] = 0;
+					memcpy(szSchedVersionBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
+					szSchedVersionBuffer[pSchedRxFrame->getDataLength()] = 0;
 
-					pszSchedVersion = szBuffer;
+					pszSchedVersion = szSchedVersionBuffer;
 
 					delete pSchedRxFrame;
 
