@@ -41,19 +41,19 @@ Rest::Rest()
 
 	ConfigManager & cfg = ConfigManager::getInstance();
 
-	pszToken = cfg.getValueAsCstr(keys[0]);
+	pszToken = cfg.getValue(keys[0]);
 	log.logDebug("Got '%s' as '%s'", keys[0], pszToken);
 	strcpy(this->szHost, pszToken);
 
-	pszToken = cfg.getValueAsCstr(keys[1]);
+	pszToken = cfg.getValue(keys[1]);
 	log.logDebug("Got '%s' as '%s'", keys[1], pszToken);
 	this->port = cfg.getValueAsInteger(keys[1]);
 
-	pszToken = cfg.getValueAsCstr(keys[2]);
+	pszToken = cfg.getValue(keys[2]);
 	log.logDebug("Got '%s' as '%s'", keys[2], pszToken);
 	strcpy(this->szBasePath, pszToken);
 
-	pszToken = cfg.getValueAsCstr(keys[3]);
+	pszToken = cfg.getValue(keys[3]);
 	log.logDebug("Got '%s' as '%s'", keys[3], pszToken);
 	this->isSecure = cfg.getValueAsBoolean(keys[3]);
 }

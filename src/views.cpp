@@ -59,10 +59,10 @@ static int authenticate(struct mg_connection * connection, struct http_message *
 	ConfigManager & cfg = ConfigManager::getInstance();
 	Logger & log = Logger::getInstance();
 
-	fpDigest = fopen(cfg.getValueAsCstr("admin.authfile"), "r");
+	fpDigest = fopen(cfg.getValue("admin.authfile"), "r");
 
 	if (fpDigest == NULL) {
-		log.logError("Failed to open auth file %s", cfg.getValueAsCstr("admin.authfile"));
+		log.logError("Failed to open auth file %s", cfg.getValue("admin.authfile"));
 		throw new Exception("Failed to open auth file");
 	}
 
@@ -84,7 +84,7 @@ static struct mg_serve_http_opts getHTMLOpts()
 
 	opts.document_root = web.getHTMLDocRoot();
 	opts.enable_directory_listing = "no";
-	opts.global_auth_file = cfg.getValueAsCstr("admin.authfile");
+	opts.global_auth_file = cfg.getValue("admin.authfile");
 
 	return opts;
 }
@@ -98,7 +98,7 @@ static struct mg_serve_http_opts getCSSOpts()
 
 	opts.document_root = web.getCSSDocRoot();
 	opts.enable_directory_listing = "no";
-	opts.global_auth_file = cfg.getValueAsCstr("admin.authfile");
+	opts.global_auth_file = cfg.getValue("admin.authfile");
 
 	return opts;
 }

@@ -19,6 +19,8 @@ using namespace std;
 void ConfigManager::initialise(char * pszConfigFileName)
 {
     strcpy(this->szConfigFileName, pszConfigFileName);
+
+    readConfig();
 }
 
 void ConfigManager::readConfig()
@@ -138,7 +140,7 @@ void ConfigManager::readConfig()
     isConfigured = true;
 }
 
-string & ConfigManager::getValue(string key)
+const char * ConfigManager::getValue(const char * key)
 {
     if (!isConfigured) {
         readConfig();
@@ -146,24 +148,14 @@ string & ConfigManager::getValue(string key)
 
     string & value = values[key];
 
-    return value;
-}
-
-string & ConfigManager::getValue(const char * key)
-{
-    return getValue(string(key));
-}
-
-const char * ConfigManager::getValueAsCstr(const char * key)
-{
-    return getValue(key).c_str();
+    return value.c_str();
 }
 
 bool ConfigManager::getValueAsBoolean(const char * key)
 {
     const char *        pszValue;
 
-    pszValue = getValueAsCstr(key);
+    pszValue = getValue(key);
 
     return ((strcmp(pszValue, "yes") == 0 || strcmp(pszValue, "true") == 0 || strcmp(pszValue, "on") == 0) ? true : false);
 }
@@ -172,7 +164,7 @@ int ConfigManager::getValueAsInteger(const char * key)
 {
     const char *        pszValue;
 
-    pszValue = getValueAsCstr(key);
+    pszValue = getValue(key);
 
     return atoi(pszValue);
 }

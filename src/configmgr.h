@@ -28,9 +28,7 @@ public:
     void                    initialise(char * pszConfigFileName);
     void                    readConfig();
 
-    string &                getValue(string key);
-    string &                getValue(const char * key);
-    const char *            getValueAsCstr(const char * key);
+    const char *            getValue(const char * key);
     bool                    getValueAsBoolean(const char * key);
     int                     getValueAsInteger(const char * key);
 

@@ -250,7 +250,7 @@ void Postgres::getCalibrationData(char * szRowName, int16_t * offset, double * f
     sprintf(
         szSelectStatement, 
         "SELECT offset_amount, factor from %s where name = '%s'", 
-        cfg.getValueAsCstr("calibration.dbtable"), 
+        cfg.getValue("calibration.dbtable"), 
         szRowName);
     
     r = _execute(szSelectStatement);

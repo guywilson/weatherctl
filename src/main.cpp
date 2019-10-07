@@ -113,7 +113,7 @@ void handleSignal(int sigNum)
 			** The only thing we can change dynamically (at present)
 			** is the logging level...
 			*/
-			log.setLogLevel(cfg.getValueAsCstr("log.level"));
+			log.setLogLevel(cfg.getValue("log.level"));
 			
 			return;
 	}
@@ -288,7 +288,16 @@ int main(int argc, char *argv[])
 
 	ConfigManager & mgr = ConfigManager::getInstance();
 	
-	mgr.initialise(pszConfigFileName);
+	try {
+		mgr.initialise(pszConfigFileName);
+	}
+	catch (Exception * e) {
+		syslog(LOG_INFO, "Could not read config file %s", pszConfigFileName);
+		fprintf(stderr, "Could not read config file %s\n", pszConfigFileName);
+		fprintf(stderr, "Aborting!\n\n");
+		fflush(stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	if (pszConfigFileName != NULL) {
 		free(pszConfigFileName);
@@ -303,8 +312,8 @@ int main(int argc, char *argv[])
 		free(pszLogFileName);
 	}
 	else {
-		const char * filename = mgr.getValueAsCstr("log.filename");
-		const char * level = mgr.getValueAsCstr("log.level");
+		const char * filename = mgr.getValue("log.filename");
+		const char * level = mgr.getValue("log.level");
 
 		if (strlen(filename) == 0 && strlen(level) == 0) {
 			log.initLogger(defaultLoggingLevel);
@@ -356,7 +365,7 @@ int main(int argc, char *argv[])
 			}
 			else {
 				port.openPort(
-						mgr.getValueAsCstr("serial.port"), 
+						mgr.getValue("serial.port"), 
 						SerialPort::mapBaudRate(mgr.getValueAsInteger("serial.baud")), 
 						mgr.getValueAsBoolean("serial.isblocking"),
 						mgr.getValueAsBoolean("serial.isemulation"));
@@ -403,11 +412,11 @@ int main(int argc, char *argv[])
 		BackupManager & backup = BackupManager::getInstance();
 
 		backup.setupCSV(
-				mgr.getValueAsCstr("backup.tph.csv"), 
-				mgr.getValueAsCstr("backup.wind.csv"), 
-				mgr.getValueAsCstr("backup.rain.csv"));
-		backup.setupPrimaryDB(mgr.getValueAsCstr("backup.primaryhost"), mgr.getValueAsCstr("backup.primarydb"));
-		backup.setupSecondaryDB(mgr.getValueAsCstr("backup.secondaryhost"), mgr.getValueAsCstr("backup.secondarydb"));
+				mgr.getValue("backup.tph.csv"), 
+				mgr.getValue("backup.wind.csv"), 
+				mgr.getValue("backup.rain.csv"));
+		backup.setupPrimaryDB(mgr.getValue("backup.primaryhost"), mgr.getValue("backup.primarydb"));
+		backup.setupSecondaryDB(mgr.getValue("backup.secondaryhost"), mgr.getValue("backup.secondarydb"));
 	}
 
 	/*

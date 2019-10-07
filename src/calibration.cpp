@@ -15,7 +15,7 @@ CalibrationData::CalibrationData()
     memset(_strOffsets, 0, (NUM_CALIBRATION_PAIRS * STR_VALUE_LENGTH));
     memset(_strFactors, 0, (NUM_CALIBRATION_PAIRS * STR_VALUE_LENGTH));
 
-    strcpy(_dbTableName, cfg.getValueAsCstr("calibration.dbtable"));
+    strcpy(_dbTableName, cfg.getValue("calibration.dbtable"));
 
     retrieve();
 }
@@ -26,16 +26,16 @@ void CalibrationData::retrieve()
     int         i;
 
     Postgres pg(
-        cfg.getValueAsCstr("calibration.dbhost"), 
+        cfg.getValue("calibration.dbhost"), 
         5432, 
-        cfg.getValueAsCstr("calibration.dbname"), 
+        cfg.getValue("calibration.dbname"), 
         "guy", 
         "password");
 
     sprintf(
         szSelectStatement, 
         "SELECT name, offset_amount, factor from %s", 
-        cfg.getValueAsCstr("calibration.dbtable"));
+        cfg.getValue("calibration.dbtable"));
 
     PGResult result = pg.SELECT(szSelectStatement);
 
@@ -90,9 +90,9 @@ void CalibrationData::save()
     int             i;
 
     Postgres pg(
-        cfg.getValueAsCstr("calibration.dbhost"), 
+        cfg.getValue("calibration.dbhost"), 
         5432, 
-        cfg.getValueAsCstr("calibration.dbname"), 
+        cfg.getValue("calibration.dbname"), 
         "guy", 
         "password");
 

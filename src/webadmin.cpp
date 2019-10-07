@@ -66,7 +66,7 @@ WebAdmin::WebAdmin()
 
 	ConfigManager & cfg = ConfigManager::getInstance();
 
-	pszToken = cfg.getValueAsCstr("admin.docroot");
+	pszToken = cfg.getValue("admin.docroot");
 	strcpy(this->szHTMLDocRoot, pszToken);
 	strcat(this->szHTMLDocRoot, "/html");
 	strcpy(this->szCSSDocRoot, pszToken);
@@ -86,7 +86,7 @@ void WebAdmin::initListener()
 	
 	memset(&opts, 0, sizeof(mg_bind_opts));
 
-	strcpy(szPort, cfg.getValueAsCstr("admin.listenport"));
+	strcpy(szPort, cfg.getValue("admin.listenport"));
 
 	mg_mgr_init(&mgr, NULL);
 
@@ -94,8 +94,8 @@ void WebAdmin::initListener()
 
 #ifdef MG_ENABLE_SSL
 	if (cfg.getValueAsBoolean("admin.issecure")) {
-		opts.ssl_cert = cfg.getValueAsCstr("admin.sslcert");
-		opts.ssl_key = cfg.getValueAsCstr("admin.sslkey");
+		opts.ssl_cert = cfg.getValue("admin.sslcert");
+		opts.ssl_key = cfg.getValue("admin.sslkey");
 	}
 #endif
 
