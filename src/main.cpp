@@ -289,10 +289,10 @@ int main(int argc, char *argv[])
 	openlog(pszAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
 	syslog(LOG_INFO, "Started %s", pszAppName);
 
-	ConfigManager & mgr = ConfigManager::getInstance();
+	ConfigManager & cfg = ConfigManager::getInstance();
 	
 	try {
-		mgr.initialise(pszConfigFileName);
+		cfg.initialise(pszConfigFileName);
 	}
 	catch (Exception * e) {
 		syslog(LOG_INFO, "Could not read config file: %s", pszConfigFileName);
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (isDumpConfig) {
-		mgr.dumpConfig();
+		cfg.dumpConfig();
 	}
 
 	Logger & log = Logger::getInstance();
@@ -317,8 +317,8 @@ int main(int argc, char *argv[])
 		free(pszLogFileName);
 	}
 	else {
-		const char * filename = mgr.getValue("log.filename");
-		const char * level = mgr.getValue("log.level");
+		const char * filename = cfg.getValue("log.filename");
+		const char * level = cfg.getValue("log.level");
 
 		if (strlen(filename) == 0 && strlen(level) == 0) {
 			log.initLogger(defaultLoggingLevel);
@@ -370,10 +370,10 @@ int main(int argc, char *argv[])
 			}
 			else {
 				port.openPort(
-						mgr.getValue("serial.port"), 
-						SerialPort::mapBaudRate(mgr.getValueAsInteger("serial.baud")), 
-						mgr.getValueAsBoolean("serial.isblocking"),
-						mgr.getValueAsBoolean("serial.isemulation"));
+						cfg.getValue("serial.port"), 
+						SerialPort::mapBaudRate(cfg.getValueAsInteger("serial.baud")), 
+						cfg.getValueAsBoolean("serial.isblocking"),
+						cfg.getValueAsBoolean("serial.isemulation"));
 			}
 		}
 		catch (Exception * e) {
@@ -417,11 +417,11 @@ int main(int argc, char *argv[])
 		BackupManager & backup = BackupManager::getInstance();
 
 		backup.setupCSV(
-				mgr.getValue("backup.tph.csv"), 
-				mgr.getValue("backup.wind.csv"), 
-				mgr.getValue("backup.rain.csv"));
-		backup.setupPrimaryDB(mgr.getValue("backup.primaryhost"), mgr.getValue("backup.primarydb"));
-		backup.setupSecondaryDB(mgr.getValue("backup.secondaryhost"), mgr.getValue("backup.secondarydb"));
+				cfg.getValue("backup.tph.csv"), 
+				cfg.getValue("backup.wind.csv"), 
+				cfg.getValue("backup.rain.csv"));
+		backup.setupPrimaryDB(cfg.getValue("backup.primaryhost"), cfg.getValue("backup.primarydb"));
+		backup.setupSecondaryDB(cfg.getValue("backup.secondaryhost"), cfg.getValue("backup.secondarydb"));
 	}
 
 	/*
