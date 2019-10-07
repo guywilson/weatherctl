@@ -73,7 +73,7 @@ char * str_trim(const char * str)
 
 int str_endswith(char * src, const char * suffix)
 {
-    int         suffixPos = -1;
+    int         isEndsWith = 0;
     int         searchPos = 0;
 
     if (strlen(suffix) > strlen(src)) {
@@ -83,8 +83,8 @@ int str_endswith(char * src, const char * suffix)
     searchPos = strlen(src) - strlen(suffix);
 
     if (strncmp(&src[searchPos], suffix, strlen(suffix)) == 0) {
-        suffixPos = searchPos;
+        isEndsWith = 1;
     }
 
-    return suffixPos;
+    return isEndsWith;
 }

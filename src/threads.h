@@ -3,9 +3,5 @@
 
 int         startThreads(bool isAdminOnly, bool isAdminEnabled);
 void        killThreads();
-void *      txCmdThread(void * pArgs);
-void *      versionPostThread(void * pArgs);
-void *      webPostThread(void * pArgs);
-void *      webListenerThread(void * pArgs);
 
 #endif

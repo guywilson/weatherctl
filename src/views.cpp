@@ -336,57 +336,61 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 
 				log.logInfo("Serving file '%s'", pszURI);
 
-				pszWCTLVersion = getVersion();
-				pszWCTLBuildDate = getBuildDate();
+				if (str_endswith(pszURI, "/") > 0) {
+					pszWCTLVersion = getVersion();
+					pszWCTLBuildDate = getBuildDate();
 
-				RxFrame * pAVRRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION));
+					RxFrame * pAVRRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION));
 
-				memcpy(szBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
-				szBuffer[pAVRRxFrame->getDataLength()] = 0;
+					memcpy(szBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
+					szBuffer[pAVRRxFrame->getDataLength()] = 0;
 
-				ref = szBuffer;
+					ref = szBuffer;
 
-				pszAVRVersion = str_trim_trailing(strtok_r(szBuffer, "[]", &ref));
-				pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
+					pszAVRVersion = str_trim_trailing(strtok_r(szBuffer, "[]", &ref));
+					pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
 
-				delete pAVRRxFrame;
+					delete pAVRRxFrame;
 
-				log.logInfo("Got avr version from Arduino %s [%s]", pszAVRVersion, pszAVRBuildDate);
+					log.logInfo("Got avr version from Arduino %s [%s]", pszAVRVersion, pszAVRBuildDate);
 
-				RxFrame * pSchedRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_SCHED_VERSION));
+					RxFrame * pSchedRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_SCHED_VERSION));
 
-				memcpy(szBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
-				szBuffer[pSchedRxFrame->getDataLength()] = 0;
+					memcpy(szBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
+					szBuffer[pSchedRxFrame->getDataLength()] = 0;
 
-				pszSchedVersion = szBuffer;
+					pszSchedVersion = szBuffer;
 
-				delete pSchedRxFrame;
+					delete pSchedRxFrame;
 
-				log.logInfo("Got scheduler version from Arduino %s", pszSchedVersion);
+					log.logInfo("Got scheduler version from Arduino %s", pszSchedVersion);
 
-				string htmlFileName(web.getHTMLDocRoot());
-				htmlFileName.append(pszURI);
-				htmlFileName.append("index.html");
+					string htmlFileName(web.getHTMLDocRoot());
+					htmlFileName.append(pszURI);
+					htmlFileName.append("index.html");
 
-				string templateFileName(htmlFileName);
-				templateFileName.append(".template");
+					string templateFileName(htmlFileName);
+					templateFileName.append(".template");
 
-				tmpl::html_template templ(templateFileName);
+					log.logDebug("Opening template file [%s]", templateFileName.c_str());
 
-				templ("wctl-version") = pszWCTLVersion;
-				templ("wctl-builddate") = pszWCTLBuildDate;
+					tmpl::html_template templ(templateFileName);
 
-				templ("avr-version") = pszAVRVersion;
-				templ("avr-builddate") = pszAVRBuildDate;
+					templ("wctl-version") = pszWCTLVersion;
+					templ("wctl-builddate") = pszWCTLBuildDate;
 
-				templ("rts-version") = pszSchedVersion;
+					templ("avr-version") = pszAVRVersion;
+					templ("avr-builddate") = pszAVRBuildDate;
 
-				templ.Process();
+					templ("rts-version") = pszSchedVersion;
 
-				fstream fs;
-				fs.open(htmlFileName, ios::out);
-				fs << templ;
-				fs.close();
+					templ.Process();
+
+					fstream fs;
+					fs.open(htmlFileName, ios::out);
+					fs << templ;
+					fs.close();
+				}
 
 				mg_serve_http(connection, message, getHTMLOpts());
 			}

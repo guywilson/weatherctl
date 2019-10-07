@@ -16,10 +16,15 @@ extern "C" {
 #include "strutils.h"
 }
 
+static void *      txCmdThread(void * pArgs);
+static void *      webPostThread(void * pArgs);
+static void *      webListenerThread(void * pArgs);
+//static void *      versionPostThread(void * pArgs);
+
 pthread_t			tidTxCmd;
 pthread_t			tidWebListener;
 pthread_t			tidWebPost;
-pthread_t			tidVersionPost;
+//pthread_t			tidVersionPost;
 
 int startThreads(bool isAdminOnly, bool isAdminEnabled)
 {
@@ -64,7 +69,7 @@ int startThreads(bool isAdminOnly, bool isAdminEnabled)
 			log.logInfo("Thread webPostThread() created successfully");
 		}
 	}
-
+/*
 	if (!isAdminOnly) {
 		err = pthread_create(&tidVersionPost, NULL, &versionPostThread, NULL);
 
@@ -76,7 +81,7 @@ int startThreads(bool isAdminOnly, bool isAdminEnabled)
 			log.logInfo("Thread versionPostThread() created successfully");
 		}
 	}
-
+*/
 	return 0;
 }
 
@@ -85,7 +90,7 @@ void killThreads()
 	pthread_kill(tidTxCmd, SIGKILL);
 	pthread_kill(tidWebListener, SIGKILL);
 	pthread_kill(tidWebPost, SIGKILL);
-	pthread_kill(tidVersionPost, SIGKILL);
+//	pthread_kill(tidVersionPost, SIGKILL);
 }
 
 void * txCmdThread(void * pArgs)
