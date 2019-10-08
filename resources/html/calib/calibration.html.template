@@ -10,6 +10,7 @@
     </head>
     <body>
         <h1 style="text-align: center">AVR Sensor Calibration</h1>
+        <p>&nbsp;
         <div class="centred-outer">
             <div class="centred-inner">
             <p class="pretty-frame" style="line-height: 1.5">

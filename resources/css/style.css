@@ -119,21 +119,30 @@ label {
   
 /* Style the submit button */
 input[type=submit] {
-    background-color: #4CAF50;
-    color: white;
+    background: linear-gradient(0deg, whitesmoke, gray);
+    color: black;
+    font-family: sans-serif;
+    font-size:12px;
+    text-transform: uppercase;
     padding: 12px 20px;
-    border: none;
-    border-radius: 4px;
+    border: 20px;
+    border-color: #333;
+    border-radius: 20px;
     cursor: pointer;
     float: right;
 }
 
 .btn {
-    background-color: #4CAF50;
-    color: white;
+    background: linear-gradient(0deg, whitesmoke, gray);
+    color: black;
+    font-family: sans-serif;
+    font-size:12px;
+    text-transform: uppercase;
+    width: 25%;
     padding: 12px 20px;
-    border: none;
-    border-radius: 4px;
+    border: 20px;
+    border-color: #333;
+    border-radius: 20px;
     cursor: pointer;
 }
 
@@ -143,7 +152,7 @@ input[type=submit] {
 	margin-right: auto;
 	border: 0px solid rgb(83, 162, 243);
 	border-radius: 10px;
-	background: plum;
+	background: gray;
 }
 
 .table-heading {
@@ -181,7 +190,7 @@ input[type=submit] {
 .centred-outer {
 	position: relative;
 	text-align: center;
-	width: 400px;
+	width: 80%;
 	height: 120px;
 	margin: auto;
 }
@@ -190,7 +199,7 @@ input[type=submit] {
 	position: absolute;
 	top: 50%; left: 50%;
 	transform: translate(-50%,-50%);
-	width: 400px;
+	width: 100%;
 	height: 80px;
 }
 
