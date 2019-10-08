@@ -206,14 +206,14 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 	int						bytesWritten;
 	uint8_t					cmdCode = 0;
 	int						dataLength;
-	uint8_t *				data;
+	uint8_t 				data[80];
 	static const TPH		avgTph = { .temperature = 374, .pressure = 812, .humidity = 463 };
 	static const TPH		maxTph = { .temperature = 392, .pressure = 874, .humidity = 562 };
 	static const TPH		minTph = { .temperature = 332, .pressure = 799, .humidity = 401 };
 	static const WINDSPEED	ws = { .avgWindspeed = 24, .maxWindspeed = 37 };
 	static const RAINFALL	rf = { .avgRainfall = 11, .totalRainfall = 64 };
 	static const char * 	schVer = "1.2.01 2019-07-30 17:37:20";
-	static const char * 	avrVer = "1.2.009 [2019-09-14 17:37:20]";
+	static const char * 	avrVer = "1.4.001 [2019-09-27 08:13:53]";
 
 	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
 	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
@@ -227,66 +227,60 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 
 	switch (cmdCode) {
 		case RX_CMD_AVG_TPH:
-			data = (uint8_t *)&avgTph;
+			memcpy(data, &avgTph, sizeof(TPH));
 			dataLength = sizeof(TPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_MAX_TPH:
-			data = (uint8_t *)&maxTph;
+			memcpy(data, &maxTph, sizeof(TPH));
 			dataLength = sizeof(TPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_MIN_TPH:
-			data = (uint8_t *)&minTph;
+			memcpy(data, &minTph, sizeof(TPH));
 			dataLength = sizeof(TPH);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_WINDSPEED:
-			data = (uint8_t *)&ws;
+			memcpy(data, &ws, sizeof(WINDSPEED));
 			dataLength = sizeof(WINDSPEED);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_RAINFALL:
-			data = (uint8_t *)&rf;
+			memcpy(data, &rf, sizeof(RAINFALL));
 			dataLength = sizeof(RAINFALL);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_PING:
-			data = (uint8_t *)NULL;
-			dataLength = 0;
-
-			_build_response_frame(data, dataLength);
+			_build_response_frame(NULL, 0);
 			break;
 
 		case RX_CMD_GET_AVR_VERSION:
-			data = (uint8_t *)avrVer;
+			memcpy(data, avrVer, strlen(avrVer));
 			dataLength = strlen(avrVer);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		case RX_CMD_GET_SCHED_VERSION:
-			data = (uint8_t *)schVer;
+			memcpy(data, schVer, strlen(schVer));
 			dataLength = strlen(schVer);
 
 			_build_response_frame(data, dataLength);
 			break;
 
 		default:
-			data = (uint8_t *)NULL;
-			dataLength = 0;
-
-			_build_response_frame(data, dataLength);
+			_build_response_frame(NULL, 0);
 			break;
 	}
 

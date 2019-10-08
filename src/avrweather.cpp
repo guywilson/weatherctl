@@ -43,14 +43,22 @@ void resetAVR()
 
 RxFrame * send_receive(TxFrame * pTxFrame)
 {
+	int				timeout = 5;
+	int				waitCount = 0;
+
 	QueueMgr & mgr = QueueMgr::getInstance();
 
 	mgr.pushTx(pTxFrame);
 
-	while (mgr.isRxQueueEmpty()) {
+	while (mgr.isRxQueueEmpty() && waitCount < timeout) {
 		usleep(100000L);
+		waitCount++;
 	}
 
+	if (waitCount >= timeout) {
+		throw new Exception("Timed out waiting for send/receive");
+	}
+	
 	RxFrame * pRxFrame = mgr.popRx();
 
 	return pRxFrame;

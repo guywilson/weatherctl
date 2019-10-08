@@ -28,7 +28,7 @@
               window.location.href = "/calib/calibration.html";
             }
             else if (ref == 'debug_logging_toggle') {
-              window.location.href = "/cmd/post?command=debug-logging-on";
+              window.location.href = "/cmd/post?command=debug-logging-off";
             }
             else if (ref == 'disable_wd_reset') {
               window.location.href = "/cmd/post?command=disable-wd-reset";
@@ -48,7 +48,7 @@
             <tr>
               <td>
                 <h1> Debug Logging </h1>
-                <input type="checkbox" id="debugtoggle" onclick="getHREF('debug_logging_toggle')">
+                <input type="checkbox" id="debugtoggle" onclick="getHREF('debug_logging_toggle')" checked>
               </td>
             </tr>
             <tr>
@@ -69,8 +69,8 @@
                 <button class="fancy-button" onclick="getHREF('reset_avr')">
               </td>
             </tr>
-        </table>
+          </table>
+        </div>
       </div>
-    </div>
-  </body>
+    </body>
 </html>

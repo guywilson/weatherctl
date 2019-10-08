@@ -109,14 +109,13 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 	struct http_message *			message;
 	char *							pszMethod;
 	char *							pszURI;
+	const char *					pszRedirect = "/cmd/cmd.html";
 	uint8_t *						pData = NULL;
 	char							szCmdValue[32];
-	char							szRenderBuffer[256];
 	int								dataLength = 0;
 	int								rtn;
 	uint8_t							cmdCode;
 	bool							isSerialCommand = false;
-	bool							isRenderable = false;
 
 	Logger & log = Logger::getInstance();
 
@@ -143,12 +142,14 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 					level |= LOG_LEVEL_DEBUG;
 					log.setLogLevel(level);
 					isSerialCommand = false;
+					pszRedirect = "/cmd/cmdon.html";
 				}
 				else if (strncmp(szCmdValue, "debug-logging-off", sizeof(szCmdValue)) == 0) {
 					int level = log.getLogLevel();
 					level &= ~LOG_LEVEL_DEBUG;
 					log.setLogLevel(level);
 					isSerialCommand = false;
+					pszRedirect = "/cmd/cmd.html";
 				}
 				else if (strncmp(szCmdValue, "disable-wd-reset", sizeof(szCmdValue)) == 0) {
 					cmdCode = RX_CMD_WDT_DISABLE;
@@ -157,21 +158,6 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 				else if (strncmp(szCmdValue, "reset-min-max", sizeof(szCmdValue)) == 0) {
 					cmdCode = RX_CMD_RESET_MINMAX;
 					isSerialCommand = true;
-				}
-				else if (strncmp(szCmdValue, "get-wctl-version", sizeof(szCmdValue)) == 0) {
-					sprintf(szRenderBuffer, "WCTL Version: %s [%s]", getVersion(), getBuildDate());
-					isSerialCommand = false;
-					isRenderable = true;
-				}
-				else if (strncmp(szCmdValue, "get-avr-version", sizeof(szCmdValue)) == 0) {
-					cmdCode = RX_CMD_GET_AVR_VERSION;
-					isSerialCommand = true;
-					isRenderable = true;
-				}
-				else if (strncmp(szCmdValue, "get-scheduler-version", sizeof(szCmdValue)) == 0) {
-					cmdCode = RX_CMD_GET_SCHED_VERSION;
-					isSerialCommand = true;
-					isRenderable = true;
 				}
 				else if (strncmp(szCmdValue, "reset-avr", sizeof(szCmdValue)) == 0) {
 					resetAVR();
@@ -185,43 +171,15 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 				if (isSerialCommand) {
 					TxFrame * pTxFrame = new TxFrame(pData, dataLength, cmdCode);
 					
-					if (isRenderable) {
-						RxFrame * pRxFrame = send_receive(pTxFrame);
-
-						if (pRxFrame->getResponseCode() == RX_RSP_GET_SCHED_VERSION) {
-							memcpy(szRenderBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
-							szRenderBuffer[pRxFrame->getDataLength()] = 0;
-
-							log.logInfo("Got scheduler version from Arduino [%s]", szRenderBuffer);
-							mg_printf(connection, "HTTP/1.1 200 OK\n\n Scheduler Version [%s]", szRenderBuffer);
-						}
-						else if (pRxFrame->getResponseCode() == RX_RSP_GET_AVR_VERSION) {
-							memcpy(szRenderBuffer, pRxFrame->getData(), pRxFrame->getDataLength());
-							szRenderBuffer[pRxFrame->getDataLength()] = 0;
-
-							log.logInfo("Got avr version from Arduino [%s]", szRenderBuffer);
-							mg_printf(connection, "HTTP/1.1 200 OK\n\n AVR Version: %s", szRenderBuffer);
-						}
-						else {
-							mg_printf(connection, "HTTP/1.1 200 OK");
-						}
-
-						delete pRxFrame;
-					}
-					else {
-						fire_forget(pTxFrame);
-						mg_printf(connection, "HTTP/1.1 200 OK");
-					}
-				}
-				else {
-					if (isRenderable) {
-						mg_printf(connection, "HTTP/1.1 200 OK\n\n %s", szRenderBuffer);
-					}
-					else {
-						mg_printf(connection, "HTTP/1.1 200 OK");
-					}
+					fire_forget(pTxFrame);
 				}
 			}
+
+			mg_http_send_redirect(
+							connection, 
+							302, 
+							mg_mk_str(pszRedirect), 
+							mg_mk_str(NULL));
 
 			free(pszMethod);
 			free(pszURI);
@@ -312,11 +270,11 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 	char							szSchedVersionBuffer[64];
 	char *							pszMethod;
 	char *							pszURI;
-	const char *					pszWCTLVersion;
-	const char *					pszWCTLBuildDate;
-	char *							pszAVRVersion;
-	char *							pszAVRBuildDate;
-	char *							pszSchedVersion;
+	const char *					pszWCTLVersion = "";
+	const char *					pszWCTLBuildDate = "";
+	const char *					pszAVRVersion = "";
+	const char *					pszAVRBuildDate = "";
+	const char *					pszSchedVersion = "";
 	char *							ref;
 
 	Logger & log = Logger::getInstance();
@@ -341,30 +299,47 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					pszWCTLVersion = getVersion();
 					pszWCTLBuildDate = getBuildDate();
 
-					RxFrame * pAVRRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION));
+					RxFrame * pAVRRxFrame;
 
-					memcpy(szAVRVersionBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
-					szAVRVersionBuffer[pAVRRxFrame->getDataLength()] = 0;
+					try {
+						pAVRRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION));
 
-					ref = szAVRVersionBuffer;
+						memcpy(szAVRVersionBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
+						szAVRVersionBuffer[pAVRRxFrame->getDataLength()] = 0;
 
-					pszAVRVersion = str_trim_trailing(strtok_r(szAVRVersionBuffer, "[]", &ref));
-					pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
+						ref = szAVRVersionBuffer;
 
-					delete pAVRRxFrame;
+						pszAVRVersion = str_trim_trailing(strtok_r(szAVRVersionBuffer, "[]", &ref));
+						pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
 
-					log.logInfo("Got avr version from Arduino %s [%s]", pszAVRVersion, pszAVRBuildDate);
+						delete pAVRRxFrame;
 
-					RxFrame * pSchedRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_SCHED_VERSION));
+						log.logInfo("Got avr version from Arduino %s [%s]", pszAVRVersion, pszAVRBuildDate);
+					}
+					catch (Exception * e) {
+						log.logInfo("Timed out waiting for AVR response...");
+						pszAVRVersion = "";
+						pszAVRBuildDate = "";
+					}
 
-					memcpy(szSchedVersionBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
-					szSchedVersionBuffer[pSchedRxFrame->getDataLength()] = 0;
+					RxFrame * pSchedRxFrame;
 
-					pszSchedVersion = szSchedVersionBuffer;
+					try {
+						pSchedRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_SCHED_VERSION));
 
-					delete pSchedRxFrame;
+						memcpy(szSchedVersionBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
+						szSchedVersionBuffer[pSchedRxFrame->getDataLength()] = 0;
 
-					log.logInfo("Got scheduler version from Arduino %s", pszSchedVersion);
+						pszSchedVersion = szSchedVersionBuffer;
+
+						delete pSchedRxFrame;
+
+						log.logInfo("Got scheduler version from Arduino %s", pszSchedVersion);
+					}
+					catch (Exception * e) {
+						log.logInfo("Timed out waiting for AVR response...");
+						pszSchedVersion = "";
+					}
 
 					string htmlFileName(web.getHTMLDocRoot());
 					htmlFileName.append(pszURI);
