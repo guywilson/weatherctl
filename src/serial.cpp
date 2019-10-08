@@ -29,6 +29,8 @@ static void _build_response_frame(uint8_t * data, int dataLength)
 	uint16_t			checksumTotal = 0;
 	int					i;
 
+	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
+
 	emulated_rsp_buffer[0] = MSG_CHAR_START;
 	emulated_rsp_buffer[1] = (uint8_t)dataLength + 3;
 	emulated_rsp_buffer[2] = emulated_cmd_buffer[2];
@@ -47,6 +49,117 @@ static void _build_response_frame(uint8_t * data, int dataLength)
 	emulated_rsp_buffer[6 + dataLength] = MSG_CHAR_END;
 
 	emulated_rsp_length = dataLength + NUM_ACK_RSP_FRAME_BYTES;
+}
+
+int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
+{
+	int						bytesWritten;
+	uint8_t					cmdCode = 0;
+	int						dataLength;
+	uint8_t 				data[80];
+	static const TPH		avgTph = { .temperature = 374, .pressure = 812, .humidity = 463 };
+	static const TPH		maxTph = { .temperature = 392, .pressure = 874, .humidity = 562 };
+	static const TPH		minTph = { .temperature = 332, .pressure = 799, .humidity = 401 };
+	static const WINDSPEED	ws = { .avgWindspeed = 24, .maxWindspeed = 37 };
+	static const RAINFALL	rf = { .avgRainfall = 11, .totalRainfall = 64 };
+	static const char * 	schVer = "1.2.01 2019-07-30 17:37:20";
+	static const char * 	avrVer = "1.4.001 [2019-09-27 08:13:53]";
+
+	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
+	memcpy(emulated_cmd_buffer, pBuffer, writeLength);
+
+	emulated_cmd_length = writeLength;
+	bytesWritten = writeLength;
+
+	cmdCode = emulated_cmd_buffer[3];
+
+	switch (cmdCode) {
+		case RX_CMD_AVG_TPH:
+			memcpy(data, &avgTph, sizeof(TPH));
+			dataLength = sizeof(TPH);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_MAX_TPH:
+			memcpy(data, &maxTph, sizeof(TPH));
+			dataLength = sizeof(TPH);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_MIN_TPH:
+			memcpy(data, &minTph, sizeof(TPH));
+			dataLength = sizeof(TPH);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_WINDSPEED:
+			memcpy(data, &ws, sizeof(WINDSPEED));
+			dataLength = sizeof(WINDSPEED);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_RAINFALL:
+			memcpy(data, &rf, sizeof(RAINFALL));
+			dataLength = sizeof(RAINFALL);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_PING:
+			_build_response_frame(NULL, 0);
+			break;
+
+		case RX_CMD_GET_AVR_VERSION:
+			memcpy(data, avrVer, strlen(avrVer));
+			dataLength = strlen(avrVer);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		case RX_CMD_GET_SCHED_VERSION:
+			memcpy(data, schVer, strlen(schVer));
+			dataLength = strlen(schVer);
+
+			_build_response_frame(data, dataLength);
+			break;
+
+		default:
+			_build_response_frame(NULL, 0);
+			break;
+	}
+
+	return bytesWritten;
+}
+
+int SerialPort::_receive_emulated(uint8_t * pBuffer, int requestedBytes)
+{
+	int		bytesRead = 0;
+	
+	usleep(100000L);
+
+	/*
+	** Block until we have some bytes to read...
+	*/
+	while (emulated_rsp_length == 0) {
+		usleep(1000L);
+	}
+
+	bytesRead = emulated_rsp_length;
+	//bytesRead = 10;
+
+	memcpy(pBuffer, emulated_rsp_buffer, bytesRead);
+
+	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
+	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
+
+	emulated_cmd_length = 0;
+	emulated_rsp_length = 0;
+
+	return bytesRead;
 }
 
 SerialPort::SerialPort()
@@ -197,119 +310,6 @@ int SerialPort::_receive_serial(uint8_t * pBuffer, int requestedBytes)
 	** Reset expected bytes...
 	*/
 	this->expectedBytes = 0;
-
-	return bytesRead;
-}
-
-int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
-{
-	int						bytesWritten;
-	uint8_t					cmdCode = 0;
-	int						dataLength;
-	uint8_t 				data[80];
-	static const TPH		avgTph = { .temperature = 374, .pressure = 812, .humidity = 463 };
-	static const TPH		maxTph = { .temperature = 392, .pressure = 874, .humidity = 562 };
-	static const TPH		minTph = { .temperature = 332, .pressure = 799, .humidity = 401 };
-	static const WINDSPEED	ws = { .avgWindspeed = 24, .maxWindspeed = 37 };
-	static const RAINFALL	rf = { .avgRainfall = 11, .totalRainfall = 64 };
-	static const char * 	schVer = "1.2.01 2019-07-30 17:37:20";
-	static const char * 	avrVer = "1.4.001 [2019-09-27 08:13:53]";
-
-	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
-	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
-
-	memcpy(emulated_cmd_buffer, pBuffer, writeLength);
-
-	emulated_cmd_length = writeLength;
-	bytesWritten = writeLength;
-
-	cmdCode = emulated_cmd_buffer[3];
-
-	switch (cmdCode) {
-		case RX_CMD_AVG_TPH:
-			memcpy(data, &avgTph, sizeof(TPH));
-			dataLength = sizeof(TPH);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		case RX_CMD_MAX_TPH:
-			memcpy(data, &maxTph, sizeof(TPH));
-			dataLength = sizeof(TPH);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		case RX_CMD_MIN_TPH:
-			memcpy(data, &minTph, sizeof(TPH));
-			dataLength = sizeof(TPH);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		case RX_CMD_WINDSPEED:
-			memcpy(data, &ws, sizeof(WINDSPEED));
-			dataLength = sizeof(WINDSPEED);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		case RX_CMD_RAINFALL:
-			memcpy(data, &rf, sizeof(RAINFALL));
-			dataLength = sizeof(RAINFALL);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		case RX_CMD_PING:
-			_build_response_frame(NULL, 0);
-			break;
-
-		case RX_CMD_GET_AVR_VERSION:
-			memcpy(data, avrVer, strlen(avrVer));
-			dataLength = strlen(avrVer);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		case RX_CMD_GET_SCHED_VERSION:
-			memcpy(data, schVer, strlen(schVer));
-			dataLength = strlen(schVer);
-
-			_build_response_frame(data, dataLength);
-			break;
-
-		default:
-			_build_response_frame(NULL, 0);
-			break;
-	}
-
-	return bytesWritten;
-}
-
-int SerialPort::_receive_emulated(uint8_t * pBuffer, int requestedBytes)
-{
-	int		bytesRead = 0;
-	
-	usleep(100000L);
-
-	/*
-	** Block until we have some bytes to read...
-	*/
-	while (emulated_rsp_length == 0) {
-		usleep(1000L);
-	}
-
-	bytesRead = emulated_rsp_length;
-	//bytesRead = 10;
-
-	memcpy(pBuffer, emulated_rsp_buffer, bytesRead);
-
-	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
-	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
-
-	emulated_cmd_length = 0;
-	emulated_rsp_length = 0;
 
 	return bytesRead;
 }
