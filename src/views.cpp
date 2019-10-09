@@ -305,17 +305,19 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					try {
 						pAVRRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION));
 
-						memcpy(szAVRVersionBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
-						szAVRVersionBuffer[pAVRRxFrame->getDataLength()] = 0;
+						if (pAVRRxFrame != NULL) {
+							memcpy(szAVRVersionBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
+							szAVRVersionBuffer[pAVRRxFrame->getDataLength()] = 0;
 
-						ref = szAVRVersionBuffer;
+							ref = szAVRVersionBuffer;
 
-						pszAVRVersion = str_trim_trailing(strtok_r(szAVRVersionBuffer, "[]", &ref));
-						pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
+							pszAVRVersion = str_trim_trailing(strtok_r(szAVRVersionBuffer, "[]", &ref));
+							pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
 
-						delete pAVRRxFrame;
+							delete pAVRRxFrame;
 
-						log.logInfo("Got avr version from Arduino %s [%s]", pszAVRVersion, pszAVRBuildDate);
+							log.logInfo("Got avr version from Arduino %s [%s]", pszAVRVersion, pszAVRBuildDate);
+						}
 					}
 					catch (Exception * e) {
 						log.logInfo("Timed out waiting for AVR response...");
@@ -328,21 +330,24 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					try {
 						pSchedRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_SCHED_VERSION));
 
-						memcpy(szSchedVersionBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
-						szSchedVersionBuffer[pSchedRxFrame->getDataLength()] = 0;
+						if (pSchedRxFrame != NULL) {
+							memcpy(szSchedVersionBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
+							szSchedVersionBuffer[pSchedRxFrame->getDataLength()] = 0;
 
-						ref = szSchedVersionBuffer;
+							ref = szSchedVersionBuffer;
 
-						pszSchedVersion = str_trim_trailing(strtok_r(szSchedVersionBuffer, "[]", &ref));
-						pszSchedBuildDate = strtok_r(NULL, "[]", &ref);
+							pszSchedVersion = str_trim_trailing(strtok_r(szSchedVersionBuffer, "[]", &ref));
+							pszSchedBuildDate = strtok_r(NULL, "[]", &ref);
 
-						delete pSchedRxFrame;
+							delete pSchedRxFrame;
 
-						log.logInfo("Got scheduler version from Arduino %s", pszSchedVersion);
+							log.logInfo("Got scheduler version from Arduino %s", pszSchedVersion);
+						}
 					}
 					catch (Exception * e) {
 						log.logInfo("Timed out waiting for AVR response...");
 						pszSchedVersion = "";
+						pszSchedBuildDate = "";
 					}
 
 					string htmlFileName(web.getHTMLDocRoot());

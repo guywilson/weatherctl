@@ -65,13 +65,15 @@ void * avrEmulator(void * pArgs)
 	static const TPH		minTph = { .temperature = 332, .pressure = 799, .humidity = 401 };
 	static const WINDSPEED	ws = { .avgWindspeed = 24, .maxWindspeed = 37 };
 	static const RAINFALL	rf = { .avgRainfall = 11, .totalRainfall = 64 };
-	static const char * 	schVer = "1.2.01 2019-07-30 17:37:20";
+	static const char * 	schVer = "1.2.001 [2019-07-30 17:37:20]";
 	static const char * 	avrVer = "1.4.001 [2019-09-27 08:13:53]";
 
 	while (1) {
 		if (!_emulatedTxQueue.empty()) {
 			serial_frame * rxFrame = _emulatedTxQueue.front();
 			_emulatedTxQueue.pop();
+
+			usleep(15000L);
 
 			cmdCode = rxFrame->frame[3];
 
