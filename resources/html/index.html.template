@@ -37,7 +37,7 @@
             <td class="table-cell" style="text-align: left; font-family: sans-serif">
                 <font size="4">WCTL v<tmpl_var wctl-version> Build date: [<tmpl_var wctl-builddate>]</font>
               <br>
-                <font size="4">AVR Weather v<tmpl_var avr-version> Build date: [<tmpl_var avr-builddate>]</font>
+                <font size="4">AVR Weather v<tmpl_var avr-version> Build date: [<tmpl_var avr-builddate>] | Uptime: <tmpl_var avr-uptime></font>
               <br>
                 <font size="4">AVR Scheduler v<tmpl_var rts-version> Build date: [<tmpl_var rts-builddate>]</font>
             </td>

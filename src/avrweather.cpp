@@ -438,11 +438,8 @@ void processResponse(uint8_t * response, int responseLength)
 				qmgr.pushRx(pFrame);
 				break;
 
-			case RX_RSP_GET_CALIBRATION_DATA:
+			case RX_RSP_GET_UPTIME:
 				qmgr.pushRx(pFrame);
-				break;
-
-			case RX_RSP_SET_CALIBRATION_DATA:
 				break;
 
 			case RX_RSP_PING:

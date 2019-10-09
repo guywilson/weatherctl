@@ -19,6 +19,10 @@ extern "C" {
 #include "version.h"
 }
 
+#define SECONDS_PER_MINUTE				60
+#define SECONDS_PER_HOUR				(SECONDS_PER_MINUTE * 60)
+#define SECONDS_PER_DAY					(SECONDS_PER_HOUR * 24)
+
 using namespace std;
 
 static char * getMethod(struct http_message * message)
@@ -268,6 +272,8 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 	struct http_message *			message;
 	char							szAVRVersionBuffer[64];
 	char							szSchedVersionBuffer[64];
+	uint32_t						uptime = 0;
+	char							szUptimeBuffer[64];
 	char *							pszMethod;
 	char *							pszURI;
 	const char *					pszWCTLVersion = "";
@@ -350,6 +356,44 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 						pszSchedBuildDate = "";
 					}
 
+					RxFrame * pUptimeRxFrame;
+
+					try {
+						pUptimeRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_UPTIME));
+
+						if (pUptimeRxFrame != NULL) {
+							memcpy(&uptime, pUptimeRxFrame->getData(), sizeof(uptime));
+
+							delete pUptimeRxFrame;
+
+							log.logDebug("Uptime received from AVR: %ds", uptime);
+
+							uint32_t days = uptime / SECONDS_PER_DAY;
+							uptime = uptime % SECONDS_PER_DAY;
+
+							uint32_t hours = uptime / SECONDS_PER_HOUR;
+							uptime = uptime % SECONDS_PER_HOUR;
+
+							uint32_t minutes = uptime / SECONDS_PER_MINUTE;
+							uptime = uptime % SECONDS_PER_MINUTE;
+
+							uint32_t seconds = uptime;
+
+							sprintf(
+								szUptimeBuffer, 
+								"%d days, %d hrs, %d mins, %d secs", 
+								days, 
+								hours, 
+								minutes, 
+								seconds);
+
+							log.logInfo("Got uptime from Arduino %s", szUptimeBuffer);
+						}
+					}
+					catch (Exception * e) {
+						log.logInfo("Timed out waiting for AVR response...");
+					}
+
 					string htmlFileName(web.getHTMLDocRoot());
 					htmlFileName.append(pszURI);
 					htmlFileName.append("index.html");
@@ -369,6 +413,8 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 
 					templ("rts-version") = pszSchedVersion;
 					templ("rts-builddate") = pszSchedBuildDate;
+
+					templ("avr-uptime") = szUptimeBuffer;
 
 					templ.Process();
 

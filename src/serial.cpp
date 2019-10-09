@@ -57,6 +57,7 @@ static serial_frame * _build_response_frame(serial_frame * rxFrame, uint8_t * da
 
 void * avrEmulator(void * pArgs)
 {
+	uint32_t				uptimeCounter = 0;
 	uint8_t					cmdCode;
 	int						dataLength;
 	uint8_t 				data[80];
@@ -133,6 +134,13 @@ void * avrEmulator(void * pArgs)
 					txFrame = _build_response_frame(rxFrame, data, dataLength);
 					break;
 
+				case RX_CMD_GET_UPTIME:
+					memcpy(data, &uptimeCounter, sizeof(uptimeCounter));
+					dataLength = sizeof(uptimeCounter);
+
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
+					break;
+
 				default:
 					txFrame = _build_response_frame(rxFrame, NULL, 0);
 					break;
@@ -142,6 +150,8 @@ void * avrEmulator(void * pArgs)
 
 			_emulatedRxQueue.push(txFrame);
 		}
+
+		uptimeCounter += 10;
 
 		usleep(1000L);
 	}
