@@ -27,6 +27,21 @@ QueueMgr::~QueueMgr()
 	pthread_mutex_destroy(&rxLock);
 }
 
+TxFrame * QueueMgr::peekTx()
+{
+    TxFrame *     frame = NULL;
+
+	pthread_mutex_lock(&txLock);
+    
+    if (!txQueue.empty()) {
+        frame = txQueue.front();
+    }
+	
+    pthread_mutex_unlock(&txLock);
+
+    return frame;
+}
+
 TxFrame * QueueMgr::popTx()
 {
     TxFrame *     frame = NULL;
@@ -61,6 +76,21 @@ bool QueueMgr::isTxQueueEmpty()
     return isEmpty;
 }
 
+RxFrame * QueueMgr::peekRx()
+{
+    RxFrame *     frame = NULL;
+
+	pthread_mutex_lock(&rxLock);
+    
+    if (!rxQueue.empty()) {
+        frame = rxQueue.front();
+    }
+	
+    pthread_mutex_unlock(&rxLock);
+
+    return frame;
+}
+
 RxFrame * QueueMgr::popRx()
 {
     RxFrame *     frame = NULL;
@@ -93,6 +123,21 @@ bool QueueMgr::isRxQueueEmpty()
     pthread_mutex_unlock(&rxLock);
 
     return isEmpty;
+}
+
+PostData * QueueMgr::peekWebPost()
+{
+    PostData *     pPostData = NULL;
+
+	pthread_mutex_lock(&webPostLock);
+    
+    if (!webPostQueue.empty()) {
+        pPostData = webPostQueue.front();
+    }
+	
+    pthread_mutex_unlock(&webPostLock);
+
+    return pPostData;
 }
 
 PostData * QueueMgr::popWebPost()

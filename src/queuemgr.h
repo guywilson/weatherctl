@@ -31,14 +31,17 @@ private:
 public:
     ~QueueMgr();
     
+    TxFrame *           peekTx();
     TxFrame *           popTx();
     void                pushTx(TxFrame * pFrame);
     bool                isTxQueueEmpty();
 
+    RxFrame *           peekRx();
     RxFrame *           popRx();
     void                pushRx(RxFrame * pFrame);
     bool                isRxQueueEmpty();
 
+    PostData *          peekWebPost();
     PostData *          popWebPost();
     void                pushWebPost(PostData * pszPost);
     bool                isWebPostQueueEmpty();

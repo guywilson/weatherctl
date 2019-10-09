@@ -43,9 +43,12 @@ void resetAVR()
 
 RxFrame * send_receive(TxFrame * pTxFrame)
 {
-	int				timeout = 10;
+	int				timeout = 50;
 	int				waitCount = 0;
+	uint8_t			expectedMsgID;
 
+	expectedMsgID = pTxFrame->getMessageID();
+	
 	QueueMgr & mgr = QueueMgr::getInstance();
 
 	mgr.pushTx(pTxFrame);
@@ -60,6 +63,24 @@ RxFrame * send_receive(TxFrame * pTxFrame)
 	}
 	
 	RxFrame * pRxFrame = mgr.popRx();
+
+	while (pRxFrame->getMessageID() != expectedMsgID) {
+		/*
+		** Queue is empty, push this message back on the queue
+		** and return NULL...
+		*/
+		if (mgr.isRxQueueEmpty()) {
+			mgr.pushRx(pRxFrame);
+			return NULL;
+		}
+		
+		/*
+		** This isn't the message you're looking for...
+		** Push it back on the queue and pop the next one.
+		*/
+		mgr.pushRx(pRxFrame);
+		pRxFrame = mgr.popRx();
+	}
 
 	return pRxFrame;
 }

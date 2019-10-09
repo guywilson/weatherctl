@@ -39,7 +39,7 @@
               <br>
                 <font size="4">AVR Weather v<tmpl_var avr-version> Build date: [<tmpl_var avr-builddate>]</font>
               <br>
-                <font size="4">AVR Scheduler v<tmpl_var rts-version></font>
+                <font size="4">AVR Scheduler v<tmpl_var rts-version> Build date: [<tmpl_var rts-builddate>]</font>
             </td>
           </tr>
         </table>

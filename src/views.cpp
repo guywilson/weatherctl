@@ -275,6 +275,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 	const char *					pszAVRVersion = "";
 	const char *					pszAVRBuildDate = "";
 	const char *					pszSchedVersion = "";
+	const char *					pszSchedBuildDate = "";
 	char *							ref;
 
 	Logger & log = Logger::getInstance();
@@ -330,7 +331,10 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 						memcpy(szSchedVersionBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
 						szSchedVersionBuffer[pSchedRxFrame->getDataLength()] = 0;
 
-						pszSchedVersion = szSchedVersionBuffer;
+						ref = szSchedVersionBuffer;
+
+						pszSchedVersion = str_trim_trailing(strtok_r(szSchedVersionBuffer, "[]", &ref));
+						pszSchedBuildDate = strtok_r(NULL, "[]", &ref);
 
 						delete pSchedRxFrame;
 
@@ -359,6 +363,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					templ("avr-builddate") = pszAVRBuildDate;
 
 					templ("rts-version") = pszSchedVersion;
+					templ("rts-builddate") = pszSchedBuildDate;
 
 					templ.Process();
 

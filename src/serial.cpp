@@ -1,3 +1,4 @@
+#include <queue>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -15,46 +16,48 @@
 #include "exception.h"
 #include "avrweather.h"
 #include "logger.h"
+#include "frame.h"
+
+using namespace std;
 
 #define SERIAL_ENABLE_SELECT
 
-static uint8_t emulated_cmd_buffer[MAX_REQUEST_MESSAGE_LENGTH];
-static uint8_t emulated_rsp_buffer[MAX_RESPONSE_MESSAGE_LENGTH];
+queue<serial_frame *>    _emulatedTxQueue;
+queue<serial_frame *>    _emulatedRxQueue;
 
-static int emulated_cmd_length = 0;
-static int emulated_rsp_length = 0;
+pthread_t			tidAVREmulator;
 
-static void _build_response_frame(uint8_t * data, int dataLength)
+static serial_frame * _build_response_frame(serial_frame * rxFrame, uint8_t * data, int dataLength)
 {
 	uint16_t			checksumTotal = 0;
 	int					i;
 
-	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
-
-	emulated_rsp_buffer[0] = MSG_CHAR_START;
-	emulated_rsp_buffer[1] = (uint8_t)dataLength + 3;
-	emulated_rsp_buffer[2] = emulated_cmd_buffer[2];
-	emulated_rsp_buffer[3] = (emulated_cmd_buffer[3] << 4);
-	emulated_rsp_buffer[4] = MSG_CHAR_ACK;
+	serial_frame * txFrame = (serial_frame *)malloc(sizeof(serial_frame));
 	
-	checksumTotal = (emulated_rsp_buffer[2] + emulated_rsp_buffer[3]) + emulated_rsp_buffer[4];
+	txFrame->frame[0] = MSG_CHAR_START;
+	txFrame->frame[1] = dataLength + 3;
+	txFrame->frame[2] = rxFrame->frame[2];
+	txFrame->frame[3] = (rxFrame->frame[3] << 4);
+	txFrame->frame[4] = MSG_CHAR_ACK;
+
+	checksumTotal = (txFrame->frame[2] + txFrame->frame[3]) + txFrame->frame[4];
 
 	for (i = 0;i < dataLength;i++) {
-		emulated_rsp_buffer[i + 5] = data[i];
-
-		checksumTotal += emulated_rsp_buffer[i + 5];
+		txFrame->frame[i + 5] = data[i];
+		checksumTotal += txFrame->frame[i + 5];
 	}
 
-	emulated_rsp_buffer[5 + dataLength] = (uint8_t)(0x00FF - (checksumTotal & 0x00FF));
-	emulated_rsp_buffer[6 + dataLength] = MSG_CHAR_END;
+	txFrame->frame[5 + dataLength] = (uint8_t)(0x00FF - (checksumTotal & 0x00FF));
+	txFrame->frame[6 + dataLength] = MSG_CHAR_END;
 
-	emulated_rsp_length = dataLength + NUM_ACK_RSP_FRAME_BYTES;
+	txFrame->framelength = dataLength + NUM_ACK_RSP_FRAME_BYTES;
+
+	return txFrame;
 }
 
-int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
+void * avrEmulator(void * pArgs)
 {
-	int						bytesWritten;
-	uint8_t					cmdCode = 0;
+	uint8_t					cmdCode;
 	int						dataLength;
 	uint8_t 				data[80];
 	static const TPH		avgTph = { .temperature = 374, .pressure = 812, .humidity = 463 };
@@ -65,72 +68,95 @@ int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
 	static const char * 	schVer = "1.2.01 2019-07-30 17:37:20";
 	static const char * 	avrVer = "1.4.001 [2019-09-27 08:13:53]";
 
-	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
-	memcpy(emulated_cmd_buffer, pBuffer, writeLength);
+	while (1) {
+		if (!_emulatedTxQueue.empty()) {
+			serial_frame * rxFrame = _emulatedTxQueue.front();
+			_emulatedTxQueue.pop();
 
-	emulated_cmd_length = writeLength;
-	bytesWritten = writeLength;
+			cmdCode = rxFrame->frame[3];
 
-	cmdCode = emulated_cmd_buffer[3];
+			serial_frame * txFrame;
 
-	switch (cmdCode) {
-		case RX_CMD_AVG_TPH:
-			memcpy(data, &avgTph, sizeof(TPH));
-			dataLength = sizeof(TPH);
+			switch (cmdCode) {
+				case RX_CMD_AVG_TPH:
+					memcpy(data, &avgTph, sizeof(TPH));
+					dataLength = sizeof(TPH);
 
-			_build_response_frame(data, dataLength);
-			break;
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
+					break;
 
-		case RX_CMD_MAX_TPH:
-			memcpy(data, &maxTph, sizeof(TPH));
-			dataLength = sizeof(TPH);
+				case RX_CMD_MAX_TPH:
+					memcpy(data, &maxTph, sizeof(TPH));
+					dataLength = sizeof(TPH);
 
-			_build_response_frame(data, dataLength);
-			break;
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
+					break;
 
-		case RX_CMD_MIN_TPH:
-			memcpy(data, &minTph, sizeof(TPH));
-			dataLength = sizeof(TPH);
+				case RX_CMD_MIN_TPH:
+					memcpy(data, &minTph, sizeof(TPH));
+					dataLength = sizeof(TPH);
 
-			_build_response_frame(data, dataLength);
-			break;
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
+					break;
 
-		case RX_CMD_WINDSPEED:
-			memcpy(data, &ws, sizeof(WINDSPEED));
-			dataLength = sizeof(WINDSPEED);
+				case RX_CMD_WINDSPEED:
+					memcpy(data, &ws, sizeof(WINDSPEED));
+					dataLength = sizeof(WINDSPEED);
 
-			_build_response_frame(data, dataLength);
-			break;
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
+					break;
 
-		case RX_CMD_RAINFALL:
-			memcpy(data, &rf, sizeof(RAINFALL));
-			dataLength = sizeof(RAINFALL);
+				case RX_CMD_RAINFALL:
+					memcpy(data, &rf, sizeof(RAINFALL));
+					dataLength = sizeof(RAINFALL);
 
-			_build_response_frame(data, dataLength);
-			break;
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
+					break;
 
-		case RX_CMD_PING:
-			_build_response_frame(NULL, 0);
-			break;
+				case RX_CMD_PING:
+					txFrame = _build_response_frame(rxFrame, NULL, 0);
+					break;
 
-		case RX_CMD_GET_AVR_VERSION:
-			memcpy(data, avrVer, strlen(avrVer));
-			dataLength = strlen(avrVer);
+				case RX_CMD_GET_AVR_VERSION:
+					memcpy(data, avrVer, strlen(avrVer));
+					dataLength = strlen(avrVer);
 
-			_build_response_frame(data, dataLength);
-			break;
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
+					break;
 
-		case RX_CMD_GET_SCHED_VERSION:
-			memcpy(data, schVer, strlen(schVer));
-			dataLength = strlen(schVer);
+				case RX_CMD_GET_SCHED_VERSION:
+					memcpy(data, schVer, strlen(schVer));
+					dataLength = strlen(schVer);
 
-			_build_response_frame(data, dataLength);
-			break;
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
+					break;
 
-		default:
-			_build_response_frame(NULL, 0);
-			break;
+				default:
+					txFrame = _build_response_frame(rxFrame, NULL, 0);
+					break;
+			}
+
+			free(rxFrame);
+
+			_emulatedRxQueue.push(txFrame);
+		}
+
+		usleep(1000L);
 	}
+}
+
+int SerialPort::_send_emulated(uint8_t * pBuffer, int writeLength)
+{
+	int						bytesWritten;
+	
+	serial_frame *	frame = (serial_frame *)malloc(sizeof(serial_frame));
+
+	memcpy(frame->frame, pBuffer, writeLength);
+	frame->framelength = writeLength;
+
+	_emulatedTxQueue.push(frame);
+
+	bytesWritten = writeLength;
 
 	return bytesWritten;
 }
@@ -139,25 +165,21 @@ int SerialPort::_receive_emulated(uint8_t * pBuffer, int requestedBytes)
 {
 	int		bytesRead = 0;
 	
-	usleep(100000L);
-
 	/*
 	** Block until we have some bytes to read...
 	*/
-	while (emulated_rsp_length == 0) {
-		usleep(1000L);
+	while (_emulatedRxQueue.empty()) {
+		usleep(10000L);
 	}
 
-	bytesRead = emulated_rsp_length;
-	//bytesRead = 10;
+	serial_frame * frame = _emulatedRxQueue.front();
+	_emulatedRxQueue.pop();
 
-	memcpy(pBuffer, emulated_rsp_buffer, bytesRead);
+	bytesRead = frame->framelength;
 
-	memset(emulated_cmd_buffer, 0, MAX_REQUEST_MESSAGE_LENGTH);
-	memset(emulated_rsp_buffer, 0, MAX_RESPONSE_MESSAGE_LENGTH);
+	memcpy(pBuffer, frame->frame, frame->framelength);
 
-	emulated_cmd_length = 0;
-	emulated_rsp_length = 0;
+	free(frame);
 
 	return bytesRead;
 }
@@ -246,6 +268,21 @@ void SerialPort::openPort(const char * pszPort, int baudRate, bool isBlocking, b
 
 	if (!isEmulationMode) {
 		_openSerialPort(pszPort, baudRate, isBlocking);
+	}
+	else {
+		Logger & log = Logger::getInstance();
+
+		int err;
+
+		err = pthread_create(&tidAVREmulator, NULL, &avrEmulator, NULL);
+
+		if (err != 0) {
+			log.logError("ERROR! Can't create avrEmulator() thread :[%s]", strerror(err));
+			throw new Exception("Cannot create emulator thread");
+		}
+		else {
+			log.logInfo("Thread avrEmulator() created successfully");
+		}
 	}
 }
 

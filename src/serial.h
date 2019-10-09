@@ -5,6 +5,12 @@
 #ifndef _INCL_SERIAL
 #define _INCL_SERIAL
 
+typedef struct {
+	uint8_t			frame[80];
+	uint8_t			framelength;
+}
+serial_frame;
+
 class SerialPort
 {
 public:
