@@ -275,11 +275,12 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 	uint32_t						uptime = 0;
 	uint32_t						numProcessedMessages = 0;
 	uint32_t						numTasksRun = 0;
-	char							szUptimeBuffer[64];
+	char							szAVRUptimeBuffer[80];
 	char							szNumProcessedMsgsBuffer[32];
 	char							szNumTasksRunBuffer[32];
 	char *							pszMethod;
 	char *							pszURI;
+	char 							szWCTLUptimeBuffer[80];					
 	const char *					pszWCTLVersion = "";
 	const char *					pszWCTLBuildDate = "";
 	const char *					pszAVRVersion = "";
@@ -310,6 +311,11 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					pszWCTLVersion = getVersion();
 					pszWCTLBuildDate = getBuildDate();
 
+					strcpy(szWCTLUptimeBuffer, CurrentTime::getUptime());
+
+					log.logInfo("Got WCTL version %s [%s]", pszWCTLVersion, pszWCTLBuildDate);
+					log.logInfo("Got WCTL uptime %s", szWCTLUptimeBuffer);
+					
 					RxFrame * pAVRRxFrame;
 
 					try {
@@ -344,26 +350,9 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 
 							log.logDebug("Uptime received from AVR: %ds", uptime);
 
-							uint32_t days = uptime / SECONDS_PER_DAY;
-							uptime = uptime % SECONDS_PER_DAY;
+							strcpy(szAVRUptimeBuffer, CurrentTime::getUptime(uptime));
 
-							uint32_t hours = uptime / SECONDS_PER_HOUR;
-							uptime = uptime % SECONDS_PER_HOUR;
-
-							uint32_t minutes = uptime / SECONDS_PER_MINUTE;
-							uptime = uptime % SECONDS_PER_MINUTE;
-
-							uint32_t seconds = uptime;
-
-							sprintf(
-								szUptimeBuffer, 
-								"%d days, %d hrs, %d mins, %d secs", 
-								days, 
-								hours, 
-								minutes, 
-								seconds);
-
-							log.logInfo("Got uptime from Arduino: %s", szUptimeBuffer);
+							log.logInfo("Got uptime from Arduino: %s", szAVRUptimeBuffer);
 							log.logInfo("Got num processed messaged from Arduino: %d", db.numMessagesProcessed);
 							log.logInfo("Got num tasks run from Scheduler: %d", db.numTasksRun);
 							
@@ -397,7 +386,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					templ("rts-version") = pszSchedVersion;
 					templ("rts-builddate") = pszSchedBuildDate;
 
-					templ("avr-uptime") = szUptimeBuffer;
+					templ("avr-uptime") = szAVRUptimeBuffer;
 
 					templ.Process();
 

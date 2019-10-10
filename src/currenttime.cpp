@@ -4,11 +4,74 @@
 #include <string.h>
 #include <time.h>
 
+#include "logger.h"
 #include "currenttime.h"
+
+time_t		startTime;
+
+Logger & log = Logger::getInstance();
 
 CurrentTime::CurrentTime()
 {
 	updateTime();
+}
+
+void CurrentTime::initialiseUptimeClock()
+{
+	startTime = time(0);
+
+	printf("Start time is %ld\n", startTime);
+}
+
+char * CurrentTime::getUptime()
+{
+	time_t		t;
+	uint32_t	seconds;
+
+	t = time(0);
+
+	seconds = (uint32_t)difftime(t, startTime);
+
+	log.logDebug("Uptime is %d seconds", seconds);
+
+	return getUptime(seconds);
+}
+
+char * CurrentTime::getUptime(uint32_t uptimeSeconds)
+{
+	static char szUptime[128];
+	uint32_t	t;
+	int			days;
+	int			hours;
+	int			minutes;
+	int			seconds;
+
+	t = uptimeSeconds;
+
+	days = t / SECONDS_PER_DAY;
+	t = t % SECONDS_PER_DAY;
+
+	hours = t / SECONDS_PER_HOUR;
+	t = t % SECONDS_PER_HOUR;
+
+	minutes = t / SECONDS_PER_MINUTE;
+	t = t % SECONDS_PER_MINUTE;
+
+	seconds = t;
+
+	sprintf(
+		szUptime, 
+		"%d %s, %d %s, %d %s, %d %s", 
+		days, 
+		(days == 1 ? "day" : "days"),
+		hours, 
+		(hours == 1 ? "hour" : "hours"),
+		minutes, 
+		(minutes == 1 ? "minute" : "minutes"),
+		seconds,
+		(seconds == 1 ? "second" : "seconds"));
+
+	return szUptime;
 }
 
 void CurrentTime::updateTime()

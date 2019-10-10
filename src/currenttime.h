@@ -3,6 +3,10 @@
 #ifndef _INCL_CURRENTTIME
 #define _INCL_CURRENTTIME
 
+#define SECONDS_PER_MINUTE				60
+#define SECONDS_PER_HOUR				(SECONDS_PER_MINUTE * 60)
+#define SECONDS_PER_DAY					(SECONDS_PER_HOUR * 24)
+
 class CurrentTime
 {
 private:
@@ -11,6 +15,10 @@ private:
 
 public:
 	CurrentTime();
+
+	static void		initialiseUptimeClock();
+	static char *	getUptime();
+	static char *	getUptime(uint32_t uptimeSeconds);
 
 	void			updateTime();
 	void			updateTime(time_t * t);

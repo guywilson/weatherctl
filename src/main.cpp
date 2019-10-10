@@ -202,6 +202,8 @@ int main(int argc, char *argv[])
 	char			cwd[PATH_MAX];
 	int				defaultLoggingLevel = LOG_LEVEL_INFO | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL;
 
+	CurrentTime::initialiseUptimeClock();
+	
 	pszAppName = strdup(argv[0]);
 
     /*
