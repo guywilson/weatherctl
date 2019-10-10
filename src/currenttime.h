@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <time.h>
 
 #ifndef _INCL_CURRENTTIME
