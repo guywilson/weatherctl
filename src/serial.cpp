@@ -57,10 +57,10 @@ static serial_frame * _build_response_frame(serial_frame * rxFrame, uint8_t * da
 
 void * avrEmulator(void * pArgs)
 {
-	uint32_t				uptimeCounter = 0;
 	uint8_t					cmdCode;
 	int						dataLength;
 	uint8_t 				data[80];
+	DASHBOARD				db;
 	static const TPH		avgTph = { .temperature = 374, .pressure = 812, .humidity = 463 };
 	static const TPH		maxTph = { .temperature = 392, .pressure = 874, .humidity = 562 };
 	static const TPH		minTph = { .temperature = 332, .pressure = 799, .humidity = 401 };
@@ -69,12 +69,19 @@ void * avrEmulator(void * pArgs)
 	static const char * 	schVer = "1.2.001 [2019-07-30 17:37:20]";
 	static const char * 	avrVer = "1.4.001 [2019-09-27 08:13:53]";
 
+	strcpy(db.szAVRVersion, avrVer);
+	strcpy(db.szSchedVersion, schVer);
+
+	db.uptime = 0;
+	db.numMessagesProcessed = 0;
+	db.numTasksRun = 0;
+
 	while (1) {
 		if (!_emulatedTxQueue.empty()) {
 			serial_frame * rxFrame = _emulatedTxQueue.front();
 			_emulatedTxQueue.pop();
 
-			usleep(15000L);
+			usleep(1000L);
 
 			cmdCode = rxFrame->frame[3];
 
@@ -120,23 +127,9 @@ void * avrEmulator(void * pArgs)
 					txFrame = _build_response_frame(rxFrame, NULL, 0);
 					break;
 
-				case RX_CMD_GET_AVR_VERSION:
-					memcpy(data, avrVer, strlen(avrVer));
-					dataLength = strlen(avrVer);
-
-					txFrame = _build_response_frame(rxFrame, data, dataLength);
-					break;
-
-				case RX_CMD_GET_SCHED_VERSION:
-					memcpy(data, schVer, strlen(schVer));
-					dataLength = strlen(schVer);
-
-					txFrame = _build_response_frame(rxFrame, data, dataLength);
-					break;
-
-				case RX_CMD_GET_UPTIME:
-					memcpy(data, &uptimeCounter, sizeof(uptimeCounter));
-					dataLength = sizeof(uptimeCounter);
+				case RX_CMD_GET_DASHBOARD:
+					memcpy(data, &db, sizeof(DASHBOARD));
+					dataLength = sizeof(DASHBOARD);
 
 					txFrame = _build_response_frame(rxFrame, data, dataLength);
 					break;
@@ -146,12 +139,15 @@ void * avrEmulator(void * pArgs)
 					break;
 			}
 
+			db.numMessagesProcessed++;
+
 			free(rxFrame);
 
 			_emulatedRxQueue.push(txFrame);
 		}
 
-		uptimeCounter += 10;
+		db.uptime += 10;
+		db.numTasksRun += 7;
 
 		usleep(1000L);
 	}

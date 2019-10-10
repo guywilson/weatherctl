@@ -430,15 +430,7 @@ void processResponse(uint8_t * response, int responseLength)
 			case RX_RSP_WDT_DISABLE:
 				break;
 
-			case RX_RSP_GET_SCHED_VERSION:
-				qmgr.pushRx(pFrame);
-				break;
-
-			case RX_RSP_GET_AVR_VERSION:
-				qmgr.pushRx(pFrame);
-				break;
-
-			case RX_RSP_GET_UPTIME:
+			case RX_RSP_GET_DASHBOARD:
 				qmgr.pushRx(pFrame);
 				break;
 

@@ -73,9 +73,7 @@
 #define RX_CMD_RAINFALL				0x06
 #define RX_CMD_CPU_PERCENTAGE		0x07
 #define RX_CMD_WDT_DISABLE			0x08
-#define RX_CMD_GET_SCHED_VERSION	0x09
-#define RX_CMD_GET_AVR_VERSION		0x0A
-#define RX_CMD_GET_UPTIME			0x0B
+#define RX_CMD_GET_DASHBOARD		0x09
 
 #define RX_RSP_PING					(RX_CMD_PING << 4)
 #define RX_RSP_AVG_TPH				(RX_CMD_AVG_TPH << 4)
@@ -86,9 +84,7 @@
 #define RX_RSP_RAINFALL				(RX_CMD_RAINFALL << 4)
 #define RX_RSP_CPU_PERCENTAGE		(RX_CMD_CPU_PERCENTAGE << 4)
 #define RX_RSP_WDT_DISABLE			(RX_CMD_WDT_DISABLE << 4)
-#define RX_RSP_GET_SCHED_VERSION	(RX_CMD_GET_SCHED_VERSION << 4)
-#define RX_RSP_GET_AVR_VERSION		(RX_CMD_GET_AVR_VERSION << 4)
-#define RX_RSP_GET_UPTIME			(RX_CMD_GET_UPTIME << 4)
+#define RX_RSP_GET_DASHBOARD		(RX_CMD_GET_DASHBOARD << 4)
 
 #define AVR_RESET_PIN				12
 
@@ -123,6 +119,16 @@ typedef struct {
     uint16_t           totalRainfall;
 }
 RAINFALL;
+
+typedef struct {
+    uint32_t        uptime;
+    uint32_t        numMessagesProcessed;
+    uint32_t        numTasksRun;
+
+    char            szAVRVersion[30];
+    char            szSchedVersion[30];
+}
+DASHBOARD;
 
 void 		resetAVR();
 RxFrame * 	send_receive(TxFrame * pTxFrame);

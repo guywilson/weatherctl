@@ -273,7 +273,11 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 	char							szAVRVersionBuffer[64];
 	char							szSchedVersionBuffer[64];
 	uint32_t						uptime = 0;
+	uint32_t						numProcessedMessages = 0;
+	uint32_t						numTasksRun = 0;
 	char							szUptimeBuffer[64];
+	char							szNumProcessedMsgsBuffer[32];
+	char							szNumTasksRunBuffer[32];
 	char *							pszMethod;
 	char *							pszURI;
 	const char *					pszWCTLVersion = "";
@@ -309,62 +313,34 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					RxFrame * pAVRRxFrame;
 
 					try {
-						pAVRRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_AVR_VERSION));
+						pAVRRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_DASHBOARD));
 
 						if (pAVRRxFrame != NULL) {
-							memcpy(szAVRVersionBuffer, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
-							szAVRVersionBuffer[pAVRRxFrame->getDataLength()] = 0;
+							DASHBOARD db;
+
+							memcpy(&db, pAVRRxFrame->getData(), pAVRRxFrame->getDataLength());
+
+							delete pAVRRxFrame;
+
+							strncpy(szAVRVersionBuffer, db.szAVRVersion, sizeof(db.szAVRVersion));
 
 							ref = szAVRVersionBuffer;
 
 							pszAVRVersion = str_trim_trailing(strtok_r(szAVRVersionBuffer, "[]", &ref));
 							pszAVRBuildDate = strtok_r(NULL, "[]", &ref);
 
-							delete pAVRRxFrame;
-
 							log.logInfo("Got avr version from Arduino %s [%s]", pszAVRVersion, pszAVRBuildDate);
-						}
-					}
-					catch (Exception * e) {
-						log.logInfo("Timed out waiting for AVR response...");
-						pszAVRVersion = "";
-						pszAVRBuildDate = "";
-					}
 
-					RxFrame * pSchedRxFrame;
-
-					try {
-						pSchedRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_SCHED_VERSION));
-
-						if (pSchedRxFrame != NULL) {
-							memcpy(szSchedVersionBuffer, pSchedRxFrame->getData(), pSchedRxFrame->getDataLength());
-							szSchedVersionBuffer[pSchedRxFrame->getDataLength()] = 0;
+							strncpy(szSchedVersionBuffer, db.szSchedVersion, sizeof(db.szSchedVersion));
 
 							ref = szSchedVersionBuffer;
 
 							pszSchedVersion = str_trim_trailing(strtok_r(szSchedVersionBuffer, "[]", &ref));
 							pszSchedBuildDate = strtok_r(NULL, "[]", &ref);
 
-							delete pSchedRxFrame;
+							log.logInfo("Got scheduler version from Arduino %s [%s]", pszSchedVersion, pszSchedBuildDate);
 
-							log.logInfo("Got scheduler version from Arduino %s", pszSchedVersion);
-						}
-					}
-					catch (Exception * e) {
-						log.logInfo("Timed out waiting for AVR response...");
-						pszSchedVersion = "";
-						pszSchedBuildDate = "";
-					}
-
-					RxFrame * pUptimeRxFrame;
-
-					try {
-						pUptimeRxFrame = send_receive(new TxFrame(NULL, 0, RX_CMD_GET_UPTIME));
-
-						if (pUptimeRxFrame != NULL) {
-							memcpy(&uptime, pUptimeRxFrame->getData(), sizeof(uptime));
-
-							delete pUptimeRxFrame;
+							uptime = db.uptime;
 
 							log.logDebug("Uptime received from AVR: %ds", uptime);
 
@@ -387,11 +363,18 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 								minutes, 
 								seconds);
 
-							log.logInfo("Got uptime from Arduino %s", szUptimeBuffer);
+							log.logInfo("Got uptime from Arduino: %s", szUptimeBuffer);
+							log.logInfo("Got num processed messaged from Arduino: %d", db.numMessagesProcessed);
+							log.logInfo("Got num tasks run from Scheduler: %d", db.numTasksRun);
+							
+							sprintf(szNumProcessedMsgsBuffer, "%d", numProcessedMessages);
+							sprintf(szNumTasksRunBuffer, "%d", numTasksRun);
 						}
 					}
 					catch (Exception * e) {
 						log.logInfo("Timed out waiting for AVR response...");
+						pszAVRVersion = "";
+						pszAVRBuildDate = "";
 					}
 
 					string htmlFileName(web.getHTMLDocRoot());
