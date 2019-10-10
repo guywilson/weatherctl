@@ -27,4 +27,4 @@ Acts as the master device to the Arduino running the AVRWeather code, it sends a
 
 Every 20 seconds, wctl performs an HTTP POST to the web server running the weathersite code, as configured in the configuration file.
 
-This software also exposes an admin web interface on http://<ip-address>/avr/cmd/index.html to control certain aspects of the Arduino interface, including resetting the Arduino via GPIO pin 12, through a level converter to the reset pin on the Arduino.
+This software also exposes an admin web interface on https://<ip-address>/ to control certain aspects of the Arduino interface, including resetting the Arduino via GPIO pin 12, through a level converter to the reset pin on the Arduino.
