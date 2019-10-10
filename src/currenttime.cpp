@@ -9,8 +9,6 @@
 
 time_t		startTime;
 
-Logger & log = Logger::getInstance();
-
 CurrentTime::CurrentTime()
 {
 	updateTime();
@@ -19,8 +17,6 @@ CurrentTime::CurrentTime()
 void CurrentTime::initialiseUptimeClock()
 {
 	startTime = time(0);
-
-	printf("Start time is %ld\n", startTime);
 }
 
 char * CurrentTime::getUptime()
@@ -31,8 +27,6 @@ char * CurrentTime::getUptime()
 	t = time(0);
 
 	seconds = (uint32_t)difftime(t, startTime);
-
-	log.logDebug("Uptime is %d seconds", seconds);
 
 	return getUptime(seconds);
 }
