@@ -30,7 +30,43 @@
             }
           }
         </script>
-      </div>
+        </div>
+        <div class="container">
+          <table style="width: 80%; margin-left: auto; margin-right: auto">
+            <tr>
+              <td style="padding: 8px">
+                <table class="pretty-table">
+                  <tr>
+                    <td class="column-heading" style="text-align: left"><font size="4"><b>Weather Controller</b></font></td>
+                  </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3">v<tmpl_var wctl-version> date [<tmpl_var wctl-builddate>]</font></td>
+                  </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3"><b>Uptime</b></font></td>
+                    <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var wctl-uptime></font></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px">
+                <table class="pretty-table">
+                  <tr>
+                    <td class="column-heading" style="text-align: left"><font size="4"><b>AVR</b></font></td>
+                  </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3">v<tmpl_var avr-version> date [<tmpl_var avr-builddate>]</font></td>
+                  </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3"><b>Uptime</b></font></td>
+                    <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var wctl-uptime></font></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
       <div class="centred-outer">
         <table id="version" class="pretty-table">
           <tr>
