@@ -187,7 +187,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 10 seconds...
 			*/
-			txRainfall = txCount + 10;
+			txCPURatio = txCount + 10;
 		}
 		else if (txCount == txResetMinMax) {
 			/*
