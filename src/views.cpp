@@ -19,10 +19,6 @@ extern "C" {
 #include "version.h"
 }
 
-#define SECONDS_PER_MINUTE				60
-#define SECONDS_PER_HOUR				(SECONDS_PER_MINUTE * 60)
-#define SECONDS_PER_DAY					(SECONDS_PER_HOUR * 24)
-
 using namespace std;
 
 static char * getMethod(struct http_message * message)
@@ -59,7 +55,7 @@ static char * getURI(struct http_message * message)
 
 static int authenticate(struct mg_connection * connection, struct http_message * message)
 {
-	FILE *		fpDigest;
+	FILE *	fpDigest = NULL;
 
 	ConfigManager & cfg = ConfigManager::getInstance();
 	Logger & log = Logger::getInstance();
@@ -359,6 +355,11 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 						log.logInfo("Timed out waiting for AVR response...");
 						pszAVRVersion = "";
 						pszAVRBuildDate = "";
+						pszSchedVersion = "";
+						pszSchedBuildDate = "";
+						szAVRUptimeBuffer[0] = 0;
+						szNumProcessedMsgsBuffer[0] = 0;
+						szNumTasksRunBuffer[0] = 0;
 					}
 
 					string htmlFileName(web.getHTMLDocRoot());
