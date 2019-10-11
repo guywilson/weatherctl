@@ -130,6 +130,13 @@ typedef struct {
 }
 DASHBOARD;
 
+typedef struct
+{
+	uint32_t		idleCount;
+	uint32_t		busyCount;
+}
+CPU_RATIO;
+
 void 		resetAVR();
 RxFrame * 	send_receive(TxFrame * pTxFrame);
 void 		fire_forget(TxFrame * pTxFrame);

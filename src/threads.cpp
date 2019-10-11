@@ -87,6 +87,7 @@ void * txCmdThread(void * pArgs)
 	uint32_t			txMaxTPH = 2;
 	uint32_t			txWindspeed = 3;
 	uint32_t			txRainfall = 4;
+	uint32_t			txCPURatio = 5;
 	uint32_t			txResetMinMax;
 	int					bytesRead;
 	int					writeLen;
@@ -174,6 +175,19 @@ void * txCmdThread(void * pArgs)
 			** Schedule next tx in 1 hour...
 			*/
 			txRainfall = txCount + 3600;
+		}
+		else if (txCount == txCPURatio) {
+			/*
+			** Next TX packet is a request for the CPU ratio...
+			*/
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_CPU_PERCENTAGE);
+
+			port.setExpectedBytes(15);
+
+			/*
+			** Schedule next tx in 10 seconds...
+			*/
+			txRainfall = txCount + 10;
 		}
 		else if (txCount == txResetMinMax) {
 			/*

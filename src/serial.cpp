@@ -61,6 +61,7 @@ void * avrEmulator(void * pArgs)
 	int						dataLength;
 	uint8_t 				data[80];
 	DASHBOARD				db;
+	CPU_RATIO				cpu;
 	static const TPH		avgTph = { .temperature = 374, .pressure = 812, .humidity = 463 };
 	static const TPH		maxTph = { .temperature = 392, .pressure = 874, .humidity = 562 };
 	static const TPH		minTph = { .temperature = 332, .pressure = 799, .humidity = 401 };
@@ -76,7 +77,12 @@ void * avrEmulator(void * pArgs)
 	db.numMessagesProcessed = 0;
 	db.numTasksRun = 0;
 
+	cpu.idleCount = 0;
+	cpu.busyCount = 0;
+
 	while (1) {
+		cpu.idleCount++;
+
 		if (!_emulatedTxQueue.empty()) {
 			serial_frame * rxFrame = _emulatedTxQueue.front();
 			_emulatedTxQueue.pop();
@@ -86,6 +92,8 @@ void * avrEmulator(void * pArgs)
 			cmdCode = rxFrame->frame[3];
 
 			serial_frame * txFrame;
+
+			cpu.busyCount++;
 
 			switch (cmdCode) {
 				case RX_CMD_AVG_TPH:
@@ -125,6 +133,15 @@ void * avrEmulator(void * pArgs)
 
 				case RX_CMD_PING:
 					txFrame = _build_response_frame(rxFrame, NULL, 0);
+					break;
+
+				case RX_CMD_CPU_PERCENTAGE:
+					cpu.idleCount = cpu.idleCount - cpu.busyCount;
+
+					memcpy(data, &cpu, sizeof(CPU_RATIO));
+					dataLength = sizeof(CPU_RATIO);
+
+					txFrame = _build_response_frame(rxFrame, data, dataLength);
 					break;
 
 				case RX_CMD_GET_DASHBOARD:

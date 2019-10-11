@@ -233,7 +233,12 @@ void printFrame(uint8_t * buffer, int bufferLength)
 				break;
 
 			case RX_STATE_DATA:
-				log.logDebugNoCR("%c", b);
+				if (isprint(b)) {
+					log.logDebugNoCR("%c", b);
+				}
+				else {
+					log.logDebugNoCR("[%02X]", b);
+				}
 				i++;
 
 				if (i == buffer[1] - 3) {
@@ -280,10 +285,12 @@ void processResponse(uint8_t * response, int responseLength)
 	static bool			avgWindspeedSave = true;
 	static bool			maxWindspeedSave = false;
 	static bool			totalRainfallSave = false;
+	float				cpuPct;
 	
 	TPH 				tph;
 	WINDSPEED			ws;
 	RAINFALL			rf;
+	CPU_RATIO			cpu;
 	CurrentTime 		time;
 
 	QueueMgr & qmgr = QueueMgr::getInstance();
@@ -378,6 +385,7 @@ void processResponse(uint8_t * response, int responseLength)
 				break;
 
 			case RX_RSP_RESET_MINMAX:
+				delete pFrame;
 				break;
 
 			case RX_RSP_WINDSPEED:
@@ -428,13 +436,27 @@ void processResponse(uint8_t * response, int responseLength)
 				break;
 
 			case RX_RSP_WDT_DISABLE:
+				delete pFrame;
 				break;
 
 			case RX_RSP_GET_DASHBOARD:
 				qmgr.pushRx(pFrame);
 				break;
 
+			case RX_RSP_CPU_PERCENTAGE:
+				log.logDebug("CPU pct - Copying %d bytes", pFrame->getDataLength());
+
+				memcpy(&cpu, pFrame->getData(), pFrame->getDataLength());
+
+				delete pFrame;
+
+				cpuPct = ((float)cpu.busyCount / (float)cpu.idleCount) * 100.0;
+
+				log.logDebug("Got AVR CPU percentage - %.3f", cpuPct);
+				break;
+
 			case RX_RSP_PING:
+				delete pFrame;
 				break;
 		}
 	}
