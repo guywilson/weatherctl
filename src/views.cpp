@@ -382,11 +382,12 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 
 					templ("avr-version") = pszAVRVersion;
 					templ("avr-builddate") = pszAVRBuildDate;
+					templ("avr-uptime") = szAVRUptimeBuffer;
+					templ("avr-msgsprocessed") = szNumProcessedMsgsBuffer;
 
 					templ("rts-version") = pszSchedVersion;
 					templ("rts-builddate") = pszSchedBuildDate;
-
-					templ("avr-uptime") = szAVRUptimeBuffer;
+					templ("rts-tasksrun") = szNumTasksRunBuffer;
 
 					templ.Process();
 

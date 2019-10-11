@@ -60,25 +60,32 @@
                   </tr>
                   <tr>
                     <td class="table-cell" style="text-align: left"><font size="3"><b>Uptime</b></font></td>
-                    <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var wctl-uptime></font></td>
+                    <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var avr-uptime></font></td>
+                  </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3"><b>Messages processed</b></font></td>
+                    <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var avr-msgsprocessed></font></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px">
+                <table class="pretty-table">
+                  <tr>
+                    <td class="column-heading" style="text-align: left"><font size="4"><b>RTScheduler</b></font></td>
+                  </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3">v<tmpl_var rts-version> date [<tmpl_var rts-builddate>]</font></td>
+                  </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3"><b>Tasks run</b></font></td>
+                    <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var rts-tasksrun></font></td>
                   </tr>
                 </table>
               </td>
             </tr>
           </table>
         </div>
-      <div class="centred-outer">
-        <table id="version" class="pretty-table">
-          <tr>
-            <td class="table-cell" style="text-align: left; font-family: sans-serif">
-                <font size="4">WCTL v<tmpl_var wctl-version> Build date: [<tmpl_var wctl-builddate>]</font>
-              <br>
-                <font size="4">AVR Weather v<tmpl_var avr-version> Build date: [<tmpl_var avr-builddate>] | Uptime: <tmpl_var avr-uptime></font>
-              <br>
-                <font size="4">AVR Scheduler v<tmpl_var rts-version> Build date: [<tmpl_var rts-builddate>]</font>
-            </td>
-          </tr>
-        </table>
-      </div>
     </body>
 </html>
