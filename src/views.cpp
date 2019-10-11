@@ -272,9 +272,6 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 	struct http_message *			message;
 	char							szAVRVersionBuffer[64];
 	char							szSchedVersionBuffer[64];
-	uint32_t						uptime = 0;
-	uint32_t						numProcessedMessages = 0;
-	uint32_t						numTasksRun = 0;
 	char							szAVRUptimeBuffer[80];
 	char							szNumProcessedMsgsBuffer[32];
 	char							szNumTasksRunBuffer[32];
@@ -346,18 +343,16 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 
 							log.logInfo("Got scheduler version from Arduino %s [%s]", pszSchedVersion, pszSchedBuildDate);
 
-							uptime = db.uptime;
+							log.logDebug("Uptime received from AVR: %ds", db.uptime);
 
-							log.logDebug("Uptime received from AVR: %ds", uptime);
-
-							strcpy(szAVRUptimeBuffer, CurrentTime::getUptime(uptime));
+							strcpy(szAVRUptimeBuffer, CurrentTime::getUptime(db.uptime));
 
 							log.logInfo("Got uptime from Arduino: %s", szAVRUptimeBuffer);
 							log.logInfo("Got num processed messaged from Arduino: %d", db.numMessagesProcessed);
 							log.logInfo("Got num tasks run from Scheduler: %d", db.numTasksRun);
 							
-							sprintf(szNumProcessedMsgsBuffer, "%d", numProcessedMessages);
-							sprintf(szNumTasksRunBuffer, "%d", numTasksRun);
+							sprintf(szNumProcessedMsgsBuffer, "%d", db.numMessagesProcessed);
+							sprintf(szNumTasksRunBuffer, "%d", db.numTasksRun);
 						}
 					}
 					catch (Exception * e) {
@@ -379,6 +374,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 
 					templ("wctl-version") = pszWCTLVersion;
 					templ("wctl-builddate") = pszWCTLBuildDate;
+					templ("wctl-uptime") = szWCTLUptimeBuffer;
 
 					templ("avr-version") = pszAVRVersion;
 					templ("avr-builddate") = pszAVRBuildDate;
