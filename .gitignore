@@ -10,3 +10,4 @@ test.cfg
 /resources/html/index.html
 wctl.crt
 wctl.key
+mac.cfg

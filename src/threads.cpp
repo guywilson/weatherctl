@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#include "configmgr.h"
 #include "logger.h"
 #include "serial.h"
 #include "queuemgr.h"
@@ -16,6 +17,8 @@ extern "C" {
 #include "strutils.h"
 }
 
+#define TXRX_WAIT_us								25000L
+
 static void *      txCmdThread(void * pArgs);
 static void *      webPostThread(void * pArgs);
 static void *      webListenerThread(void * pArgs);
@@ -23,6 +26,38 @@ static void *      webListenerThread(void * pArgs);
 pthread_t			tidTxCmd;
 pthread_t			tidWebListener;
 pthread_t			tidWebPost;
+
+int getTxRxFrequency()
+{
+	static int f = 0;
+
+	if (f == 0) {
+		ConfigManager & cfg = ConfigManager::getInstance();
+		f = cfg.getValueAsInteger("serial.msgfrequency");
+	}
+
+	if (f == 0) {
+		f = 1;
+	}
+	
+	return f;
+}
+
+uint32_t getTxRxDelay()
+{
+	static uint32_t delay = 0;
+
+	if (delay == 0) {
+		delay = (1000000L / getTxRxFrequency()) - TXRX_WAIT_us;
+	}
+
+	return delay;
+}
+
+uint32_t getScheduledTime(uint32_t currentCount, int numSeconds)
+{
+	return (currentCount + (numSeconds * getTxRxFrequency()));
+}
 
 int startThreads(bool isAdminOnly, bool isAdminEnabled)
 {
@@ -122,7 +157,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 20 seconds...
 			*/
-			txAvgTPH = txCount + 20;
+			txAvgTPH = getScheduledTime(txCount, 20);
 		}
 		else if (txCount == txMinTPH) {
 			/*
@@ -135,7 +170,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 20 seconds...
 			*/
-			txMinTPH = txCount + 20;
+			txMinTPH = getScheduledTime(txCount, 20);
 		}
 		else if (txCount == txMaxTPH) {
 			/*
@@ -148,7 +183,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 20 seconds...
 			*/
-			txMaxTPH = txCount + 20;
+			txMaxTPH = getScheduledTime(txCount, 20);
 		}
 		else if (txCount == txWindspeed) {
 			/*
@@ -161,7 +196,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 60 seconds...
 			*/
-			txWindspeed = txCount + 60;
+			txWindspeed = getScheduledTime(txCount, 60);
 		}
 		else if (txCount == txRainfall) {
 			/*
@@ -174,7 +209,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 1 hour...
 			*/
-			txRainfall = txCount + 3600;
+			txRainfall = getScheduledTime(txCount, 3600);
 		}
 		else if (txCount == txCPURatio) {
 			/*
@@ -187,7 +222,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 10 seconds...
 			*/
-			txCPURatio = txCount + 10;
+			txCPURatio = getScheduledTime(txCount, 10);
 		}
 		else if (txCount == txResetMinMax) {
 			/*
@@ -200,7 +235,7 @@ void * txCmdThread(void * pArgs)
 			/*
 			** Schedule next tx in 24 hours...
 			*/
-			txResetMinMax = txCount + 86400;
+			txResetMinMax = getScheduledTime(txCount, 86400);
 		}
 		else {
 			/*
@@ -252,9 +287,9 @@ void * txCmdThread(void * pArgs)
 		txCount++;
 
 		/*
-		** Sleep for 100ms to allow the Arduino to respond...
+		** Sleep for 25ms to allow the Arduino to respond...
 		*/
-		usleep(100000L);
+		usleep(TXRX_WAIT_us);
 
 		/*
 		** Read response frame...
@@ -278,9 +313,9 @@ void * txCmdThread(void * pArgs)
 		}
 
 		/*
-		** Sleep for the remaining 900ms...
+		** Sleep for the remaining time...
 		*/
-		usleep(900000L);
+		usleep(getTxRxDelay());
 	}
 
 	return NULL;
