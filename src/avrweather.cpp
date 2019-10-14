@@ -19,7 +19,11 @@ extern "C" {
 
 using namespace std;
 
+#define CPU_HISTORY_SIZE			16
 #define TPH_MSGS_PER_MINUTE			3
+
+float		cpuHistory[CPU_HISTORY_SIZE];
+int			cpuIndex = 0;
 
 void resetAVR()
 {
@@ -39,6 +43,41 @@ void resetAVR()
         gpioc_close();
     }
 #endif
+}
+
+void getAVRCpuHistory(float * historyArray, int arraySize)
+{
+	int			i = 0;
+	int			j = 0;
+
+	if (cpuIndex == CPU_HISTORY_SIZE) {
+		j = 0;
+	}
+	else {
+		j = cpuIndex + 1;
+	}
+
+	while (i < CPU_HISTORY_SIZE && i < arraySize) {
+		historyArray[i++] = cpuHistory[j++];
+
+		if (j == CPU_HISTORY_SIZE) {
+			j = 0;
+		}
+	}
+}
+
+float getAVRCpuAverage()
+{
+	float		avg = 0.0;
+	int			i;
+	
+	for (i = 0;i < CPU_HISTORY_SIZE;i++) {
+		avg += cpuHistory[i];
+	}
+
+	avg = avg / CPU_HISTORY_SIZE;
+
+	return avg;
 }
 
 RxFrame * send_receive(TxFrame * pTxFrame)
@@ -451,6 +490,11 @@ void processResponse(uint8_t * response, int responseLength)
 				delete pFrame;
 
 				cpuPct = ((float)cpu.busyCount / (float)cpu.idleCount) * 100.0;
+				cpuHistory[cpuIndex++] = cpuPct;
+
+				if (cpuIndex == CPU_HISTORY_SIZE) {
+					cpuIndex = 0;
+				}
 
 				log.logDebug("Got AVR CPU percentage - %.3f", cpuPct);
 				break;
