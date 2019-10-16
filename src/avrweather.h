@@ -141,6 +141,8 @@ typedef struct
 CPU_RATIO;
 
 void 		resetAVR();
+void        getAVRCpuHistory(float * historyArray, int arraySize);
+float       getAVRCpuAverage();
 RxFrame * 	send_receive(TxFrame * pTxFrame);
 void 		fire_forget(TxFrame * pTxFrame);
 void		printFrame(uint8_t * buffer, int bufferLength);
