@@ -66,6 +66,10 @@
                     <td class="table-cell" style="text-align: left"><font size="3"><b>Messages processed</b></font></td>
                     <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var avr-msgsprocessed></font></td>
                   </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3"><b>CPU %</b></font></td>
+                    <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var avr-cpupct></font></td>
+                  </tr>
                 </table>
               </td>
             </tr>

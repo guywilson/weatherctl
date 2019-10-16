@@ -271,6 +271,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 	char							szAVRUptimeBuffer[80];
 	char							szNumProcessedMsgsBuffer[32];
 	char							szNumTasksRunBuffer[32];
+	char							szAVRAvgCPUBuffer[8];
 	char *							pszMethod;
 	char *							pszURI;
 	char 							szWCTLUptimeBuffer[80];					
@@ -309,6 +310,10 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					log.logInfo("Got WCTL version %s [%s]", pszWCTLVersion, pszWCTLBuildDate);
 					log.logInfo("Got WCTL uptime %s", szWCTLUptimeBuffer);
 					
+					sprintf(szAVRAvgCPUBuffer, "%.3f%%", getAVRCpuAverage());
+
+					log.logInfo("Got average AVR CPU [%s]", szAVRAvgCPUBuffer);
+
 					RxFrame * pAVRRxFrame;
 
 					try {
@@ -381,6 +386,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					templ("avr-builddate") = pszAVRBuildDate;
 					templ("avr-uptime") = szAVRUptimeBuffer;
 					templ("avr-msgsprocessed") = szNumProcessedMsgsBuffer;
+					templ("avr-cpupct") = szAVRAvgCPUBuffer;
 
 					templ("rts-version") = pszSchedVersion;
 					templ("rts-builddate") = pszSchedBuildDate;
