@@ -145,118 +145,103 @@ void * txCmdThread(void * pArgs)
 
 	log.logInfo("Seconds till midnight: %u", txResetMinMax);
 
+	txResetMinMax = txResetMinMax * getTxRxFrequency();
+
+	QueueMgr & qmgr = QueueMgr::getInstance();
+
 	while (go) {
 		if (txCount == txAvgTPH) {
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(NULL, 0, RX_CMD_AVG_TPH);
-
-			port.setExpectedBytes(12);
+			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_AVG_TPH));
 
 			/*
 			** Schedule next tx in 20 seconds...
 			*/
 			txAvgTPH = getScheduledTime(txCount, 20);
 		}
-		else if (txCount == txMinTPH) {
+		if (txCount == txMinTPH) {
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(NULL, 0, RX_CMD_MIN_TPH);
-
-			port.setExpectedBytes(12);
+			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_MIN_TPH));
 
 			/*
 			** Schedule next tx in 20 seconds...
 			*/
 			txMinTPH = getScheduledTime(txCount, 20);
 		}
-		else if (txCount == txMaxTPH) {
+		if (txCount == txMaxTPH) {
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			pTxFrame = new TxFrame(NULL, 0, RX_CMD_MAX_TPH);
-
-			port.setExpectedBytes(12);
+			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_MAX_TPH));
 
 			/*
 			** Schedule next tx in 20 seconds...
 			*/
 			txMaxTPH = getScheduledTime(txCount, 20);
 		}
-		else if (txCount == txWindspeed) {
+		if (txCount == txWindspeed) {
 			/*
 			** Next TX packet is a request for windspeed data...
 			*/
-			pTxFrame = new TxFrame(NULL, 0, RX_CMD_WINDSPEED);
-
-			port.setExpectedBytes(10);
+			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_WINDSPEED));
 
 			/*
 			** Schedule next tx in 60 seconds...
 			*/
 			txWindspeed = getScheduledTime(txCount, 60);
 		}
-		else if (txCount == txRainfall) {
+		if (txCount == txRainfall) {
 			/*
 			** Next TX packet is a request for rainfall data...
 			*/
-			pTxFrame = new TxFrame(NULL, 0, RX_CMD_RAINFALL);
-
-			port.setExpectedBytes(10);
+			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_RAINFALL));
 
 			/*
 			** Schedule next tx in 1 hour...
 			*/
 			txRainfall = getScheduledTime(txCount, 3600);
 		}
-		else if (txCount == txCPURatio) {
+		if (txCount == txCPURatio) {
 			/*
 			** Next TX packet is a request for the CPU ratio...
 			*/
-			pTxFrame = new TxFrame(NULL, 0, RX_CMD_CPU_PERCENTAGE);
-
-			port.setExpectedBytes(15);
+			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_CPU_PERCENTAGE));
 
 			/*
 			** Schedule next tx in 10 seconds...
 			*/
 			txCPURatio = getScheduledTime(txCount, 10);
 		}
-		else if (txCount == txResetMinMax) {
+		if (txCount == txResetMinMax) {
 			/*
 			** Next TX packet is a request to reset min & max values...
 			*/
-			pTxFrame = new TxFrame(NULL, 0, RX_CMD_RESET_MINMAX);
-
-			port.setExpectedBytes(7);
+			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_RESET_MINMAX));
 
 			/*
 			** Schedule next tx in 24 hours...
 			*/
 			txResetMinMax = getScheduledTime(txCount, 86400);
 		}
+
+		/*
+		** If there is something in the queue, send it...
+		*/
+		if (!qmgr.isTxQueueEmpty()) {
+			pTxFrame = qmgr.popTx();
+		}
 		else {
 			/*
-			** If there is something in the queue, send it next...
+			** Default is to send a ping...
 			*/
-			QueueMgr & qmgr = QueueMgr::getInstance();
-
-			if (!qmgr.isTxQueueEmpty()) {
-				pTxFrame = qmgr.popTx();
-
-				port.setExpectedBytes(7);
-			}
-			else {
-				/*
-				** Default is to send a ping...
-				*/
-				pTxFrame = new TxFrame(NULL, 0, RX_CMD_PING);
-
-				port.setExpectedBytes(7);
-			}
+			pTxFrame = new TxFrame(NULL, 0, RX_CMD_PING);
 		}
+
+		port.setExpectedBytes(7);
 
 		/*
 		** Send cmd frame...
