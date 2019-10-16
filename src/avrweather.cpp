@@ -287,7 +287,7 @@ void processResponse(uint8_t * response, int responseLength)
 	static bool			totalRainfallSave = false;
 	float				cpuPct;
 	
-	TPH 				tph;
+	TPH_PACKET 			tph;
 	WINDSPEED			ws;
 	RAINFALL			rf;
 	CPU_RATIO			cpu;
@@ -320,20 +320,32 @@ void processResponse(uint8_t * response, int responseLength)
 		}
 
 		switch (pFrame->getResponseCode()) {
-			case RX_RSP_AVG_TPH:
-				log.logDebug("AVG - Copying %d bytes", pFrame->getDataLength());
+			case RX_RSP_TPH:
+				log.logDebug("TPH - Copying %d bytes", pFrame->getDataLength());
 				
 				memcpy(&tph, pFrame->getData(), pFrame->getDataLength());
 
 				delete pFrame;
 
 				log.logDebug(
-					"Got AVG data: T = %d, P = %d, H = %d", 
-					tph.temperature, 
-					tph.pressure, 
-					tph.humidity);
+					"Got TPH data (min, avg, max): T = %d:%d:%d, P = %d:%d:%d, H = %d:%d:%d", 
+					tph.min.temperature,
+					tph.current.temperature,
+					tph.max.temperature,
+					tph.min.pressure,
+					tph.current.pressure,
+					tph.max.pressure, 
+					tph.min.humidity,
+					tph.current.humidity,
+					tph.max.humidity);
 
-				qmgr.pushWebPost(new PostDataTPH("AVG", avgSave, &tph));
+				qmgr.pushWebPost(new PostDataTPH("AVG", avgSave, &tph.current));
+				qmgr.pushWebPost(new PostDataTPH("MAX", maxSave, &tph.max));
+				qmgr.pushWebPost(new PostDataTPH("MIN", minSave, &tph.min));
+				
+				maxSave = false;
+				minSave = false;
+
 				avgCount++;
 
 				/*
@@ -346,42 +358,6 @@ void processResponse(uint8_t * response, int responseLength)
 					avgSave = true;
 					avgCount = 0;
 				}
-				break;
-
-			case RX_RSP_MAX_TPH:
-				log.logDebug("MAX - Copying %d bytes", pFrame->getDataLength());
-				
-				memcpy(&tph, pFrame->getData(), pFrame->getDataLength());
-
-				delete pFrame;
-
-				log.logDebug(
-					"Got MAX data: T = %d, P = %d, H = %d", 
-					tph.temperature, 
-					tph.pressure, 
-					tph.humidity);
-
-				qmgr.pushWebPost(new PostDataTPH("MAX", maxSave, &tph));
-
-				maxSave = false;
-				break;
-
-			case RX_RSP_MIN_TPH:
-				log.logDebug("MIN - Copying %d bytes", pFrame->getDataLength());
-				
-				memcpy(&tph, pFrame->getData(), pFrame->getDataLength());
-
-				delete pFrame;
-
-				log.logDebug(
-					"Got MIN data: T = %d, P = %d, H = %d", 
-					tph.temperature, 
-					tph.pressure, 
-					tph.humidity);
-
-				qmgr.pushWebPost(new PostDataTPH("MIN", minSave, &tph));
-
-				minSave = false;
 				break;
 
 			case RX_RSP_RESET_MINMAX:

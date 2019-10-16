@@ -65,20 +65,16 @@
 #define RX_STATE_ERRCODE			0x14
 
 #define RX_CMD_PING					0x0F
-#define RX_CMD_AVG_TPH				0x01
-#define RX_CMD_MAX_TPH				0x02
-#define RX_CMD_MIN_TPH				0x03
-#define RX_CMD_RESET_MINMAX			0x04
-#define RX_CMD_WINDSPEED			0x05
-#define RX_CMD_RAINFALL				0x06
-#define RX_CMD_CPU_PERCENTAGE		0x07
-#define RX_CMD_WDT_DISABLE			0x08
-#define RX_CMD_GET_DASHBOARD		0x09
+#define RX_CMD_TPH					0x01
+#define RX_CMD_RESET_MINMAX			0x02
+#define RX_CMD_WINDSPEED			0x03
+#define RX_CMD_RAINFALL				0x04
+#define RX_CMD_CPU_PERCENTAGE		0x05
+#define RX_CMD_WDT_DISABLE			0x06
+#define RX_CMD_GET_DASHBOARD		0x07
 
 #define RX_RSP_PING					(RX_CMD_PING << 4)
-#define RX_RSP_AVG_TPH				(RX_CMD_AVG_TPH << 4)
-#define RX_RSP_MAX_TPH				(RX_CMD_MAX_TPH << 4)
-#define RX_RSP_MIN_TPH				(RX_CMD_MIN_TPH << 4)
+#define RX_RSP_TPH					(RX_CMD_TPH << 4)
 #define RX_RSP_RESET_MINMAX			(RX_CMD_RESET_MINMAX << 4)
 #define RX_RSP_WINDSPEED			(RX_CMD_WINDSPEED << 4)
 #define RX_RSP_RAINFALL				(RX_CMD_RAINFALL << 4)
@@ -107,6 +103,13 @@ typedef struct {
     uint16_t           humidity;
 }
 TPH;
+
+typedef struct {
+    TPH         min;
+    TPH         max;
+    TPH         current;
+}
+TPH_PACKET;
 
 typedef struct {
     uint16_t           avgWindspeed;

@@ -117,9 +117,7 @@ void * txCmdThread(void * pArgs)
 {
 	TxFrame *			pTxFrame;
 	uint32_t			txCount = 0;
-	uint32_t			txAvgTPH = 0;
-	uint32_t			txMinTPH = 1;
-	uint32_t			txMaxTPH = 2;
+	uint32_t			txTPH = 0;
 	uint32_t			txWindspeed = 3;
 	uint32_t			txRainfall = 4;
 	uint32_t			txCPURatio = 5;
@@ -150,38 +148,16 @@ void * txCmdThread(void * pArgs)
 	QueueMgr & qmgr = QueueMgr::getInstance();
 
 	while (go) {
-		if (txCount == txAvgTPH) {
+		if (txCount == txTPH) {
 			/*
 			** Next TX packet is a request for TPH data...
 			*/
-			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_AVG_TPH));
+			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_TPH));
 
 			/*
 			** Schedule next tx in 20 seconds...
 			*/
-			txAvgTPH = getScheduledTime(txCount, 20);
-		}
-		if (txCount == txMinTPH) {
-			/*
-			** Next TX packet is a request for TPH data...
-			*/
-			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_MIN_TPH));
-
-			/*
-			** Schedule next tx in 20 seconds...
-			*/
-			txMinTPH = getScheduledTime(txCount, 20);
-		}
-		if (txCount == txMaxTPH) {
-			/*
-			** Next TX packet is a request for TPH data...
-			*/
-			qmgr.pushTx(new TxFrame(NULL, 0, RX_CMD_MAX_TPH));
-
-			/*
-			** Schedule next tx in 20 seconds...
-			*/
-			txMaxTPH = getScheduledTime(txCount, 20);
+			txTPH = getScheduledTime(txCount, 20);
 		}
 		if (txCount == txWindspeed) {
 			/*

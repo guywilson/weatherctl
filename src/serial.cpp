@@ -62,6 +62,7 @@ void * avrEmulator(void * pArgs)
 	uint8_t 				data[80];
 	DASHBOARD				db;
 	CPU_RATIO				cpu;
+	TPH_PACKET				tph;
 	static const TPH		avgTph = { .temperature = 374, .pressure = 812, .humidity = 463 };
 	static const TPH		maxTph = { .temperature = 392, .pressure = 874, .humidity = 562 };
 	static const TPH		minTph = { .temperature = 332, .pressure = 799, .humidity = 401 };
@@ -96,23 +97,12 @@ void * avrEmulator(void * pArgs)
 			cpu.busyCount++;
 
 			switch (cmdCode) {
-				case RX_CMD_AVG_TPH:
-					memcpy(data, &avgTph, sizeof(TPH));
-					dataLength = sizeof(TPH);
-
-					txFrame = _build_response_frame(rxFrame, data, dataLength);
-					break;
-
-				case RX_CMD_MAX_TPH:
-					memcpy(data, &maxTph, sizeof(TPH));
-					dataLength = sizeof(TPH);
-
-					txFrame = _build_response_frame(rxFrame, data, dataLength);
-					break;
-
-				case RX_CMD_MIN_TPH:
-					memcpy(data, &minTph, sizeof(TPH));
-					dataLength = sizeof(TPH);
+				case RX_CMD_TPH:
+					memcpy(&tph.current, &avgTph, sizeof(TPH));
+					memcpy(&tph.max, &maxTph, sizeof(TPH));
+					memcpy(&tph.min, &minTph, sizeof(TPH));
+					memcpy(data, &tph, sizeof(TPH_PACKET));
+					dataLength = sizeof(TPH_PACKET);
 
 					txFrame = _build_response_frame(rxFrame, data, dataLength);
 					break;
