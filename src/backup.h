@@ -41,6 +41,8 @@ private:
     char *          pszSecondaryDBHost;
     char *          pszSecondaryDBName;
 
+    char            szDefaultCSVFileName[256];
+
     const char *    csvHeaderTPH[5] = {"TIME", "TYPE", "TEMPERATURE", "PRESSURE", "HUMIDITY"};
     const char *    csvHeaderWind[3] = {"TIME", "TYPE", "WINDSPEED"};
     const char *    csvHeaderRain[3] = {"TIME", "TYPE", "RAINFALL"};
@@ -48,6 +50,7 @@ private:
     FILE *          fptr_tph = NULL;
     FILE *          fptr_wind = NULL;
     FILE *          fptr_rain = NULL;
+    FILE *          fptr_default = NULL;
     Logger &        log = Logger::getInstance();
 
     BackupManager() {}

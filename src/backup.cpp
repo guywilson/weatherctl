@@ -42,6 +42,8 @@ void BackupManager::setupCSV(const char * pszTphFilename, const char * pszWindFi
     this->pszTphCSVFileName = strdup(pszTphFilename);
     this->pszWindCSVFileName = strdup(pszWindFilename);
     this->pszRainCSVFileName = strdup(pszRainFilename);
+
+    strcpy(this->szDefaultCSVFileName, "/usr/local/bin/default.csv");
 }
 
 void BackupManager::setupPrimaryDB(const char * pszHostname, const char * pszDBName)
@@ -98,6 +100,11 @@ FILE * BackupManager::openCSV(PostData * pPostData)
         case CLASS_ID_RAINFALL:
             fptr_csv = fptr_rain;
             pszCSVFileName = this->pszRainCSVFileName;
+            break;
+
+        default:
+            fptr_csv = fptr_default;
+            pszCSVFileName = this->szDefaultCSVFileName;
             break;
     }
 
@@ -333,7 +340,7 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
     PostDataWindspeed * pPostDataWind;
     PostDataRainfall *  pPostDataRain;
 	const char *		pszInsertTemplate;
-	char				szInsertStr[128];
+	char				szInsertStr[256];
 
     CurrentTime time;
 

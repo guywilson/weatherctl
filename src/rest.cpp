@@ -66,7 +66,7 @@ Rest::~Rest()
 int	Rest::post(PostData * pPostData)
 {
 	char *				pszBody;
-	char				szWebPath[256];
+	char				szWebPath[512];
 	CURLcode			result;
 
 	Logger & log = Logger::getInstance();
