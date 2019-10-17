@@ -46,6 +46,7 @@ private:
     const char *    csvHeaderTPH[5] = {"TIME", "TYPE", "TEMPERATURE", "PRESSURE", "HUMIDITY"};
     const char *    csvHeaderWind[3] = {"TIME", "TYPE", "WINDSPEED"};
     const char *    csvHeaderRain[3] = {"TIME", "TYPE", "RAINFALL"};
+    const char *    csvHeaderDefault[3] = {"TIME", "TYPE", "ERROR"};
 
     FILE *          fptr_tph = NULL;
     FILE *          fptr_wind = NULL;

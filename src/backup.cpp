@@ -139,6 +139,10 @@ FILE * BackupManager::openCSV(PostData * pPostData)
             case CLASS_ID_RAINFALL:
                 this->fptr_rain = fptr_csv;
                 break;
+
+            default:
+                this->fptr_default = fptr_csv;
+                break;
         }
 
         if (isNewFile) {
@@ -173,6 +177,12 @@ void BackupManager::writeCSVHeader(PostData * pPostData)
             numColumns = 3;
             csvHeader = csvHeaderRain;
             fptr_csv = this->fptr_rain;
+            break;
+
+        default:
+            numColumns = 3;
+            csvHeader = csvHeaderDefault;
+            fptr_csv = this->fptr_default;
             break;
     }
 
@@ -234,7 +244,7 @@ void BackupManager::writeCSVRecord(PostData * pPostData)
                 fflush(fptr_csv);
             }
             if (pPostDataWind->isDoSaveMax()) {
-                openCSV(pPostData);
+                fptr_csv = openCSV(pPostData);
                 
                 fputs(pPostDataWind->getTimestamp(), fptr_csv);
                 fputc(',', fptr_csv);
@@ -261,7 +271,7 @@ void BackupManager::writeCSVRecord(PostData * pPostData)
                 fflush(fptr_csv);
             }
             if (pPostDataRain->isDoSaveTotal()) {
-                openCSV(pPostData);
+                fptr_csv = openCSV(pPostData);
                 
                 fputs(pPostDataRain->getTimestamp(), fptr_csv);
                 fputc(',', fptr_csv);
