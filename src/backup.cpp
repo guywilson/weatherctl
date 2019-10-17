@@ -272,6 +272,18 @@ void BackupManager::writeCSVRecord(PostData * pPostData)
                 fflush(fptr_csv);
             }
             break;
+
+        default:
+            fptr_csv = openCSV(pPostData);
+            
+            fputs(pPostData->getTimestamp(), fptr_default);
+            fputc(',', fptr_default);
+            fputs("BASE", fptr_default);
+            fputc(',', fptr_default);
+            fputs("ERROR - Unknown type", fptr_default);
+            fputc('\n', fptr_default);
+            fflush(fptr_default);
+            break;
     }
 }
 
