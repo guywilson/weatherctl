@@ -8,6 +8,7 @@
 #include "webadmin.h"
 #include "exception.h"
 #include "avrweather.h"
+#include "wctl.h"
 #include "calibration.h"
 #include "queuemgr.h"
 #include "logger.h"
@@ -272,6 +273,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 	char							szNumProcessedMsgsBuffer[32];
 	char							szNumTasksRunBuffer[32];
 	char							szAVRAvgCPUBuffer[8];
+	char							szRpiCoreTemperature[16];
 	char *							pszMethod;
 	char *							pszURI;
 	char 							szWCTLUptimeBuffer[80];					
@@ -313,6 +315,10 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					sprintf(szAVRAvgCPUBuffer, "%.3f%%", getAVRCpuAverage());
 
 					log.logInfo("Got average AVR CPU [%s]", szAVRAvgCPUBuffer);
+
+					sprintf(szRpiCoreTemperature, "%.2fC", getCPUTemp());
+
+					log.logInfo("Got Rpi core temperature [%s]", szRpiCoreTemperature);
 
 					RxFrame * pAVRRxFrame;
 
@@ -365,6 +371,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 						szAVRUptimeBuffer[0] = 0;
 						szNumProcessedMsgsBuffer[0] = 0;
 						szNumTasksRunBuffer[0] = 0;
+						szRpiCoreTemperature[0] = 0;
 					}
 
 					string htmlFileName(web.getHTMLDocRoot());
@@ -381,6 +388,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 					templ("wctl-version") = pszWCTLVersion;
 					templ("wctl-builddate") = pszWCTLBuildDate;
 					templ("wctl-uptime") = szWCTLUptimeBuffer;
+					templ("wctl-coretemp") = szRpiCoreTemperature;
 
 					templ("avr-version") = pszAVRVersion;
 					templ("avr-builddate") = pszAVRBuildDate;

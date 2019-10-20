@@ -46,6 +46,10 @@
                     <td class="table-cell" style="text-align: left"><font size="3"><b>Uptime</b></font></td>
                     <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var wctl-uptime></font></td>
                   </tr>
+                  <tr>
+                    <td class="table-cell" style="text-align: left"><font size="3"><b>Core temperature</b></font></td>
+                    <td class="table-cell" style="text-align: right"><font size="3"><tmpl_var wctl-coretemp></font></td>
+                  </tr>
                 </table>
               </td>
             </tr>

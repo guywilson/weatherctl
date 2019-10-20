@@ -25,26 +25,6 @@ using namespace std;
 float		cpuHistory[CPU_HISTORY_SIZE];
 int			cpuIndex = 0;
 
-void resetAVR()
-{
-#ifdef __arm__
-	int		rc = 0;
-	int		pin = AVR_RESET_PIN;
-
-    rc = gpioc_open();
-
-    if (rc == 0) {
-        gpioc_setPinOutput(pin);
-
-        gpioc_setPinOff(pin);
-        usleep(100000);
-        gpioc_setPinOn(pin);
-
-        gpioc_close();
-    }
-#endif
-}
-
 void getAVRCpuHistory(float * historyArray, int arraySize)
 {
 	int			i = 0;
