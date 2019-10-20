@@ -4,6 +4,10 @@
 #include <syslog.h>
 #include <unistd.h>
 
+extern "C" {
+#include <gpioc.h>
+}
+
 #include "threads.h"
 #include "backup.h"
 #include "serial.h"
