@@ -193,6 +193,8 @@ void * txCmdThread(void * pArgs)
 			txCPURatio = getScheduledTime(txCount, 10);
 		}
 		if (txCount == txResetMinMax) {
+			log.logInfo("Sending reset min/max command to AVR...");
+			
 			/*
 			** Next TX packet is a request to reset min & max values...
 			*/
@@ -334,7 +336,7 @@ void * webPostThread(void * pArgs)
 				log.logError("Error posting %s data to %s", szType, rest.getHost());
 			}
 			else {
-				log.logInfo("Successfully posted %s data to %s", szType, rest.getHost());
+				log.logDebug("Successfully posted %s data to %s", szType, rest.getHost());
 			}
 
 			rtn = 0;

@@ -230,7 +230,7 @@ PGresult * Postgres::_execute(const char * sql)
         throw new Exception("Error issuing statement");
     }
     else {
-        log.logInfo("Successfully executed statement [%s]", sql);
+        log.logDebug("Successfully executed statement [%s]", sql);
     }
 
     if (isAutoTransaction) {

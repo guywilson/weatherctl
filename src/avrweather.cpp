@@ -376,6 +376,7 @@ void processResponse(uint8_t * response, int responseLength)
 				break;
 
 			case RX_RSP_RESET_MINMAX:
+				log.logInfo("AVR has successfully rest min/max values...");
 				delete pFrame;
 				break;
 
@@ -431,6 +432,7 @@ void processResponse(uint8_t * response, int responseLength)
 				break;
 
 			case RX_RSP_GET_DASHBOARD:
+				log.logInfo("Got dashboard response from AVR...");
 				qmgr.pushRx(pFrame);
 				break;
 
@@ -457,7 +459,7 @@ void processResponse(uint8_t * response, int responseLength)
 		}
 	}
 	else {
-		log.logError("NAK received with error code [0x%02X]", pFrame->getErrorCode());
+		log.logError("NAK received with error code [0x%02X] for response [0x%04X]", pFrame->getErrorCode(), pFrame->getResponseCode());
 		delete pFrame;
 	}
 }
