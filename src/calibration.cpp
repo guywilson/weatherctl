@@ -12,8 +12,8 @@ using namespace std;
 
 CalibrationData::CalibrationData()
 {
-    memset(_strOffsets, 0, (NUM_CALIBRATION_PAIRS * STR_VALUE_LENGTH));
-    memset(_strFactors, 0, (NUM_CALIBRATION_PAIRS * STR_VALUE_LENGTH));
+    memset(_strOffsets, 0, (NUM_CALIBRATIONS * STR_VALUE_LENGTH));
+    memset(_strFactors, 0, (NUM_CALIBRATIONS * STR_VALUE_LENGTH));
 
     strcpy(_dbTableName, cfg.getValue("calibration.dbtable"));
 
@@ -98,10 +98,10 @@ void CalibrationData::save()
 
     pg.beginTransaction();
 
-    for (i = 0;i < NUM_CALIBRATION_PAIRS;i++) {
+    for (i = 0;i < NUM_CALIBRATIONS;i++) {
         sprintf(
             szUpdateStatement, 
-            "UPDATE %s SET OFFSET_AMOUNT = '%d', FACTOR = '%.3f' WHERE NAME = '%s'",
+            "UPDATE %s SET OFFSET_AMOUNT = '%.3f', FACTOR = '%.3f' WHERE NAME = '%s'",
             _dbTableName,
             getOffset((SensorType)i),
             getFactor((SensorType)i),
@@ -115,13 +115,23 @@ void CalibrationData::save()
     isStale = true;
 }
 
-int16_t CalibrationData::getOffset(SensorType t)
+CALIBRATION CalibrationData::getCalibration(SensorType t)
+{
+    return _calibrations[t];
+}
+
+void CalibrationData::setCalibration(SensorType t, CALIBRATION c)
+{
+    _calibrations[t] = c;
+}
+
+double CalibrationData::getOffset(SensorType t)
 {
     if (isStale) {
         retrieve();
     }
 
-    return _offsets[t];
+    return _calibrations[t].offset;
 }
 char * CalibrationData::getOffsetAsCStr(SensorType t)
 {
@@ -131,15 +141,15 @@ char * CalibrationData::getOffsetAsCStr(SensorType t)
     
     return &_strOffsets[t][0];
 }
-void CalibrationData::setOffset(SensorType t, int16_t offset)
+void CalibrationData::setOffset(SensorType t, double offset)
 {
-    _offsets[t] = offset;
+    _calibrations[t].offset = offset;
 
-    sprintf(&_strOffsets[t][0], "%d", offset);
+    sprintf(&_strOffsets[t][0], "%.3f", offset);
 }
 void CalibrationData::setOffset(SensorType t, char * pszOffset)
 {
-    setOffset(t, atoi(pszOffset));
+    setOffset(t, atof(pszOffset));
 }
 void CalibrationData::setOffset(SensorType t, const char * pszOffset)
 {
@@ -153,7 +163,7 @@ double CalibrationData::getFactor(SensorType t)
         retrieve();
     }
     
-    return _factors[t];
+    return _calibrations[t].factor;
 }
 char * CalibrationData::getFactorAsCStr(SensorType t)
 {
@@ -165,7 +175,7 @@ char * CalibrationData::getFactorAsCStr(SensorType t)
 }
 void CalibrationData::setFactor(SensorType t, double factor)
 {
-    _factors[t] = factor;
+    _calibrations[t].factor = factor;
 
     sprintf(&_strFactors[t][0], "%.3f", factor);
 }

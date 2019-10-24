@@ -6,25 +6,23 @@
 #ifndef _INCL_CALIBRATION
 #define _INCL_CALIBRATION
 
-#define NUM_CALIBRATION_PAIRS                5
+#define NUM_CALIBRATIONS                     5
 #define STR_VALUE_LENGTH                    32
 
 typedef struct
 {
-    int16_t         thermometerOffset;
-    double          thermometerFactor;
+    double          offset;
+    double          factor;
+}
+CALIBRATION;
 
-    int16_t         barometerOffset;
-    double          barometerFactor;
-
-    int16_t         humidityOffset;
-    double          humidityFactor;
-
-    int16_t         anemometerOffset;
-    double          anemometerFactor;
-
-    int16_t         rainGaugeOffset;
-    double          rainGaugeFactor;
+typedef struct
+{
+    CALIBRATION     thermometer;
+    CALIBRATION     barometer;
+    CALIBRATION     hygrometer;
+    CALIBRATION     anemometer;
+    CALIBRATION     rainGauge;
 }
 CALIBRATION_DATA;
 
@@ -45,13 +43,12 @@ private:
     ConfigManager & cfg = ConfigManager::getInstance();
 
     char            _dbTableName[64];
-    const char *    _dbRowNames[NUM_CALIBRATION_PAIRS] = {"thermometer", "barometer", "hygrometer", "anemometer", "rainGauge"};
+    const char *    _dbRowNames[NUM_CALIBRATIONS] = {"thermometer", "barometer", "hygrometer", "anemometer", "rainGauge"};
 
-    int16_t         _offsets[NUM_CALIBRATION_PAIRS];
-    double          _factors[NUM_CALIBRATION_PAIRS];
+    CALIBRATION     _calibrations[NUM_CALIBRATIONS];
 
-    char            _strOffsets[NUM_CALIBRATION_PAIRS][STR_VALUE_LENGTH];
-    char            _strFactors[NUM_CALIBRATION_PAIRS][STR_VALUE_LENGTH];
+    char            _strOffsets[NUM_CALIBRATIONS][STR_VALUE_LENGTH];
+    char            _strFactors[NUM_CALIBRATIONS][STR_VALUE_LENGTH];
 
     bool            isStale = true;
 
@@ -69,9 +66,12 @@ public:
     void            retrieve();
     void            save();
 
-    int16_t         getOffset(SensorType t);
+    CALIBRATION     getCalibration(SensorType t);
+    void            setCalibration(SensorType t, CALIBRATION c);
+
+    double          getOffset(SensorType t);
     char *          getOffsetAsCStr(SensorType t);
-    void            setOffset(SensorType t, int16_t offset);
+    void            setOffset(SensorType t, double offset);
     void            setOffset(SensorType t, char * pszOffset);
     void            setOffset(SensorType t, const char * pszOffset);
 
