@@ -112,12 +112,16 @@ void fire_forget(TxFrame * pTxFrame)
 double getActualTemperature(uint16_t sensorValue)
 {
 	double		temperature;
+	double		offset;
+	double		factor;
 
 	CalibrationData & cd = CalibrationData::getInstance();
 
-	sensorValue += cd.getOffset(cd.thermometer);
+	offset = cd.getOffset(cd.thermometer);
+	factor = cd.getFactor(cd.thermometer);
 
-	temperature = (((((double)sensorValue / (double)1023) * (double)5) - (double)1.375) / (double)0.0225) * cd.getFactor(cd.thermometer);
+	temperature = 
+		((((((double)sensorValue + offset) / (double)1023) * (double)5) - (double)1.375) / (double)0.0225) * factor;
 
 	return temperature;
 }
@@ -128,12 +132,16 @@ double getActualTemperature(uint16_t sensorValue)
 double getActualPressure(uint16_t sensorValue)
 {
 	double		pressure;
+	double		offset;
+	double		factor;
 
 	CalibrationData & cd = CalibrationData::getInstance();
 
-	sensorValue += cd.getOffset(cd.barometer);
+	offset = cd.getOffset(cd.barometer);
+	factor = cd.getFactor(cd.barometer);
 
-	pressure = (((((double)sensorValue / (double)1023) + (double)0.095) / (double)0.009) * (double)10) * cd.getFactor(cd.barometer);
+	pressure = 
+		((((((double)sensorValue + offset) / (double)1023) + (double)0.095) / (double)0.009) * (double)10) * factor;
 
 	return pressure;
 }
@@ -144,12 +152,16 @@ double getActualPressure(uint16_t sensorValue)
 double getActualHumidity(uint16_t sensorValue)
 {
 	double		humidity;
+	double		offset;
+	double		factor;
 
 	CalibrationData & cd = CalibrationData::getInstance();
 
-	sensorValue += cd.getOffset(cd.hygrometer);
+	offset = cd.getOffset(cd.hygrometer);
+	factor = cd.getFactor(cd.hygrometer);
 
-	humidity = ((((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062) * cd.getFactor(cd.hygrometer);
+	humidity = 
+		(((((double)sensorValue + offset) / (double)1023) - (double)0.16) / (double)0.0062) * factor;
 
 	return humidity;
 }
@@ -157,12 +169,15 @@ double getActualHumidity(uint16_t sensorValue)
 double getActualWindspeed(uint16_t sensorValue)
 {
 	double		windspeed;
+	double		offset;
+	double		factor;
 
 	CalibrationData & cd = CalibrationData::getInstance();
 
-	sensorValue += cd.getOffset(cd.anemometer);
+	offset = cd.getOffset(cd.anemometer);
+	factor = cd.getFactor(cd.anemometer);
 
-	windspeed = (double)sensorValue * RPS_TO_KPH_SCALE_FACTOR * cd.getFactor(cd.anemometer);
+	windspeed = ((double)sensorValue + offset) * RPS_TO_KPH_SCALE_FACTOR * factor;
 
 	return windspeed;
 }
@@ -170,12 +185,15 @@ double getActualWindspeed(uint16_t sensorValue)
 double getActualRainfall(uint16_t sensorValue)
 {
 	double		rainfall;
+	double		offset;
+	double		factor;
 
 	CalibrationData & cd = CalibrationData::getInstance();
 
-	sensorValue += cd.getOffset(cd.rainGauge);
+	offset = cd.getOffset(cd.rainGauge);
+	factor = cd.getFactor(cd.rainGauge);
 
-	rainfall = (double)sensorValue * TIPS_TO_MM_SCALE_FACTOR * cd.getFactor(cd.rainGauge);
+	rainfall = ((double)sensorValue + offset) * TIPS_TO_MM_SCALE_FACTOR * factor;
 	
 	return rainfall;
 }
