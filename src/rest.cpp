@@ -135,9 +135,18 @@ const char * Rest::login(char * pszLoginDetails, const char * pszPathSuffix)
 
 	d.Parse(response.c_str());
 
-	Value & s = d["token"];
+	Value & auth = d["auth"];
 
-	return s.GetString();
+	bool isAuthenticated = auth.GetBool();
+
+	if (!isAuthenticated) {
+		log.logError("Failed to authenticate");
+		throw new Exception("Failed to authenticate");
+	}
+
+	Value & token = d["token"];
+
+	return token.GetString();
 }
 
 int	Rest::post(PostData * pPostData, const char * pszAPIKey)

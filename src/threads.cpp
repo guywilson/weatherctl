@@ -306,7 +306,13 @@ void * webPostThread(void * pArgs)
 		cfg.getValue("web.email"), 
 		cfg.getValue("web.password"));
 
-	pszAPIKey = rest.login(szLoginDetails, "auth/login");
+	try {
+		pszAPIKey = rest.login(szLoginDetails, "auth/login");
+	}
+	catch (Exception * e) {
+		log.logError("Failed to authenticate email %s", cfg.getValue("web.email"));
+		return NULL;
+	}
 
 	while (go) {
 		if (!qmgr.isWebPostQueueEmpty()) {
@@ -361,7 +367,13 @@ void * webPostThread(void * pArgs)
 						/*
 						** Login again and get a new key...
 						*/
-						pszAPIKey = rest.login(szLoginDetails, "auth/login");
+						try {
+							pszAPIKey = rest.login(szLoginDetails, "auth/login");
+						}
+						catch (Exception * e) {
+							log.logError("Failed to re-authenticate email %s", cfg.getValue("web.email"));
+							doPost = false;
+						}
 					}
 					else {
 						doPost = false;
