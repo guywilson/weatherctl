@@ -286,8 +286,10 @@ void * txCmdThread(void * pArgs)
 
 void * webPostThread(void * pArgs)
 {
-	int 			rtn = 0;
+	int 			rtn = POST_OK;
+	int				attempts = 0;
 	bool 			go = true;
+	bool			doPost = true;
 	char			szType[32];
 	char			szLoginDetails[1024];
 	const char *	pszAPIKey;
@@ -338,19 +340,40 @@ void * webPostThread(void * pArgs)
 
 			log.logDebug("Posting %s data to %s", szType, rest.getHost());
 
-			rtn = rest.post(pPostData, pszAPIKey);
+			attempts = 0;
 
-			BackupManager & backup = BackupManager::getInstance();
-			backup.backup(pPostData);
+			while (doPost) {
+				rtn = rest.post(pPostData, pszAPIKey);
 
-			if (rtn < 0) {
-				log.logError("Error posting %s data to %s", szType, rest.getHost());
+				attempts++;
+
+				BackupManager & backup = BackupManager::getInstance();
+				backup.backup(pPostData);
+
+				if (rtn == POST_CURL_ERROR) {
+					log.logError("CURL error posting %s data to %s", szType, rest.getHost());
+					doPost = false;
+				}
+				else if (rtn == POST_AUTHENTICATION_ERROR) {
+					if (attempts < 2) {
+						log.logError("Authentication error posting %s data to %s - Retrying...", szType, rest.getHost());
+
+						/*
+						** Login again and get a new key...
+						*/
+						pszAPIKey = rest.login(szLoginDetails, "auth/login");
+					}
+					else {
+						doPost = false;
+					}
+				}
+				else if (rtn == POST_OK) {
+					log.logDebug("Successfully posted %s data to %s", szType, rest.getHost());
+					doPost = false;
+				}
 			}
-			else {
-				log.logDebug("Successfully posted %s data to %s", szType, rest.getHost());
-			}
 
-			rtn = 0;
+			rtn = POST_OK;
 
 			delete pPostData;
 		}

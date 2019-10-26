@@ -198,11 +198,23 @@ int	Rest::post(PostData * pPostData, const char * pszAPIKey)
 
 	if (result != CURLE_OK) {
 		log.logError("Failed to post to %s - Curl error [%s]", szWebPath, this->szCurlError);
-		return -1;
+		return POST_CURL_ERROR;
 	}
 
 	log.logDebug("Finished post to %s", szWebPath);
 	log.logInfo("Got response from server: %s", response.c_str());
 
-	return 0;
+	Document d;
+
+	d.Parse(response.c_str());
+
+	Value & s = d["auth"];
+
+	bool isAuthenticated = s.GetBool();
+
+	if (!isAuthenticated) {
+		return POST_AUTHENTICATION_ERROR;
+	}
+
+	return POST_OK;
 }
