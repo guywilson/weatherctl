@@ -286,14 +286,25 @@ void * txCmdThread(void * pArgs)
 
 void * webPostThread(void * pArgs)
 {
-	int 		rtn = 0;
-	bool 		go = true;
-	char		szType[32];
+	int 			rtn = 0;
+	bool 			go = true;
+	char			szType[32];
+	char			szLoginDetails[1024];
+	const char *	pszAPIKey;
 
 	Rest 		rest;
 
 	QueueMgr & qmgr = QueueMgr::getInstance();
 	Logger & log = Logger::getInstance();
+	ConfigManager & cfg = ConfigManager::getInstance();
+
+	sprintf(
+		szLoginDetails, 
+		"{\n\t\"email\": \"%s\",\n\t\"password\": \"%s\"\n}", 
+		cfg.getValue("web.email"), 
+		cfg.getValue("web.password"));
+
+	pszAPIKey = rest.login(szLoginDetails, "auth/login");
 
 	while (go) {
 		if (!qmgr.isWebPostQueueEmpty()) {
@@ -327,7 +338,7 @@ void * webPostThread(void * pArgs)
 
 			log.logDebug("Posting %s data to %s", szType, rest.getHost());
 
-			rtn = rest.post(pPostData);
+			rtn = rest.post(pPostData, pszAPIKey);
 
 			BackupManager & backup = BackupManager::getInstance();
 			backup.backup(pPostData);
