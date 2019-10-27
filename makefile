@@ -8,7 +8,7 @@
 
 # Version number for WCTL
 MAJOR_VERSION = 1
-MINOR_VERSION = 5
+MINOR_VERSION = 6
 
 # Directories
 SOURCE = src
