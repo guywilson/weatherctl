@@ -20,15 +20,36 @@ extern "C" {
 
 #define TXRX_WAIT_us								25000L
 
-static void *      txCmdThread(void * pArgs);
-static void *      webPostThread(void * pArgs);
-static void *      webListenerThread(void * pArgs);
+void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
+{
+	if (!isAdminOnly) {
+		this->pWebPostThread = new WebPostThread();
+		this->pWebPostThread->start();
 
-pthread_t			tidTxCmd;
-pthread_t			tidWebListener;
-pthread_t			tidWebPost;
+		this->pTxCmdThread = new TxCmdThread();
+		this->pTxCmdThread->start();
+	}
 
-int getTxRxFrequency()
+	if (isAdminEnabled) {
+		this->pAdminListenThread = new AdminListenThread();
+		this->pAdminListenThread->start();
+	}
+}
+
+void ThreadManager::killThreads()
+{
+	if (this->pAdminListenThread != NULL) {
+		this->pAdminListenThread->stop();
+	}
+	if (this->pWebPostThread != NULL) {
+		this->pWebPostThread->stop();
+	}
+	if (this->pTxCmdThread != NULL) {
+		this->pTxCmdThread->stop();
+	}
+}
+
+int TxCmdThread::getTxRxFrequency()
 {
 	static int f = 0;
 
@@ -44,7 +65,7 @@ int getTxRxFrequency()
 	return f;
 }
 
-uint32_t getTxRxDelay()
+uint32_t TxCmdThread::getTxRxDelay()
 {
 	static uint32_t delay = 0;
 
@@ -55,66 +76,12 @@ uint32_t getTxRxDelay()
 	return delay;
 }
 
-uint32_t getScheduledTime(uint32_t currentCount, int numSeconds)
+uint32_t TxCmdThread::getScheduledTime(uint32_t currentCount, int numSeconds)
 {
 	return (currentCount + (numSeconds * getTxRxFrequency()));
 }
 
-int startThreads(bool isAdminOnly, bool isAdminEnabled)
-{
-	int	err;
-
-	Logger & log = Logger::getInstance();
-
-	log.logInfo("Starting threads...");
-
-	if (!isAdminOnly) {
-		err = pthread_create(&tidTxCmd, NULL, &txCmdThread, NULL);
-
-		if (err != 0) {
-			log.logError("ERROR! Can't create txCmdThread() :[%s]", strerror(err));
-			return -1;
-		}
-		else {
-			log.logInfo("Thread txCmdThread() created successfully");
-		}
-	}
-
-	if (isAdminEnabled) {
-		err = pthread_create(&tidWebListener, NULL, &webListenerThread, NULL);
-
-		if (err != 0) {
-			log.logError("ERROR! Can't create webListenerThread() :[%s]", strerror(err));
-			return -1;
-		}
-		else {
-			log.logInfo("Thread webListenerThread() created successfully");
-		}
-	}
-
-	if (!isAdminOnly) {
-		err = pthread_create(&tidWebPost, NULL, &webPostThread, NULL);
-
-		if (err != 0) {
-			log.logError("ERROR! Can't create webPostThread() :[%s]", strerror(err));
-			return -1;
-		}
-		else {
-			log.logInfo("Thread webPostThread() created successfully");
-		}
-	}
-
-	return 0;
-}
-
-void killThreads()
-{
-	pthread_kill(tidTxCmd, SIGKILL);
-	pthread_kill(tidWebListener, SIGKILL);
-	pthread_kill(tidWebPost, SIGKILL);
-}
-
-void * txCmdThread(void * pArgs)
+void * TxCmdThread::run(void * pArgs)
 {
 	TxFrame *			pTxFrame;
 	uint32_t			txCount = 0;
@@ -285,7 +252,7 @@ void * txCmdThread(void * pArgs)
 	return NULL;
 }
 
-void * webPostThread(void * pArgs)
+void * WebPostThread::run(void * pArgs)
 {
 	int 			rtn = POST_OK;
 	int				attempts = 0;
@@ -396,7 +363,7 @@ void * webPostThread(void * pArgs)
 	return NULL;
 }
 
-void * webListenerThread(void * pArgs)
+void * AdminListenThread::run(void * pArgs)
 {
 	WebAdmin & web = WebAdmin::getInstance();
 	Logger & log = Logger::getInstance();

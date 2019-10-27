@@ -19,7 +19,9 @@ void cleanup(void)
 	/*
 	** Kill the threads...
 	*/
-	killThreads();
+	ThreadManager & threadMgr = ThreadManager::getInstance();
+
+	threadMgr.killThreads();
 
 	/*
 	** Close any open DB connection...

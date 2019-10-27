@@ -299,11 +299,9 @@ int main(int argc, char *argv[])
 	/*
 	 * Start threads...
 	 */
-	int rtn = startThreads(isAdminOnly, isAdminEnabled);
+	ThreadManager & threadMgr = ThreadManager::getInstance();
 
-	if (rtn < 0) {
-		return rtn;
-	}
+	threadMgr.startThreads(isAdminOnly, isAdminEnabled);
 
 	while (1) {
 		sleep(5);
