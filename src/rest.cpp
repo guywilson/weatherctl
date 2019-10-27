@@ -1,3 +1,5 @@
+#include <string>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,9 +14,32 @@
 #include "frame.h"
 #include "avrweather.h"
 #include "rest.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 extern "C" {
 #include "version.h"
+}
+
+using namespace std;
+using namespace rapidjson;
+
+size_t CurlWrite_CallbackFunc(void * contents, size_t size, size_t nmemb, std::string * s)
+{
+    size_t newLength = size * nmemb;
+
+	Logger & log = Logger::getInstance();
+
+    try {
+        s->append((char*)contents, newLength);
+    }
+    catch(std::bad_alloc & e) {
+        log.logError("Failed to grow string");
+        return 0;
+    }
+
+    return newLength;
 }
 
 Rest::Rest()
@@ -63,15 +88,13 @@ Rest::~Rest()
 	curl_easy_cleanup(this->pCurl);
 }
 
-int	Rest::post(PostData * pPostData)
+char * Rest::login(PostData * pPostData)
 {
 	char *				pszBody;
 	char				szWebPath[512];
 	CURLcode			result;
 
 	Logger & log = Logger::getInstance();
-
-	pszBody = pPostData->getJSON();
 
 	sprintf(
 		szWebPath, 
@@ -82,7 +105,11 @@ int	Rest::post(PostData * pPostData)
 		this->szBasePath, 
 		pPostData->getPathSuffix());
 
-	log.logDebug("Posting to %s [%s]", szWebPath, pszBody);
+	log.logDebug("logging in to %s", szWebPath);
+
+	pszBody = pPostData->getJSON();
+
+	string response;
 
 	/*
 	** Custom headers for JSON...
@@ -97,17 +124,111 @@ int	Rest::post(PostData * pPostData)
 	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszBody);
     curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers); 
     curl_easy_setopt(pCurl, CURLOPT_USERAGENT, "libcrp/0.1");
+	curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, CurlWrite_CallbackFunc);
+	curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, &response);
+
+	result = curl_easy_perform(pCurl);
+
+	if (result != CURLE_OK) {
+		log.logError("Failed to post to %s - Curl error [%s]", szWebPath, this->szCurlError);
+		return NULL;
+	}
+
+	Document d;
+
+	d.Parse(response.c_str());
+
+	Value & auth = d["auth"];
+
+	bool isAuthenticated = auth.GetBool();
+
+	if (!isAuthenticated) {
+		log.logError("Failed to authenticate");
+		throw new Exception("Failed to authenticate");
+	}
+
+	log.logInfo("Successfully logged into server");
+	
+	Value & token = d["token"];
+
+	return strdup(token.GetString());
+}
+
+int	Rest::post(PostData * pPostData, const char * pszAPIKey)
+{
+	char *				pszBody;
+	char *				pszTokenHeader;
+	char				szWebPath[512];
+	CURLcode			result;
+
+	Logger & log = Logger::getInstance();
+
+	pszTokenHeader = (char *)malloc(strlen(pszAPIKey) + 32);
+
+	if (pszTokenHeader == NULL) {
+		log.logError("Failed to allocate token header");
+		throw new Exception("Failed to allocate token header");
+	}
+
+	pszBody = pPostData->getJSON();
+
+	strcpy(pszTokenHeader, "x-access-token: ");
+	strcat(pszTokenHeader, pszAPIKey);
+
+	sprintf(
+		szWebPath, 
+		"%s://%s:%d%s%s", 
+		(this->isSecure ? "https" : "http"), 
+		this->getHost(), 
+		this->getPort(), 
+		this->szBasePath, 
+		pPostData->getPathSuffix());
+
+	log.logDebug("Posting to %s [%s]", szWebPath, pszBody);
+
+	string response;
+
+	/*
+	** Custom headers for JSON...
+	*/
+	struct curl_slist *headers = NULL;
+	headers = curl_slist_append(headers, "Accept: application/json");
+	headers = curl_slist_append(headers, "Content-Type: application/json");
+	headers = curl_slist_append(headers, "charsets: utf-8");
+	headers = curl_slist_append(headers, pszTokenHeader);
+
+	curl_easy_setopt(pCurl, CURLOPT_URL, szWebPath);
+	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(pszBody));
+	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszBody);
+    curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers); 
+    curl_easy_setopt(pCurl, CURLOPT_USERAGENT, "libcrp/0.1");
+	curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, CurlWrite_CallbackFunc);
+	curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, &response);
 
 	result = curl_easy_perform(pCurl);
 
 	free(pszBody);
+	free(pszTokenHeader);
 
 	if (result != CURLE_OK) {
 		log.logError("Failed to post to %s - Curl error [%s]", szWebPath, this->szCurlError);
-		return -1;
+		return POST_CURL_ERROR;
 	}
 
-	log.logDebug("Finished post to %s", szWebPath);
+	log.logDebug("Finished post to %s, got response: %s", szWebPath, response.c_str());
 
-	return 0;
+	Document d;
+
+	d.Parse(response.c_str());
+
+	Value & s = d["auth"];
+
+	bool isAuthenticated = s.GetBool();
+
+	if (!isAuthenticated) {
+		log.logInfo("Authentication failed...");
+		return POST_AUTHENTICATION_ERROR;
+	}
+
+	return POST_OK;
 }

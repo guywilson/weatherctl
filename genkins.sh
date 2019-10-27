@@ -56,10 +56,9 @@ fi
 
 echo -e ${ACTION}Build succeeded${NOCOLOR}
 
-while IFS= read -r pid; do
-    echo -e ${ACTION}PID of wctl process is: $pid${NOCOLOR}
-    kill $pid
-done < "wctl.pid"
+# Stop the process...
+echo -e ${ACTION}Stopping wctl service...${NOCOLOR}
+systemctl stop weatherctl
 
 echo -e ${ACTION}Installing new version...${NOCOLOR}
 make install
@@ -70,5 +69,5 @@ if [ $? -ne 0 ] ; then
 fi    
 
 # Restart the process...
-echo -e ${ACTION}Restarting wctl process...${NOCOLOR}
-wctl -d -cfg /etc/weatherctl/wctl.cfg
+echo -e ${ACTION}Restarting wctl service...${NOCOLOR}
+systemctl start weatherctl

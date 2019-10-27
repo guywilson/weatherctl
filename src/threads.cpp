@@ -11,6 +11,7 @@
 #include "webadmin.h"
 #include "rest.h"
 #include "backup.h"
+#include "postdata.h"
 #include "threads.h"
 
 extern "C" {
@@ -286,14 +287,28 @@ void * txCmdThread(void * pArgs)
 
 void * webPostThread(void * pArgs)
 {
-	int 		rtn = 0;
-	bool 		go = true;
-	char		szType[32];
+	int 			rtn = POST_OK;
+	int				attempts = 0;
+	bool 			go = true;
+	bool			doPost = true;
+	char			szType[32];
+	char *			pszAPIKey;
 
 	Rest 		rest;
 
 	QueueMgr & qmgr = QueueMgr::getInstance();
 	Logger & log = Logger::getInstance();
+	ConfigManager & cfg = ConfigManager::getInstance();
+
+	PostDataLogin * pPostDataLogin = new PostDataLogin(cfg.getValue("web.email"), cfg.getValue("web.password"));
+
+	try {
+		pszAPIKey = rest.login(pPostDataLogin);
+	}
+	catch (Exception * e) {
+		log.logError("Failed to authenticate email %s", cfg.getValue("web.email"));
+		return NULL;
+	}
 
 	while (go) {
 		if (!qmgr.isWebPostQueueEmpty()) {
@@ -327,25 +342,56 @@ void * webPostThread(void * pArgs)
 
 			log.logDebug("Posting %s data to %s", szType, rest.getHost());
 
-			rtn = rest.post(pPostData);
+			attempts = 0;
 
-			BackupManager & backup = BackupManager::getInstance();
-			backup.backup(pPostData);
+			doPost = true;
 
-			if (rtn < 0) {
-				log.logError("Error posting %s data to %s", szType, rest.getHost());
+			while (doPost) {
+				rtn = rest.post(pPostData, pszAPIKey);
+
+				attempts++;
+
+				BackupManager & backup = BackupManager::getInstance();
+				backup.backup(pPostData);
+
+				if (rtn == POST_CURL_ERROR) {
+					log.logError("CURL error posting %s data to %s", szType, rest.getHost());
+					doPost = false;
+				}
+				else if (rtn == POST_AUTHENTICATION_ERROR) {
+					if (attempts < 2) {
+						log.logError("Authentication error posting %s data to %s - Retrying...", szType, rest.getHost());
+
+						/*
+						** Login again and get a new key...
+						*/
+						try {
+							pszAPIKey = rest.login(pPostDataLogin);
+						}
+						catch (Exception * e) {
+							log.logError("Failed to re-authenticate email %s", cfg.getValue("web.email"));
+							doPost = false;
+						}
+					}
+					else {
+						doPost = false;
+					}
+				}
+				else if (rtn == POST_OK) {
+					log.logDebug("Successfully posted %s data to %s", szType, rest.getHost());
+					doPost = false;
+				}
 			}
-			else {
-				log.logDebug("Successfully posted %s data to %s", szType, rest.getHost());
-			}
 
-			rtn = 0;
+			rtn = POST_OK;
 
 			delete pPostData;
 		}
 
 		sleep(1);
 	}
+
+	free(pszAPIKey);
 
 	return NULL;
 }

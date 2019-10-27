@@ -7,6 +7,10 @@
 #ifndef _INCL_REST
 #define _INCL_REST
 
+#define POST_OK						0
+#define POST_CURL_ERROR				-1
+#define POST_AUTHENTICATION_ERROR	-2
+
 class Rest
 {
 private:
@@ -28,7 +32,8 @@ public:
 		return this->port;
 	}
 
-	int			post(PostData * pPostData);
+	char *			login(PostData * pPostData);
+	int				post(PostData * pPostData, const char * pszAPIKey);
 };
 
 #endif
