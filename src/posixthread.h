@@ -31,8 +31,8 @@ public:
 
     static void         sleep(unsigned long t);
 
-    virtual void        start();
-    virtual void        start(void * p);
+    virtual bool        start();
+    virtual bool        start(void * p);
 
     virtual void        stop();
 

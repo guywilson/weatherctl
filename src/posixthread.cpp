@@ -62,12 +62,12 @@ void PosixThread::sleep(unsigned long t)
 	usleep(t * 1000L);
 }
 
-void PosixThread::start()
+bool PosixThread::start()
 {
-	this->start(NULL);
+	return this->start(NULL);
 }
 
-void PosixThread::start(void * p)
+bool PosixThread::start(void * p)
 {
 	int			err;
 
@@ -77,10 +77,10 @@ void PosixThread::start(void * p)
 
 	if (err != 0) {
 		log.logError("ERROR! Can't create thread :[%s]", strerror(err));
+		return false;
 	}
-	else {
-		log.logInfo("Thread created successfully");
-	}
+
+	return true;
 }
 
 void PosixThread::stop()

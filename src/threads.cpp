@@ -22,17 +22,34 @@ extern "C" {
 
 void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 {
+	Logger & log = Logger::getInstance();
+
 	if (!isAdminOnly) {
 		this->pWebPostThread = new WebPostThread();
-		this->pWebPostThread->start();
+		if (this->pWebPostThread->start()) {
+			log.logInfo("Started WebPostThread successfully");
+		}
+		else {
+			throw new Exception("Failed to start WebPostThread");
+		}
 
 		this->pTxCmdThread = new TxCmdThread();
-		this->pTxCmdThread->start();
+		if (this->pTxCmdThread->start()) {
+			log.logInfo("Started TxCmdThread successfully");
+		}
+		else {
+			throw new Exception("Failed to start TxCmdThread");
+		}
 	}
 
 	if (isAdminEnabled) {
 		this->pAdminListenThread = new AdminListenThread();
-		this->pAdminListenThread->start();
+		if (this->pAdminListenThread->start()) {
+			log.logInfo("Started AdminListenThread successfully");
+		}
+		else {
+			throw new Exception("Failed to start AdminListenThread");
+		}
 	}
 }
 
