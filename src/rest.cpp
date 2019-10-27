@@ -88,8 +88,9 @@ Rest::~Rest()
 	curl_easy_cleanup(this->pCurl);
 }
 
-char * Rest::login(char * pszLoginDetails, const char * pszPathSuffix)
+char * Rest::login(PostData * pPostData)
 {
+	char *				pszBody;
 	char				szWebPath[512];
 	CURLcode			result;
 
@@ -102,9 +103,11 @@ char * Rest::login(char * pszLoginDetails, const char * pszPathSuffix)
 		this->getHost(), 
 		this->getPort(), 
 		this->szBasePath, 
-		pszPathSuffix);
+		pPostData->getPathSuffix());
 
 	log.logDebug("logging in to %s", szWebPath);
+
+	pszBody = pPostData->getJSON();
 
 	string response;
 
@@ -117,8 +120,8 @@ char * Rest::login(char * pszLoginDetails, const char * pszPathSuffix)
 	headers = curl_slist_append(headers, "charsets: utf-8");
 
 	curl_easy_setopt(pCurl, CURLOPT_URL, szWebPath);
-	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(pszLoginDetails));
-	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszLoginDetails);
+	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(pszBody));
+	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszBody);
     curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers); 
     curl_easy_setopt(pCurl, CURLOPT_USERAGENT, "libcrp/0.1");
 	curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, CurlWrite_CallbackFunc);
@@ -144,6 +147,8 @@ char * Rest::login(char * pszLoginDetails, const char * pszPathSuffix)
 		throw new Exception("Failed to authenticate");
 	}
 
+	log.logInfo("Successfully logged into server");
+	
 	Value & token = d["token"];
 
 	return strdup(token.GetString());
@@ -210,8 +215,7 @@ int	Rest::post(PostData * pPostData, const char * pszAPIKey)
 		return POST_CURL_ERROR;
 	}
 
-	log.logDebug("Finished post to %s", szWebPath);
-	log.logInfo("Got response from server: %s", response.c_str());
+	log.logDebug("Finished post to %s, got response: %s", szWebPath, response.c_str());
 
 	Document d;
 

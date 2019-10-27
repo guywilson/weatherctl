@@ -13,11 +13,13 @@
 #define WEB_PATH_MAX		"max-tph"
 
 #define WEB_PATH_VERSION	"version"
+#define WEB_PATH_LOGIN		"auth/login"
 
 #define CLASS_ID_BASE		0
 #define CLASS_ID_TPH		1
 #define CLASS_ID_WINDSPEED	2
 #define CLASS_ID_RAINFALL	3
+#define CLASS_ID_LOGIN		4
 #define CLASS_ID_VERSION	9
 
 class PostData
@@ -43,6 +45,40 @@ public:
 
 	virtual const char *	getPathSuffix() = 0;
 	virtual char *			getJSON() = 0;
+};
+
+class PostDataLogin : public PostData
+{
+private:
+	char			szEmailAddress[80];
+	char			szPassword[128];
+	const char *	jsonTemplate = "{\n\t\"email\": \"%s\",\n\t\"password\": \"%s\"\n}";
+
+public:
+	PostDataLogin(const char * pszEmail, const char * pszPassword) {
+		strncpy(this->szEmailAddress, pszEmail, sizeof(this->szEmailAddress));
+		strncpy(this->szPassword, pszPassword, sizeof(this->szPassword));
+	}
+	int	getClassID() {
+		return CLASS_ID_LOGIN;
+	}
+	const char * getPathSuffix() {
+		return WEB_PATH_LOGIN; 
+	}
+	char *	getJSON()
+	{
+		char *		jsonBuffer;
+
+		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + 80);
+
+		sprintf(
+			jsonBuffer,
+			jsonTemplate,
+			this->szEmailAddress,
+			this->szPassword);
+
+		return jsonBuffer;
+	}
 };
 
 class PostDataVersion : public PostData

@@ -74,7 +74,9 @@ $(DEP)/%.d: ;
 install: $(TARGET)
 	cp $(TARGET) /usr/local/bin
 	cp wctl.cfg /etc/weatherctl
+	chmod 600 /etc/weatherctl/wctl.cfg
 	cp wctl.auth /etc/weatherctl
+	chmod 600 /etc/weatherctl/wctl.auth
 	rm -r /var/www/css
 	rm -r /var/www/html
 	cp -r resources/* /var/www

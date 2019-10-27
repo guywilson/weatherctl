@@ -32,7 +32,7 @@ public:
 		return this->port;
 	}
 
-	char *			login(char * pszLoginDetails, const char * pszPathSuffix);
+	char *			login(PostData * pPostData);
 	int				post(PostData * pPostData, const char * pszAPIKey);
 };
 

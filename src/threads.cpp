@@ -11,6 +11,7 @@
 #include "webadmin.h"
 #include "rest.h"
 #include "backup.h"
+#include "postdata.h"
 #include "threads.h"
 
 extern "C" {
@@ -291,7 +292,6 @@ void * webPostThread(void * pArgs)
 	bool 			go = true;
 	bool			doPost = true;
 	char			szType[32];
-	char			szLoginDetails[1024];
 	char *			pszAPIKey;
 
 	Rest 		rest;
@@ -300,14 +300,10 @@ void * webPostThread(void * pArgs)
 	Logger & log = Logger::getInstance();
 	ConfigManager & cfg = ConfigManager::getInstance();
 
-	sprintf(
-		szLoginDetails, 
-		"{\n\t\"email\": \"%s\",\n\t\"password\": \"%s\"\n}", 
-		cfg.getValue("web.email"), 
-		cfg.getValue("web.password"));
+	PostDataLogin * pPostDataLogin = new PostDataLogin(cfg.getValue("web.email"), cfg.getValue("web.password"));
 
 	try {
-		pszAPIKey = rest.login(szLoginDetails, "auth/login");
+		pszAPIKey = rest.login(pPostDataLogin);
 	}
 	catch (Exception * e) {
 		log.logError("Failed to authenticate email %s", cfg.getValue("web.email"));
@@ -353,8 +349,6 @@ void * webPostThread(void * pArgs)
 			while (doPost) {
 				rtn = rest.post(pPostData, pszAPIKey);
 
-				log.logInfo("Got post return code: %d", rtn);
-
 				attempts++;
 
 				BackupManager & backup = BackupManager::getInstance();
@@ -372,7 +366,7 @@ void * webPostThread(void * pArgs)
 						** Login again and get a new key...
 						*/
 						try {
-							pszAPIKey = rest.login(szLoginDetails, "auth/login");
+							pszAPIKey = rest.login(pPostDataLogin);
 						}
 						catch (Exception * e) {
 							log.logError("Failed to re-authenticate email %s", cfg.getValue("web.email"));
@@ -398,7 +392,7 @@ void * webPostThread(void * pArgs)
 	}
 
 	free(pszAPIKey);
-	
+
 	return NULL;
 }
 
