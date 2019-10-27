@@ -292,7 +292,7 @@ void * webPostThread(void * pArgs)
 	bool			doPost = true;
 	char			szType[32];
 	char			szLoginDetails[1024];
-	const char *	pszAPIKey;
+	char *			pszAPIKey;
 
 	Rest 		rest;
 
@@ -348,8 +348,12 @@ void * webPostThread(void * pArgs)
 
 			attempts = 0;
 
+			doPost = true;
+
 			while (doPost) {
 				rtn = rest.post(pPostData, pszAPIKey);
+
+				log.logInfo("Got post return code: %d", rtn);
 
 				attempts++;
 
@@ -393,6 +397,8 @@ void * webPostThread(void * pArgs)
 		sleep(1);
 	}
 
+	free(pszAPIKey);
+	
 	return NULL;
 }
 

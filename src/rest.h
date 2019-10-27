@@ -10,6 +10,7 @@
 #define POST_OK						0
 #define POST_CURL_ERROR				-1
 #define POST_AUTHENTICATION_ERROR	-2
+
 class Rest
 {
 private:
@@ -31,7 +32,7 @@ public:
 		return this->port;
 	}
 
-	const char *	login(char * pszLoginDetails, const char * pszPathSuffix);
+	char *			login(char * pszLoginDetails, const char * pszPathSuffix);
 	int				post(PostData * pPostData, const char * pszAPIKey);
 };
 

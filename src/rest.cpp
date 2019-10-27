@@ -88,7 +88,7 @@ Rest::~Rest()
 	curl_easy_cleanup(this->pCurl);
 }
 
-const char * Rest::login(char * pszLoginDetails, const char * pszPathSuffix)
+char * Rest::login(char * pszLoginDetails, const char * pszPathSuffix)
 {
 	char				szWebPath[512];
 	CURLcode			result;
@@ -146,7 +146,7 @@ const char * Rest::login(char * pszLoginDetails, const char * pszPathSuffix)
 
 	Value & token = d["token"];
 
-	return token.GetString();
+	return strdup(token.GetString());
 }
 
 int	Rest::post(PostData * pPostData, const char * pszAPIKey)
@@ -222,6 +222,7 @@ int	Rest::post(PostData * pPostData, const char * pszAPIKey)
 	bool isAuthenticated = s.GetBool();
 
 	if (!isAuthenticated) {
+		log.logInfo("Authentication failed...");
 		return POST_AUTHENTICATION_ERROR;
 	}
 
