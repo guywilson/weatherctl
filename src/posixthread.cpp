@@ -1,4 +1,6 @@
+#include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "logger.h"
 #include "exception.h"
