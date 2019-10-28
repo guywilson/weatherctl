@@ -18,7 +18,7 @@ extern "C" {
 #include "strutils.h"
 }
 
-#define TXRX_WAIT_us								25000L
+#define TXRX_WAIT_ms								25L
 
 void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 {
@@ -87,7 +87,7 @@ uint32_t TxCmdThread::getTxRxDelay()
 	static uint32_t delay = 0;
 
 	if (delay == 0) {
-		delay = (1000000L / getTxRxFrequency()) - TXRX_WAIT_us;
+		delay = (1000L / getTxRxFrequency()) - TXRX_WAIT_ms;
 	}
 
 	return delay;
@@ -98,7 +98,7 @@ uint32_t TxCmdThread::getScheduledTime(uint32_t currentCount, int numSeconds)
 	return (currentCount + (numSeconds * getTxRxFrequency()));
 }
 
-void * TxCmdThread::run(void * pArgs)
+void * TxCmdThread::run()
 {
 	TxFrame *			pTxFrame;
 	uint32_t			txCount = 0;
@@ -237,7 +237,7 @@ void * TxCmdThread::run(void * pArgs)
 		/*
 		** Sleep for 25ms to allow the Arduino to respond...
 		*/
-		usleep(TXRX_WAIT_us);
+		PosixThread::sleep(TXRX_WAIT_ms);
 
 		/*
 		** Read response frame...
@@ -249,7 +249,7 @@ void * TxCmdThread::run(void * pArgs)
 		}
 		catch (Exception * e) {
 			log.logError("Error reading port: %s", e->getMessage().c_str());
-			usleep(900000L);
+			PosixThread::sleep(getTxRxDelay());
 			continue;
 		}
 
@@ -263,13 +263,13 @@ void * TxCmdThread::run(void * pArgs)
 		/*
 		** Sleep for the remaining time...
 		*/
-		usleep(getTxRxDelay());
+		PosixThread::sleep(getTxRxDelay());
 	}
 
 	return NULL;
 }
 
-void * WebPostThread::run(void * pArgs)
+void * WebPostThread::run()
 {
 	int 			rtn = POST_OK;
 	int				attempts = 0;
@@ -372,7 +372,7 @@ void * WebPostThread::run(void * pArgs)
 			delete pPostData;
 		}
 
-		sleep(1);
+		PosixThread::sleep(1000L);
 	}
 
 	free(pszAPIKey);
@@ -380,7 +380,7 @@ void * WebPostThread::run(void * pArgs)
 	return NULL;
 }
 
-void * AdminListenThread::run(void * pArgs)
+void * AdminListenThread::run()
 {
 	WebAdmin & web = WebAdmin::getInstance();
 	Logger & log = Logger::getInstance();

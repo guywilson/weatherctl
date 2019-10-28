@@ -17,6 +17,7 @@
 #include "avrweather.h"
 #include "logger.h"
 #include "frame.h"
+#include "posixthread.h"
 
 using namespace std;
 
@@ -88,7 +89,7 @@ void * avrEmulator(void * pArgs)
 			serial_frame * rxFrame = _emulatedTxQueue.front();
 			_emulatedTxQueue.pop();
 
-			usleep(1000L);
+			PosixThread::sleep(1L);
 
 			cmdCode = rxFrame->frame[3];
 
@@ -156,7 +157,7 @@ void * avrEmulator(void * pArgs)
 		db.uptime += 10;
 		db.numTasksRun += 7;
 
-		usleep(1000L);
+		PosixThread::sleep(1L);
 	}
 }
 
@@ -184,7 +185,7 @@ int SerialPort::_receive_emulated(uint8_t * pBuffer, int requestedBytes)
 	** Block until we have some bytes to read...
 	*/
 	while (_emulatedRxQueue.empty()) {
-		usleep(10000L);
+		PosixThread::sleep(10L);
 	}
 
 	serial_frame * frame = _emulatedRxQueue.front();
@@ -328,8 +329,8 @@ int SerialPort::_receive_serial(uint8_t * pBuffer, int requestedBytes)
 {
 	int		bytesRead = 0;
 	long	loopTime = 0L;
-	long	loopDelay = 50000L;
-	long	timeout = 300000L;
+	long	loopDelay = 50L;
+	long	timeout = 300L;
 	int		i = 0;
 
 	bytesRead = read(fd, pBuffer, requestedBytes);
@@ -341,7 +342,7 @@ int SerialPort::_receive_serial(uint8_t * pBuffer, int requestedBytes)
 	** then wait for a bit and try to receive some more...
 	*/
 	while (bytesRead >= 0 && bytesRead < this->expectedBytes && loopTime < timeout) {
-		usleep(loopDelay);
+		PosixThread::sleep(loopDelay);
 
 		loopTime += loopDelay;
 

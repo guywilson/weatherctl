@@ -12,23 +12,24 @@ static void * _threadRunner(void * pThreadArgs)
 	void *			pThreadRtn = NULL;
 	bool			go = true;
 
-	thread_params * pThreadParms = (thread_params *)pThreadArgs;
+	PosixThread * pThread = (PosixThread *)pThreadArgs;
 
 	Logger & log = Logger::getInstance();
 
 	while (go) {
 		try {
-			pThreadRtn = pThreadParms->pThread->run(pThreadParms->pThreadParm);
+			pThreadRtn = pThread->run();
 		}
 		catch (Exception * e) {
 			log.logError("_threadRunner: Caught exception %s", e->getMessage().c_str());
+		}
 
-			if (!pThreadParms->pThread->isRestartable()) {
-				go = false;
-			}
-			else {
-				log.logInfo("Restarting thread...");
-			}
+		if (!pThread->isRestartable()) {
+			go = false;
+		}
+		else {
+			log.logInfo("Restarting thread...");
+			PosixThread::sleep(5);
 		}
 	}
 
@@ -37,14 +38,6 @@ static void * _threadRunner(void * pThreadArgs)
 
 PosixThread::PosixThread()
 {
-	this->_pThreadParams = (thread_params *)malloc(sizeof(thread_params));
-
-	if (this->_pThreadParams == NULL) {
-		log.logError("Failed to allocate memory for thread params...");
-		throw new Exception("Failed to allocate memory for thread params...");
-	}
-
-	this->_pThreadParams->pThread = this;
 }
 
 PosixThread::PosixThread(bool isRestartable) : PosixThread()
@@ -54,7 +47,6 @@ PosixThread::PosixThread(bool isRestartable) : PosixThread()
 
 PosixThread::~PosixThread()
 {
-	free(this->_pThreadParams);
 }
 
 void PosixThread::sleep(unsigned long t)
@@ -71,9 +63,9 @@ bool PosixThread::start(void * p)
 {
 	int			err;
 
-	this->_pThreadParams->pThreadParm = p;
+	this->_threadParameters = p;
 
-	err = pthread_create(&this->_tid, NULL, &_threadRunner, this->_pThreadParams);
+	err = pthread_create(&this->_tid, NULL, &_threadRunner, this);
 
 	if (err != 0) {
 		log.logError("ERROR! Can't create thread :[%s]", strerror(err));

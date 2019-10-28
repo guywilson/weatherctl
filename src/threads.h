@@ -13,7 +13,7 @@ private:
 public:
     TxCmdThread() : PosixThread(true) {}
 
-    void *      run(void * parms);
+    void *      run();
 };
 
 class WebPostThread : public PosixThread
@@ -21,7 +21,7 @@ class WebPostThread : public PosixThread
 public:
     WebPostThread() : PosixThread(true) {}
 
-    void * run(void * parms);
+    void * run();
 };
 
 class AdminListenThread : public PosixThread
@@ -29,7 +29,7 @@ class AdminListenThread : public PosixThread
 public:
     AdminListenThread() : PosixThread(true) {}
 
-    void * run(void * parms);
+    void * run();
 };
 
 class ThreadManager

@@ -12,6 +12,7 @@
 #include "postdata.h"
 #include "currenttime.h"
 #include "logger.h"
+#include "posixthread.h"
 
 using namespace std;
 
@@ -69,7 +70,7 @@ RxFrame * send_receive(TxFrame * pTxFrame)
 	mgr.pushTx(pTxFrame);
 
 	while (mgr.isRxQueueEmpty() && waitCount < timeout) {
-		usleep(10000L);
+		PosixThread::sleep(10L);
 		waitCount++;
 	}
 

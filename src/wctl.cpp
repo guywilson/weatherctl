@@ -13,6 +13,7 @@ extern "C" {
 #include "serial.h"
 #include "logger.h"
 #include "configmgr.h"
+#include "posixthread.h"
 
 void cleanup(void)
 {
@@ -159,7 +160,7 @@ void resetAVR()
         gpioc_setPinOutput(pin);
 
         gpioc_setPinOff(pin);
-        usleep(100000);
+        PosixThread::sleep(100L);
         gpioc_setPinOn(pin);
 
         gpioc_close();

@@ -29,6 +29,7 @@
 #include "backup.h"
 #include "logger.h"
 #include "configmgr.h"
+#include "posixthread.h"
 #include "threads.h"
 #include "views.h"
 #include "wctl.h"
@@ -304,7 +305,7 @@ int main(int argc, char *argv[])
 	threadMgr.startThreads(isAdminOnly, isAdminEnabled);
 
 	while (1) {
-		sleep(5);
+		PosixThread::sleep(5000L);
 	}
 	
 	cleanup();

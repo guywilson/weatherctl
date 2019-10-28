@@ -5,23 +5,19 @@
 #ifndef _INCL_POSIXTHREAD
 #define _INCL_POSIXTHREAD
 
-class PosixThread;
-
-typedef struct
-{
-    PosixThread *           pThread;
-    void *                  pThreadParm;
-}
-thread_params;
-
 class PosixThread
 {
 private:
     pthread_t           _tid;
     bool                _isRestartable = false;
-    thread_params *     _pThreadParams = NULL;
+    void *              _threadParameters = NULL;
 
     Logger & log = Logger::getInstance();
+
+protected:
+    virtual void *      getThreadParameters() {
+        return this->_threadParameters;
+    }
 
 public:
     PosixThread();
@@ -29,6 +25,9 @@ public:
 
     ~PosixThread();
 
+    /*
+    ** Sleep for t milliseconds...
+    */
     static void         sleep(unsigned long t);
 
     virtual bool        start();
@@ -44,7 +43,7 @@ public:
         return this->_isRestartable;
     }
 
-    virtual void *      run(void * parms) = 0;
+    virtual void *      run() = 0;
 };
 
 #endif
