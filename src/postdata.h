@@ -13,6 +13,7 @@
 #define WEB_PATH_MAX		"max-tph"
 
 #define WEB_PATH_VERSION	"version"
+#define WEB_PATH_CLEANUP	"cleanup"
 #define WEB_PATH_LOGIN		"auth/login"
 
 #define CLASS_ID_BASE		0
@@ -20,6 +21,7 @@
 #define CLASS_ID_WINDSPEED	2
 #define CLASS_ID_RAINFALL	3
 #define CLASS_ID_LOGIN		4
+#define CLASS_ID_CLEANUP	5
 #define CLASS_ID_VERSION	9
 
 class PostData
@@ -78,6 +80,23 @@ public:
 			this->szPassword);
 
 		return jsonBuffer;
+	}
+};
+
+class PostDataCleanup : public PostData
+{
+public:
+	PostDataCleanup() {}
+
+	int	getClassID() {
+		return CLASS_ID_CLEANUP;
+	}
+	const char * getPathSuffix() {
+		return WEB_PATH_LOGIN; 
+	}
+	char *	getJSON()
+	{
+		return NULL;
 	}
 };
 

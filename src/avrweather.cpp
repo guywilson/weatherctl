@@ -70,7 +70,7 @@ RxFrame * send_receive(TxFrame * pTxFrame)
 	mgr.pushTx(pTxFrame);
 
 	while (mgr.isRxQueueEmpty() && waitCount < timeout) {
-		PosixThread::sleep(10L);
+		PosixThread::sleep(PosixThread::milliseconds, 10L);
 		waitCount++;
 	}
 

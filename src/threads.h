@@ -32,6 +32,14 @@ public:
     void * run();
 };
 
+class DataCleanupThread : public PosixThread
+{
+public:
+    DataCleanupThread() : PosixThread(true) {}
+
+    void * run();
+};
+
 class ThreadManager
 {
 public:
@@ -46,6 +54,7 @@ private:
     TxCmdThread *           pTxCmdThread = NULL;
     WebPostThread *         pWebPostThread = NULL;
     AdminListenThread *     pAdminListenThread = NULL;
+    DataCleanupThread *     pDataCleanupThread = NULL;
 
 public:
     void                    startThreads(bool isAdminOnly, bool isAdminEnabled);

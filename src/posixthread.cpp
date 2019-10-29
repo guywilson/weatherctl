@@ -29,7 +29,7 @@ static void * _threadRunner(void * pThreadArgs)
 		}
 		else {
 			log.logInfo("Restarting thread...");
-			PosixThread::sleep(5);
+			PosixThread::sleep(PosixThread::seconds, 1);
 		}
 	}
 
@@ -49,9 +49,29 @@ PosixThread::~PosixThread()
 {
 }
 
-void PosixThread::sleep(unsigned long t)
+void PosixThread::sleep(TimeUnit u, unsigned long t)
 {
-	usleep(t * 1000L);
+	switch (u) {
+		case hours:
+			::sleep(t * 3600);
+			break;
+
+		case minutes:
+			::sleep(t * 60);
+			break;
+
+		case seconds:
+			::sleep(t);
+			break;
+
+		case milliseconds:
+			usleep(t * 1000L);
+			break;
+
+		case microseconds:
+			usleep(t);
+			break;
+	}
 }
 
 bool PosixThread::start()

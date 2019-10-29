@@ -108,6 +108,11 @@ int CurrentTime::getDay()
 	return localTime->tm_mday;
 }
 
+int CurrentTime::getDayOfWeek()
+{
+	return localTime->tm_wday + 1;
+}
+
 int CurrentTime::getHour()
 {
 	return localTime->tm_hour;

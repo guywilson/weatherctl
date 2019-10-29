@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 	threadMgr.startThreads(isAdminOnly, isAdminEnabled);
 
 	while (1) {
-		PosixThread::sleep(5000L);
+		PosixThread::sleep(PosixThread::seconds, 5L);
 	}
 	
 	cleanup();

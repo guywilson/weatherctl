@@ -160,7 +160,7 @@ void resetAVR()
         gpioc_setPinOutput(pin);
 
         gpioc_setPinOff(pin);
-        PosixThread::sleep(100L);
+        PosixThread::sleep(PosixThread::milliseconds, 100L);
         gpioc_setPinOn(pin);
 
         gpioc_close();

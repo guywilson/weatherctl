@@ -198,8 +198,12 @@ int	Rest::post(PostData * pPostData, const char * pszAPIKey)
 	headers = curl_slist_append(headers, pszTokenHeader);
 
 	curl_easy_setopt(pCurl, CURLOPT_URL, szWebPath);
-	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(pszBody));
-	curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszBody);
+
+	if (pszBody != NULL) {
+		curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, strlen(pszBody));
+		curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszBody);
+	}
+
     curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers); 
     curl_easy_setopt(pCurl, CURLOPT_USERAGENT, "libcrp/0.1");
 	curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, CurlWrite_CallbackFunc);
@@ -207,7 +211,10 @@ int	Rest::post(PostData * pPostData, const char * pszAPIKey)
 
 	result = curl_easy_perform(pCurl);
 
-	free(pszBody);
+	if (pszBody != NULL) {
+		free(pszBody);
+	}
+	
 	free(pszTokenHeader);
 
 	if (result != CURLE_OK) {

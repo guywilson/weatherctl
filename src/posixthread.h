@@ -25,10 +25,18 @@ public:
 
     ~PosixThread();
 
+    enum TimeUnit {
+        hours,
+        minutes,
+        seconds,
+        milliseconds,
+        microseconds
+    };
+
     /*
     ** Sleep for t milliseconds...
     */
-    static void         sleep(unsigned long t);
+    static void         sleep(TimeUnit u, unsigned long t);
 
     virtual bool        start();
     virtual bool        start(void * p);

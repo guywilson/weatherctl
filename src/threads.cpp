@@ -40,6 +40,14 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 		else {
 			throw new Exception("Failed to start TxCmdThread");
 		}
+
+		this->pDataCleanupThread = new DataCleanupThread();
+		if (this->pDataCleanupThread->start()) {
+			log.logInfo("Started DataCleanupThread successfully");
+		}
+		else {
+			throw new Exception("Failed to start DataCleanupThread");
+		}
 	}
 
 	if (isAdminEnabled) {
@@ -237,7 +245,7 @@ void * TxCmdThread::run()
 		/*
 		** Sleep for 25ms to allow the Arduino to respond...
 		*/
-		PosixThread::sleep(TXRX_WAIT_ms);
+		PosixThread::sleep(PosixThread::milliseconds, TXRX_WAIT_ms);
 
 		/*
 		** Read response frame...
@@ -249,7 +257,7 @@ void * TxCmdThread::run()
 		}
 		catch (Exception * e) {
 			log.logError("Error reading port: %s", e->getMessage().c_str());
-			PosixThread::sleep(getTxRxDelay());
+			PosixThread::sleep(PosixThread::milliseconds, getTxRxDelay());
 			continue;
 		}
 
@@ -263,7 +271,7 @@ void * TxCmdThread::run()
 		/*
 		** Sleep for the remaining time...
 		*/
-		PosixThread::sleep(getTxRxDelay());
+		PosixThread::sleep(PosixThread::milliseconds, getTxRxDelay());
 	}
 
 	return NULL;
@@ -292,6 +300,11 @@ void * WebPostThread::run()
 	catch (Exception * e) {
 		log.logError("Failed to authenticate email %s", cfg.getValue("web.email"));
 		return NULL;
+	}
+
+	if (pszAPIKey == NULL) {
+		log.logError("Failed to login to web server, exiting...");
+		throw new Exception("Failed to login to server - panic!");
 	}
 
 	while (go) {
@@ -372,7 +385,7 @@ void * WebPostThread::run()
 			delete pPostData;
 		}
 
-		PosixThread::sleep(1000L);
+		PosixThread::sleep(PosixThread::seconds, 1L);
 	}
 
 	free(pszAPIKey);
@@ -389,5 +402,49 @@ void * AdminListenThread::run()
 
 	log.logInfo("web.listen returned...");
 
+	return NULL;
+}
+
+void * DataCleanupThread::run()
+{
+	bool			go = true;
+	uint32_t		secondsTillSundayMidnight;
+
+	Logger & log = Logger::getInstance();
+	QueueMgr & qmgr = QueueMgr::getInstance();
+
+	CurrentTime 		time;
+	Rest				rest;
+
+	/*
+	** Calculate seconds to midnight on Sunday...
+	*/
+	int dow = time.getDayOfWeek() - 1;
+
+	int daysUntilSunday = 7 - dow;
+
+	if (daysUntilSunday == 7) {
+		daysUntilSunday = 0;
+	}
+
+	secondsTillSundayMidnight = 
+		((23 - time.getHour()) * 3600) + ((59 - time.getMinute()) * 60) + (59 - time.getMinute()) + 
+		(daysUntilSunday * 3600 * 24);
+
+	log.logInfo("Waiting for %lu seconds until cleanup...", secondsTillSundayMidnight);
+
+	PosixThread::sleep(PosixThread::seconds, secondsTillSundayMidnight);
+
+	while (go) {
+		log.logInfo("Running cleanup task...");
+
+		qmgr.pushWebPost(new PostDataCleanup());
+
+		/*
+		** Sleep for a week...
+		*/
+		PosixThread::sleep(PosixThread::hours, 24 * 7);
+	}
+	
 	return NULL;
 }
