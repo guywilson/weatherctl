@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 	}
 	catch (Exception * e) {
 		syslog(LOG_INFO, "Could not read config file: %s", pszConfigFileName);
-		fprintf(stderr, "Could not read config file: %s\n", pszConfigFileName);
+		fprintf(stderr, "Could not read config file: %s [%s]\n", pszConfigFileName, e->getMessage().c_str());
 		fprintf(stderr, "Aborting!\n\n");
 		fflush(stderr);
 		exit(EXIT_FAILURE);
