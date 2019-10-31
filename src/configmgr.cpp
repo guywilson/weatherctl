@@ -34,6 +34,7 @@ void ConfigManager::readConfig()
     char *          pszUntrimmedValue;
 	char *			config = NULL;
     char *          reference = NULL;
+    char *          pszCfgItemFile;
 	int				fileLength = 0;
 	int				bytesRead = 0;
     int             i;
@@ -116,6 +117,38 @@ void ConfigManager::readConfig()
 
                     pszUntrimmedValue = strndup(&pszConfigLine[delimPos + 1], valueLen);
                     pszValue = str_trim_trailing(pszUntrimmedValue);
+
+                    /*
+                    ** Read the value from the file specified between <>...
+                    */
+                    if (pszValue[0] == '<' && str_endswith(pszValue, ">")) {
+                        pszValue[strlen(pszValue) - 1] = 0;
+                        pszCfgItemFile = str_trim(&pszValue[1]);
+
+                        free(pszValue);
+
+                        FILE * f = fopen(pszCfgItemFile, "rt");
+
+                        if (f == NULL) {
+                            syslog(LOG_ERR, "Failed to open cfg item file %s", pszCfgItemFile);
+                            throw new Exception("ERROR reading config item");
+                        }
+
+                        fseek(f, 0L, SEEK_END);
+                        long propFileLength = ftell(f);
+                        rewind(f);
+
+                        pszValue = (char *)malloc(propFileLength + 1);
+
+                        if (pszValue == NULL) {
+                            syslog(LOG_ERR, "Failed to alocate %ld bytes for config item %s", propFileLength + 1, pszKey);
+                            throw new Exception("Failed to allocate memory for config item.");
+                        }
+
+                        fread(pszValue, propFileLength, 1, f);
+
+                        fclose(f);
+                    }
                     free(pszUntrimmedValue);
                     break;
                 }

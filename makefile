@@ -72,14 +72,14 @@ $(DEP)/%.d: ;
 -include $(DEPFILES)
 
 install: $(TARGET)
-	cp $(TARGET) /usr/local/bin
-	cp wctl.cfg /etc/weatherctl
-	chmod 600 /etc/weatherctl/wctl.cfg
-	cp wctl.auth /etc/weatherctl
-	chmod 600 /etc/weatherctl/wctl.auth
-	rm -r /var/www/css
-	rm -r /var/www/html
-	cp -r resources/* /var/www
+	cp $(TARGET) /sandiskusb/bin
+	cp wctl.cfg /sandiskusb/weatherctl
+	chmod 600 /sandiskusb/weatherctl/wctl.cfg
+	cp wctl.auth /sandiskusb/weatherctl
+	chmod 600 /sandiskusb/weatherctl/wctl.auth
+	rm -r /sandiskusb/www/css
+	rm -r /sandiskusb/www/html
+	cp -r resources/* /sandiskusb/www
 
 version:
 	$(VBUILD) -incfile wctl.ver -template version.c.template -out $(SOURCE)/version.c -major $(MAJOR_VERSION) -minor $(MINOR_VERSION)

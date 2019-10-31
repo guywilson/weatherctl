@@ -5,9 +5,10 @@
 /*.txt
 /*.log
 /*.pid
+/*.prop
 test.cfg
+mac.cfg
 /resources/html/calib/calibration.html
 /resources/html/index.html
 wctl.crt
 wctl.key
-mac.cfg
