@@ -12,3 +12,4 @@ mac.cfg
 /resources/html/index.html
 wctl.crt
 wctl.key
+wctl.auth
