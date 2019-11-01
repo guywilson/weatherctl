@@ -84,8 +84,6 @@ void ConfigManager::readConfig()
     */
     config[fileLength] = 0;
 
-	syslog(LOG_INFO, "Read %d bytes from config file %s", bytesRead, szConfigFileName);
-
 	pszConfigLine = strtok_r(config, delimiters, &reference);
 
 	while (pszConfigLine != NULL) {
@@ -96,8 +94,6 @@ void ConfigManager::readConfig()
             pszConfigLine = strtok_r(NULL, delimiters, &reference);
             continue;
         }
-
-        syslog(LOG_DEBUG, "Read %d chars of line '%s'", (int)strlen(pszConfigLine), pszConfigLine);
 
         if (strlen(pszConfigLine) > 0) {
             for (i = 0;i < (int)strlen(pszConfigLine);i++) {
@@ -118,8 +114,6 @@ void ConfigManager::readConfig()
                     pszUntrimmedValue = strndup(&pszConfigLine[delimPos + 1], valueLen);
                     pszValue = str_trim_trailing(pszUntrimmedValue);
 
-                    printf("Value is '%s'\n", pszValue);
-
                     /*
                     ** Read the value from the file specified between <>...
                     */
@@ -127,9 +121,7 @@ void ConfigManager::readConfig()
                         pszValue[strlen(pszValue) - 1] = 0;
                         pszCfgItemFile = str_trim(&pszValue[1]);
 
-                        printf("Config item file is '%s'\n", pszCfgItemFile);
-
-                        free(pszValue);
+                        free(pszValue);  
 
                         FILE * f = fopen(pszCfgItemFile, "rt");
 
@@ -161,8 +153,6 @@ void ConfigManager::readConfig()
 
             delimPos = 0;
             valueLen = 0;
-
-            syslog(LOG_DEBUG, "Got key '%s' and value '%s'", pszKey, pszValue);
 
             values[string(pszKey)] = string(pszValue);
 

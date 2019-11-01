@@ -168,7 +168,6 @@ int main(int argc, char *argv[])
 		cfg.initialise(pszConfigFileName);
 	}
 	catch (Exception * e) {
-		syslog(LOG_INFO, "Could not read config file: %s", pszConfigFileName);
 		fprintf(stderr, "Could not read config file: %s [%s]\n", pszConfigFileName, e->getMessage().c_str());
 		fprintf(stderr, "Aborting!\n\n");
 		fflush(stderr);
@@ -208,22 +207,22 @@ int main(int argc, char *argv[])
 	 * Register signal handler for cleanup...
 	 */
 	if (signal(SIGINT, &handleSignal) == SIG_ERR) {
-		log.logError("Failed to register signal handler for SIGINT");
+		log.logFatal("Failed to register signal handler for SIGINT");
 		return -1;
 	}
 
 	if (signal(SIGTERM, &handleSignal) == SIG_ERR) {
-		log.logError("Failed to register signal handler for SIGTERM");
+		log.logFatal("Failed to register signal handler for SIGTERM");
 		return -1;
 	}
 
 	if (signal(SIGUSR1, &handleSignal) == SIG_ERR) {
-		log.logError("Failed to register signal handler for SIGUSR1");
+		log.logFatal("Failed to register signal handler for SIGUSR1");
 		return -1;
 	}
 
 	if (signal(SIGUSR2, &handleSignal) == SIG_ERR) {
-		log.logError("Failed to register signal handler for SIGUSR2");
+		log.logFatal("Failed to register signal handler for SIGUSR2");
 		return -1;
 	}
 
