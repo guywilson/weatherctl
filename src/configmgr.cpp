@@ -118,12 +118,16 @@ void ConfigManager::readConfig()
                     pszUntrimmedValue = strndup(&pszConfigLine[delimPos + 1], valueLen);
                     pszValue = str_trim_trailing(pszUntrimmedValue);
 
+                    printf("Value is '%s'\n", pszValue);
+
                     /*
                     ** Read the value from the file specified between <>...
                     */
                     if (pszValue[0] == '<' && str_endswith(pszValue, ">")) {
                         pszValue[strlen(pszValue) - 1] = 0;
                         pszCfgItemFile = str_trim(&pszValue[1]);
+
+                        printf("Config item file is '%s'\n", pszCfgItemFile);
 
                         free(pszValue);
 
@@ -146,6 +150,7 @@ void ConfigManager::readConfig()
                         }
 
                         fread(pszValue, propFileLength, 1, f);
+                        pszValue[propFileLength] = 0;
 
                         fclose(f);
                     }
