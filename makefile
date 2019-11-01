@@ -75,8 +75,6 @@ install: $(TARGET)
 	cp $(TARGET) /sandiskusb/bin
 	cp wctl.cfg /sandiskusb/weatherctl
 	chmod 600 /sandiskusb/weatherctl/wctl.cfg
-	cp wctl.auth /sandiskusb/weatherctl
-	chmod 600 /sandiskusb/weatherctl/wctl.auth
 	rm -r /sandiskusb/www/css
 	rm -r /sandiskusb/www/html
 	cp -r resources/* /sandiskusb/www
