@@ -297,64 +297,6 @@ void BackupManager::writeCSVRecord(PostData * pPostData)
     }
 }
 
-void BackupManager::insertDB(const char * pszHost, const char * pszDbName, char * pszInsertStatement)
-{
-/*
-	char				szConnection[128];
-	PGresult *			queryResult;
-
-    sprintf(
-        szConnection, 
-        "host=%s port=5432 dbname=%s user=guy password=password", 
-        pszHost, 
-        pszDbName);
-
-    dbConnection = PQconnectdb(szConnection);
-
-    if (PQstatus(dbConnection) != CONNECTION_OK) {
-        log.logError("Cannot connect to database [%s]", PQerrorMessage(dbConnection));
-        PQfinish(dbConnection);
-        throw new Exception("Cannot connect to database");
-    }
-
-    queryResult = PQexec(dbConnection, "BEGIN");
-
-    if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
-        log.logError("Error beginning transaction [%s]", PQerrorMessage(dbConnection));
-        PQclear(queryResult);
-        PQfinish(dbConnection);
-        throw new Exception("Error opening transaction");
-    }
-
-    log.logDebug("Opened DB transaction");
-
-    PQclear(queryResult);
-
-    queryResult = PQexec(dbConnection, pszInsertStatement);
-
-    if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
-        log.logError("Error issuing INSERT statement [%s]", PQerrorMessage(dbConnection));
-        PQclear(queryResult);
-        PQfinish(dbConnection);
-        throw new Exception("Error issuing INSERT statement");
-    }
-    else {
-        log.logInfo("Successfully INSERTed record to database.");
-    }
-
-    PQclear(queryResult);
-
-    queryResult = PQexec(dbConnection, "END");
-    PQclear(queryResult);
-
-    log.logDebug("Closed DB transaction");
-
-    PQfinish(dbConnection);
-
-    log.logDebug("PQfinish()");
-*/
-}
-
 void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, PostData * pPostData)
 {
     Postgres            pg(pszHost, 5432, pszDbName, "guy", "password");

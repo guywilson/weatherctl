@@ -147,7 +147,7 @@ char * Rest::login(PostData * pPostData)
 		throw new Exception("Failed to authenticate");
 	}
 
-	log.logInfo("Successfully logged into server");
+	log.logStatus("Successfully logged into server");
 	
 	Value & token = d["token"];
 
@@ -233,7 +233,7 @@ int	Rest::post(PostData * pPostData, const char * pszAPIKey)
 	bool isAuthenticated = s.GetBool();
 
 	if (!isAuthenticated) {
-		log.logInfo("Authentication failed...");
+		log.logError("Authentication failed...");
 		return POST_AUTHENTICATION_ERROR;
 	}
 

@@ -13,11 +13,12 @@
 ** Supported log levels...
 */
 #define LOG_LEVEL_INFO          0x01
-#define LOG_LEVEL_DEBUG         0x02
-#define LOG_LEVEL_ERROR         0x04
-#define LOG_LEVEL_FATAL         0x08
+#define LOG_LEVEL_STATUS        0x02
+#define LOG_LEVEL_DEBUG         0x04
+#define LOG_LEVEL_ERROR         0x08
+#define LOG_LEVEL_FATAL         0x10
 
-#define LOG_LEVEL_ALL           (LOG_LEVEL_INFO | LOG_LEVEL_DEBUG | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL)
+#define LOG_LEVEL_ALL           (LOG_LEVEL_INFO | LOG_LEVEL_STATUS | LOG_LEVEL_DEBUG | LOG_LEVEL_ERROR | LOG_LEVEL_FATAL)
 
 class Logger
 {
@@ -56,6 +57,7 @@ public:
 
     void        newline();
     int         logInfo(const char * fmt, ...);
+    int         logStatus(const char * fmt, ...);
     int         logDebug(const char * fmt, ...);
     int         logDebugNoCR(const char * fmt, ...);
     int         logError(const char * fmt, ...);

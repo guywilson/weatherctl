@@ -153,12 +153,12 @@ int main(int argc, char *argv[])
 	if (fptr_pid == NULL) {
 		fprintf(stderr, "Failed top open PID file\n");
 		fflush(stderr);
-		exit(EXIT_FAILURE);
+	}
+	else {
+		fprintf(fptr_pid, "%d\n", getpid());
+		fclose(fptr_pid);
 	}
 	
-	fprintf(fptr_pid, "%d\n", getpid());
-	fclose(fptr_pid);
-
 	openlog(pszAppName, LOG_PID|LOG_CONS, LOG_DAEMON);
 	syslog(LOG_INFO, "Started %s", pszAppName);
 

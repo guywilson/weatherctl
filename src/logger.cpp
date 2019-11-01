@@ -91,6 +91,9 @@ int Logger::logLevel_atoi(const char * pszLoggingLevel)
         if (strncmp(pszToken, "LOG_LEVEL_INFO", 14) == 0) {
             logLevel |= LOG_LEVEL_INFO;
         }
+        else if (strncmp(pszToken, "LOG_LEVEL_STATUS", 16) == 0) {
+            logLevel |= LOG_LEVEL_STATUS;
+        }
         else if (strncmp(pszToken, "LOG_LEVEL_DEBUG", 15) == 0) {
             logLevel |= LOG_LEVEL_DEBUG;
         }
@@ -131,6 +134,10 @@ int Logger::logMessage(int logLevel, bool addCR, const char * fmt, va_list args)
             switch (logLevel) {
                 case LOG_LEVEL_DEBUG:
                     strcat(buffer, "[DBG]");
+                    break;
+
+                case LOG_LEVEL_STATUS:
+                    strcat(buffer, "[STA]");
                     break;
 
                 case LOG_LEVEL_INFO:
@@ -177,6 +184,20 @@ int Logger::logInfo(const char * fmt, ...)
     va_start (args, fmt);
     
     bytesWritten = logMessage(LOG_LEVEL_INFO, true, fmt, args);
+    
+    va_end(args);
+    
+    return bytesWritten;
+}
+
+int Logger::logStatus(const char * fmt, ...)
+{
+    va_list     args;
+    int         bytesWritten;
+
+    va_start (args, fmt);
+    
+    bytesWritten = logMessage(LOG_LEVEL_STATUS, true, fmt, args);
     
     va_end(args);
     

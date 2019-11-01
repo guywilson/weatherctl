@@ -60,7 +60,6 @@ private:
     FILE *          openCSV(PostData * pPostData);
     void            writeCSVHeader(PostData * pPostData);
     void            writeCSVRecord(PostData * pPostData);
-    void            insertDB(const char * pszHost, const char * pszDbName, char * pszInsertStatement);
     void            writeDBRecord(const char * pszHost, const char * pszDbName, PostData * pPostData);
 
 public:

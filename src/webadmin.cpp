@@ -90,7 +90,7 @@ void WebAdmin::initListener()
 
 	mg_mgr_init(&mgr, NULL);
 
-	log.logInfo("Setting up listener on port %s", szPort);
+	log.logStatus("Setting up listener on port %s", szPort);
 
 #ifdef MG_ENABLE_SSL
 	if (cfg.getValueAsBoolean("admin.issecure")) {
@@ -110,7 +110,7 @@ void WebAdmin::initListener()
 		throw new Exception("Faled to bind to address");
 	}
 
-	log.logInfo("Bound default handler to %s...", szPort);
+	log.logStatus("Bound default handler to %s...", szPort);
 
 	mg_set_protocol_http_websocket(connection);
 }
@@ -119,7 +119,7 @@ void WebAdmin::listen()
 {
 	Logger & log = Logger::getInstance();
 
-	log.logInfo("Listening...");
+	log.logStatus("Listening...");
 
 	while (1) {
 		mg_mgr_poll(&mgr, 1000);

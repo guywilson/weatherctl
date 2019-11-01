@@ -28,7 +28,7 @@ static void * _threadRunner(void * pThreadArgs)
 			go = false;
 		}
 		else {
-			log.logInfo("Restarting thread...");
+			log.logStatus("Restarting thread...");
 			PosixThread::sleep(PosixThread::seconds, 1);
 		}
 	}

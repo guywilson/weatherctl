@@ -27,7 +27,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 	if (!isAdminOnly) {
 		this->pWebPostThread = new WebPostThread();
 		if (this->pWebPostThread->start()) {
-			log.logInfo("Started WebPostThread successfully");
+			log.logStatus("Started WebPostThread successfully");
 		}
 		else {
 			throw new Exception("Failed to start WebPostThread");
@@ -35,7 +35,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 
 		this->pTxCmdThread = new TxCmdThread();
 		if (this->pTxCmdThread->start()) {
-			log.logInfo("Started TxCmdThread successfully");
+			log.logStatus("Started TxCmdThread successfully");
 		}
 		else {
 			throw new Exception("Failed to start TxCmdThread");
@@ -43,7 +43,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 
 		this->pDataCleanupThread = new DataCleanupThread();
 		if (this->pDataCleanupThread->start()) {
-			log.logInfo("Started DataCleanupThread successfully");
+			log.logStatus("Started DataCleanupThread successfully");
 		}
 		else {
 			throw new Exception("Failed to start DataCleanupThread");
@@ -53,7 +53,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 	if (isAdminEnabled) {
 		this->pAdminListenThread = new AdminListenThread();
 		if (this->pAdminListenThread->start()) {
-			log.logInfo("Started AdminListenThread successfully");
+			log.logStatus("Started AdminListenThread successfully");
 		}
 		else {
 			throw new Exception("Failed to start AdminListenThread");
@@ -186,7 +186,7 @@ void * TxCmdThread::run()
 			txCPURatio = getScheduledTime(txCount, 10);
 		}
 		if (txCount == txResetMinMax) {
-			log.logInfo("Sending reset min/max command to AVR...");
+			log.logStatus("Sending reset min/max command to AVR...");
 			
 			/*
 			** Next TX packet is a request to reset min & max values...
@@ -400,7 +400,7 @@ void * AdminListenThread::run()
 
 	web.listen();
 
-	log.logInfo("web.listen returned...");
+	log.logError("web.listen returned...");
 
 	return NULL;
 }
@@ -431,12 +431,12 @@ void * DataCleanupThread::run()
 		((23 - time.getHour()) * 3600) + ((59 - time.getMinute()) * 60) + (59 - time.getMinute()) + 
 		(daysUntilSunday * 3600 * 24);
 
-	log.logInfo("Waiting for %lu seconds until cleanup...", secondsTillSundayMidnight);
+	log.logStatus("Waiting for %lu seconds until cleanup...", secondsTillSundayMidnight);
 
 	PosixThread::sleep(PosixThread::seconds, secondsTillSundayMidnight);
 
 	while (go) {
-		log.logInfo("Running cleanup task...");
+		log.logStatus("Running cleanup task...");
 
 		qmgr.pushWebPost(new PostDataCleanup());
 

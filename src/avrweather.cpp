@@ -395,7 +395,7 @@ void processResponse(uint8_t * response, int responseLength)
 				break;
 
 			case RX_RSP_RESET_MINMAX:
-				log.logInfo("AVR has successfully rest min/max values...");
+				log.logInfo("AVR has successfully reset min/max values...");
 				delete pFrame;
 				break;
 

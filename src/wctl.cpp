@@ -52,18 +52,18 @@ void handleSignal(int sigNum)
 
 	switch (sigNum) {
 		case SIGINT:
-			log.logInfo("Detected SIGINT, cleaning up...");
+			log.logStatus("Detected SIGINT, cleaning up...");
 			break;
 
 		case SIGTERM:
-			log.logInfo("Detected SIGTERM, cleaning up...");
+			log.logStatus("Detected SIGTERM, cleaning up...");
 			break;
 
 		case SIGUSR1:
 			/*
 			** We're interpreting this as a request to turn on/off debug logging...
 			*/
-			log.logInfo("Detected SIGUSR1...");
+			log.logStatus("Detected SIGUSR1...");
 
 			if (log.isLogLevel(LOG_LEVEL_DEBUG)) {
 				int level = log.getLogLevel();
@@ -81,7 +81,7 @@ void handleSignal(int sigNum)
 			/*
 			** We're interpreting this as a request to reload config...
 			*/
-			log.logInfo("Detected SIGUSR2, reloading config...");
+			log.logStatus("Detected SIGUSR2, reloading config...");
 
 			ConfigManager & cfg = ConfigManager::getInstance();
 			cfg.readConfig();
