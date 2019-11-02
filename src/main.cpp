@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 			return -1;
 		}
 
-		log.logInfo("Opened serial port...");
+		log.logStatus("Opened serial port...");
 	}	
 
 	/*
