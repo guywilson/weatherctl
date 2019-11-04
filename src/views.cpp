@@ -140,14 +140,14 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 
 				if (strncmp(szCmdValue, "debug-logging-on", sizeof(szCmdValue)) == 0) {
 					int level = log.getLogLevel();
-					level |= LOG_LEVEL_DEBUG;
+					level |= (LOG_LEVEL_INFO | LOG_LEVEL_DEBUG);
 					log.setLogLevel(level);
 					isSerialCommand = false;
 					pszRedirect = "/cmd/cmdon.html";
 				}
 				else if (strncmp(szCmdValue, "debug-logging-off", sizeof(szCmdValue)) == 0) {
 					int level = log.getLogLevel();
-					level &= ~LOG_LEVEL_DEBUG;
+					level &= ~(LOG_LEVEL_INFO | LOG_LEVEL_DEBUG);
 					log.setLogLevel(level);
 					isSerialCommand = false;
 					pszRedirect = "/cmd/cmd.html";

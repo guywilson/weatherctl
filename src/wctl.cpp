@@ -65,6 +65,17 @@ void handleSignal(int sigNum)
 			*/
 			log.logStatus("Detected SIGUSR1...");
 
+			if (log.isLogLevel(LOG_LEVEL_INFO)) {
+				int level = log.getLogLevel();
+				level &= ~LOG_LEVEL_INFO;
+				log.setLogLevel(level);
+			}
+			else {
+				int level = log.getLogLevel();
+				level |= LOG_LEVEL_INFO;
+				log.setLogLevel(level);
+			}
+
 			if (log.isLogLevel(LOG_LEVEL_DEBUG)) {
 				int level = log.getLogLevel();
 				level &= ~LOG_LEVEL_DEBUG;

@@ -85,6 +85,9 @@ public:
 
 class PostDataCleanup : public PostData
 {
+private:
+	const char *	jsonTemplate = "{\n}";
+
 public:
 	PostDataCleanup() {}
 
@@ -92,11 +95,16 @@ public:
 		return CLASS_ID_CLEANUP;
 	}
 	const char * getPathSuffix() {
-		return WEB_PATH_LOGIN; 
+		return WEB_PATH_CLEANUP; 
 	}
-	char *	getJSON()
-	{
-		return NULL;
+	char *	getJSON() {
+		char *		jsonBuffer;
+
+		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + 1);
+
+		strcpy(jsonBuffer, jsonTemplate);
+		
+		return jsonBuffer;
 	}
 };
 

@@ -332,6 +332,11 @@ void * WebPostThread::run()
 					strcpy(szType, "version");
 					break;
 
+				case CLASS_ID_CLEANUP:
+					log.logDebug("Got CLEANUP post data from queue...");
+					strcpy(szType, "cleanup");
+					break;
+
 				case CLASS_ID_BASE:
 					log.logError("Got BASE post data from queue!");
 					break;
@@ -433,7 +438,8 @@ void * DataCleanupThread::run()
 
 	log.logStatus("Waiting for %lu seconds until cleanup...", secondsTillSundayMidnight);
 
-	PosixThread::sleep(PosixThread::seconds, secondsTillSundayMidnight);
+//	PosixThread::sleep(PosixThread::seconds, secondsTillSundayMidnight);
+	PosixThread::sleep(PosixThread::seconds, 5);
 
 	while (go) {
 		log.logStatus("Running cleanup task...");
