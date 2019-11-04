@@ -438,8 +438,7 @@ void * DataCleanupThread::run()
 
 	log.logStatus("Waiting for %lu seconds until cleanup...", secondsTillSundayMidnight);
 
-//	PosixThread::sleep(PosixThread::seconds, secondsTillSundayMidnight);
-	PosixThread::sleep(PosixThread::seconds, 5);
+	PosixThread::sleep(PosixThread::seconds, secondsTillSundayMidnight);
 
 	while (go) {
 		log.logStatus("Running cleanup task...");
