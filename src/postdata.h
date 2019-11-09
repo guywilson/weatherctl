@@ -208,7 +208,7 @@ public:
 	{
 		char *		jsonBuffer;
 
-		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + sizeof(szTemperature) + sizeof(szPressure) + sizeof(szHumidity) + sizeof(szDewPoint) + 12);
+		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + sizeof(szTemperature) + sizeof(szPressure) + sizeof(szHumidity) + sizeof(szDewPoint) + 16);
 
 		sprintf(
 			jsonBuffer,
