@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #include "avrweather.h"
 #include "queuemgr.h"
@@ -197,6 +198,20 @@ double getActualRainfall(uint16_t sensorValue)
 	rainfall = ((double)sensorValue + offset) * TIPS_TO_MM_SCALE_FACTOR * factor;
 	
 	return rainfall;
+}
+
+double getActualDewPoint(double temperature, double humidity)
+{
+	double dewPoint;
+	double a = 17.62;
+	double b = 243.12;
+	double alpha;
+
+	alpha = (log10(humidity / 100) + ((a * temperature) / (b + temperature)));
+
+	dewPoint = (b * alpha) / (a - alpha);
+
+	return dewPoint;
 }
 
 void printFrame(uint8_t * buffer, int bufferLength)

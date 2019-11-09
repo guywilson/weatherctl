@@ -154,15 +154,22 @@ private:
 	char 			szTemperature[20];
 	char			szPressure[20];
 	char			szHumidity[20];
+	char			szDewPoint[20];
 	bool			doSave = false;
 	const char *	type;
-	const char *	jsonTemplate = "{\n\t\"time\": \"%s\",\n\t\"save\": \"%s\",\n\t\"temperature\": \"%s\",\n\t\"pressure\": \"%s\",\n\t\"humidity\": \"%s\"\n}";
+	const char *	jsonTemplate = "{\n\t\"time\": \"%s\",\n\t\"save\": \"%s\",\n\t\"temperature\": \"%s\",\n\t\"pressure\": \"%s\",\n\t\"humidity\": \"%s\",\n\t\"dewpoint\": \"%s\"\n}";
 
 public:
 	PostDataTPH(const char * type, bool doSave, TPH * pTPH) {
-		sprintf(this->szTemperature, "%.2f", getActualTemperature(pTPH->temperature));
-		sprintf(this->szPressure, "%.2f", getActualPressure(pTPH->pressure));
-		sprintf(this->szHumidity, "%.2f", getActualHumidity(pTPH->humidity));
+		double t = getActualTemperature(pTPH->temperature);
+		double p = getActualPressure(pTPH->pressure);
+		double h = getActualHumidity(pTPH->humidity);
+		double d = getActualDewPoint(t, h);
+
+		sprintf(this->szTemperature, "%.2f", t);
+		sprintf(this->szPressure, "%.2f", p);
+		sprintf(this->szHumidity, "%.2f", h);
+		sprintf(this->szDewPoint, "%.2f", d);
 
 		this->doSave = doSave;
 		this->type = type;
@@ -172,6 +179,7 @@ public:
 		memset(this->szTemperature, 0, sizeof(this->szTemperature));
 		memset(this->szPressure, 0, sizeof(this->szPressure));
 		memset(this->szHumidity, 0, sizeof(this->szHumidity));
+		memset(this->szDewPoint, 0, sizeof(this->szDewPoint));
 	}
 
 	~PostDataTPH() {
@@ -200,7 +208,7 @@ public:
 	{
 		char *		jsonBuffer;
 
-		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + sizeof(szTemperature) + sizeof(szPressure) + sizeof(szHumidity) + 12);
+		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + sizeof(szTemperature) + sizeof(szPressure) + sizeof(szHumidity) + sizeof(szDewPoint) + 12);
 
 		sprintf(
 			jsonBuffer,
@@ -209,7 +217,8 @@ public:
 			this->isDoSave() ? "true" : "false",
 			this->getTemperature(),
 			this->getPressure(),
-			this->getHumidity());
+			this->getHumidity(),
+			this->getDewPoint());
 
 		return jsonBuffer;
 	}
@@ -227,6 +236,9 @@ public:
 	}
 	char *		getHumidity() {
 		return this->szHumidity;
+	}
+	char *		getDewPoint() {
+		return this->szDewPoint;
 	}
 };
 

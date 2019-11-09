@@ -151,5 +151,6 @@ double      getActualPressure(uint16_t sensorValue);
 double      getActualHumidity(uint16_t sensorValue);
 double      getActualWindspeed(uint16_t sensorValue);
 double      getActualRainfall(uint16_t sensorValue);
+double      getActualDewPoint(double temperature, double humidity);
 
 #endif
