@@ -207,7 +207,7 @@ double getActualDewPoint(double temperature, double humidity)
 	double b = 243.12;
 	double alpha;
 
-	alpha = (log10(humidity / 100) + ((a * temperature) / (b + temperature)));
+	alpha = (log(humidity / 100) + ((a * temperature) / (b + temperature)));
 
 	dewPoint = (b * alpha) / (a - alpha);
 
