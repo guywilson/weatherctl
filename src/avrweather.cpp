@@ -149,21 +149,28 @@ double getActualPressure(uint16_t sensorValue)
 }
 
 /*
+** Vout = (Vs) * ((0.0062 * RH) + 0.16)
+**
+** Temperature compensation: True RH = (RH) / (1.0546 – (0.00216 * T))
+**
 ** RH = ((ADC / 1023) - 0.16) / 0.0062
 */
-double getActualHumidity(uint16_t sensorValue)
+double getActualHumidity(uint16_t sensorValue, double temperature)
 {
 	double		humidity;
 	double		offset;
 	double		factor;
+	double		sensorCompensated;
 
 	CalibrationData & cd = CalibrationData::getInstance();
 
 	offset = cd.getOffset(cd.hygrometer);
 	factor = cd.getFactor(cd.hygrometer);
 
+	sensorCompensated = (double)sensorValue / (((double)1.0546 - ((double)0.00216 * temperature)));
+
 	humidity = 
-		(((((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062) + offset) * factor;
+		((((sensorCompensated / (double)1023) - (double)0.16) / (double)0.0062) + offset) * factor;
 
 	return humidity;
 }

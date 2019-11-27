@@ -148,7 +148,7 @@ void		printFrame(uint8_t * buffer, int bufferLength);
 void		processResponse(uint8_t * response, int responseLength);
 double      getActualTemperature(uint16_t sensorValue);
 double      getActualPressure(uint16_t sensorValue);
-double      getActualHumidity(uint16_t sensorValue);
+double      getActualHumidity(uint16_t sensorValue, double temperature);
 double      getActualWindspeed(uint16_t sensorValue);
 double      getActualRainfall(uint16_t sensorValue);
 double      getActualDewPoint(double temperature, double humidity);

@@ -163,7 +163,7 @@ public:
 	PostDataTPH(const char * type, bool doSave, TPH * pTPH) {
 		double t = getActualTemperature(pTPH->temperature);
 		double p = getActualPressure(pTPH->pressure);
-		double h = getActualHumidity(pTPH->humidity);
+		double h = getActualHumidity(pTPH->humidity, t);
 		double d = getActualDewPoint(t, h);
 
 		sprintf(this->szTemperature, "%.2f", t);
