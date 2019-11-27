@@ -123,7 +123,7 @@ double getActualTemperature(uint16_t sensorValue)
 	factor = cd.getFactor(cd.thermometer);
 
 	temperature = 
-		((((((double)sensorValue + offset) / (double)1023) * (double)5) - (double)1.375) / (double)0.0225) * factor;
+		((((((double)sensorValue / (double)1023) * (double)5) - (double)1.375) / (double)0.0225) + offset) * factor;
 
 	return temperature;
 }
@@ -143,7 +143,7 @@ double getActualPressure(uint16_t sensorValue)
 	factor = cd.getFactor(cd.barometer);
 
 	pressure = 
-		((((((double)sensorValue + offset) / (double)1023) + (double)0.095) / (double)0.009) * (double)10) * factor;
+		((((((double)sensorValue / (double)1023) + (double)0.095) / (double)0.009) * (double)10) + offset) * factor;
 
 	return pressure;
 }
@@ -163,7 +163,7 @@ double getActualHumidity(uint16_t sensorValue)
 	factor = cd.getFactor(cd.hygrometer);
 
 	humidity = 
-		(((((double)sensorValue + offset) / (double)1023) - (double)0.16) / (double)0.0062) * factor;
+		(((((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062) + offset) * factor;
 
 	return humidity;
 }
@@ -179,7 +179,7 @@ double getActualWindspeed(uint16_t sensorValue)
 	offset = cd.getOffset(cd.anemometer);
 	factor = cd.getFactor(cd.anemometer);
 
-	windspeed = ((double)sensorValue + offset) * RPS_TO_KPH_SCALE_FACTOR * factor;
+	windspeed = (((double)sensorValue * RPS_TO_KPH_SCALE_FACTOR) + offset) * factor;
 
 	return windspeed;
 }
@@ -195,7 +195,7 @@ double getActualRainfall(uint16_t sensorValue)
 	offset = cd.getOffset(cd.rainGauge);
 	factor = cd.getFactor(cd.rainGauge);
 
-	rainfall = ((double)sensorValue + offset) * TIPS_TO_MM_SCALE_FACTOR * factor;
+	rainfall = (((double)sensorValue * TIPS_TO_MM_SCALE_FACTOR) + offset) * factor;
 	
 	return rainfall;
 }
