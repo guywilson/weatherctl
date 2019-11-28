@@ -170,7 +170,7 @@ double getActualHumidity(uint16_t sensorValue, double temperature)
 	humidity = 
 		((((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062);
 
-	humidityCompensated = humidity / (((double)1.0546 - ((double)0.00216 * temperature)));
+	humidityCompensated = ((humidity / (((double)1.0546 - ((double)0.00216 * temperature)))) + offset) * factor;
 
 	return humidityCompensated;
 }
