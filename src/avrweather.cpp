@@ -160,19 +160,19 @@ double getActualHumidity(uint16_t sensorValue, double temperature)
 	double		humidity;
 	double		offset;
 	double		factor;
-	double		sensorCompensated;
+	double		humidityCompensated;
 
 	CalibrationData & cd = CalibrationData::getInstance();
 
 	offset = cd.getOffset(cd.hygrometer);
 	factor = cd.getFactor(cd.hygrometer);
 
-	sensorCompensated = (double)sensorValue / (((double)1.0546 - ((double)0.00216 * temperature)));
-
 	humidity = 
-		((((sensorCompensated / (double)1023) - (double)0.16) / (double)0.0062) + offset) * factor;
+		((((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062);
 
-	return humidity;
+	humidityCompensated = humidity / (((double)1.0546 - ((double)0.00216 * temperature)));
+
+	return humidityCompensated;
 }
 
 double getActualWindspeed(uint16_t sensorValue)
