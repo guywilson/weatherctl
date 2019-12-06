@@ -527,7 +527,7 @@ void * IPAddressThread::run()
 
 		qmgr.pushWebPost(new PostDataIPAddress(szIPAddr));
 
-		PosixThread::sleep(PosixThread::seconds, 10);
+		PosixThread::sleep(PosixThread::hours, 1);
 	}
 
 	return NULL;
