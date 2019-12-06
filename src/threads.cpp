@@ -488,14 +488,15 @@ void * IPAddressThread::run()
 {
 	bool		go = true;
 	char		szIPAddr[32];
+	string		response;
+	regex 		r("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
+	smatch 		m;
 
 	Logger & log = Logger::getInstance();
 	QueueMgr & qmgr = QueueMgr::getInstance();
 
 	while (go) {
 		CURL * curl = curl_easy_init();
-
-		string response;
 
 		if (curl) {
 			curl_easy_setopt(curl, CURLOPT_URL, "https://www.ipchicken.com");
@@ -519,9 +520,6 @@ void * IPAddressThread::run()
 		/*
 		** Find the public ip address...
 		*/
-		regex r("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
-		smatch m;
-
 		if (regex_search(response, m, r)) {
 			strcpy(szIPAddr, m.str(0).c_str());
 			log.logStatus("Found IP address: %s", szIPAddr);
@@ -529,7 +527,7 @@ void * IPAddressThread::run()
 
 		qmgr.pushWebPost(new PostDataIPAddress(szIPAddr));
 
-		PosixThread::sleep(PosixThread::hours, 1);
+		PosixThread::sleep(PosixThread::seconds, 10);
 	}
 
 	return NULL;
