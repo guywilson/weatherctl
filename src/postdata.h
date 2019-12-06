@@ -15,6 +15,7 @@
 #define WEB_PATH_VERSION	"version"
 #define WEB_PATH_CLEANUP	"cleanup"
 #define WEB_PATH_LOGIN		"auth/login"
+#define WEB_PATH_IPADDRESS	"ipaddr"
 
 #define CLASS_ID_BASE		0
 #define CLASS_ID_TPH		1
@@ -22,6 +23,7 @@
 #define CLASS_ID_RAINFALL	3
 #define CLASS_ID_LOGIN		4
 #define CLASS_ID_CLEANUP	5
+#define CLASS_ID_IPADDRESS	6
 #define CLASS_ID_VERSION	9
 
 class PostData
@@ -103,6 +105,37 @@ public:
 		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + 1);
 
 		strcpy(jsonBuffer, jsonTemplate);
+		
+		return jsonBuffer;
+	}
+};
+
+class PostDataIPAddress : public PostData
+{
+private:
+	char			szIPAddress[80];
+	const char *	jsonTemplate = "{\n\t\"address\": \"%s\"\n}";
+
+public:
+	PostDataIPAddress(const char * pszIPAddress) {
+		strncpy(this->szIPAddress, pszIPAddress, sizeof(this->szIPAddress));
+	}
+
+	int	getClassID() {
+		return CLASS_ID_IPADDRESS;
+	}
+	const char * getPathSuffix() {
+		return WEB_PATH_IPADDRESS; 
+	}
+	char *	getJSON() {
+		char *		jsonBuffer;
+
+		jsonBuffer = (char *)malloc(strlen(jsonTemplate) + 32);
+
+		sprintf(
+			jsonBuffer,
+			jsonTemplate,
+			this->szIPAddress);
 		
 		return jsonBuffer;
 	}

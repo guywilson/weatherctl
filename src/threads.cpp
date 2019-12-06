@@ -1,5 +1,8 @@
+#include <string>
+#include <regex>
 #include <stdint.h>
 #include <unistd.h>
+#include <curl/curl.h>
 
 #include "configmgr.h"
 #include "logger.h"
@@ -18,7 +21,26 @@ extern "C" {
 #include "strutils.h"
 }
 
+using namespace std;
+
 #define TXRX_WAIT_ms								25L
+
+size_t CurlGet_CallbackFunc(void * contents, size_t size, size_t nmemb, std::string * s)
+{
+    size_t newLength = size * nmemb;
+
+	Logger & log = Logger::getInstance();
+
+    try {
+        s->append((char*)contents, newLength);
+    }
+    catch(std::bad_alloc & e) {
+        log.logError("Failed to grow string");
+        return 0;
+    }
+
+    return newLength;
+}
 
 void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 {
@@ -47,6 +69,14 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 		}
 		else {
 			throw new Exception("Failed to start DataCleanupThread");
+		}
+
+		this->pIPAddressThread = new IPAddressThread();
+		if (this->pIPAddressThread->start()) {
+			log.logStatus("Started IPAddressThread successfully");
+		}
+		else {
+			throw new Exception("Failed to start IPAddressThread");
 		}
 	}
 
@@ -451,5 +481,56 @@ void * DataCleanupThread::run()
 		PosixThread::sleep(PosixThread::hours, 24 * 7);
 	}
 	
+	return NULL;
+}
+
+void * IPAddressThread::run()
+{
+	bool		go = true;
+	char		szIPAddr[32];
+
+	Logger & log = Logger::getInstance();
+	QueueMgr & qmgr = QueueMgr::getInstance();
+
+	while (go) {
+		CURL * curl = curl_easy_init();
+
+		string response;
+
+		if (curl) {
+			curl_easy_setopt(curl, CURLOPT_URL, "https://www.ipchicken.com");
+			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+			curl_easy_setopt(curl, CURLOPT_USERAGENT, "curl/7.42.0");
+			curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
+			curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+			
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlGet_CallbackFunc);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+					
+			curl_easy_perform(curl);
+			
+			curl_easy_cleanup(curl);
+			
+			curl = NULL;
+		}
+
+//		printf("%s", response.c_str());
+
+		/*
+		** Find the public ip address...
+		*/
+		regex r("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
+		smatch m;
+
+		if (regex_search(response, m, r)) {
+			strcpy(szIPAddr, m.str(0).c_str());
+			log.logStatus("Found IP address: %s", szIPAddr);
+		}
+
+		qmgr.pushWebPost(new PostDataIPAddress(szIPAddr));
+
+		PosixThread::sleep(PosixThread::hours, 1);
+	}
+
 	return NULL;
 }
