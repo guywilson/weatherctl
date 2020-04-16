@@ -31,7 +31,7 @@ This software also exposes an admin web interface on https://ip-address/ to cont
 
 I've installed this as a service on Ubuntu 18.04 LTS using the following in a service descriptor: /etc/systemd/system/weatherctl.service
 
-...
+```
 [Unit]
 Description=Weather Controller service
 
@@ -40,15 +40,17 @@ ExecStart=/sandiskusb/bin/wctl -cfg /sandiskusb/weatherctl/wctl.cfg
 
 [Install]
 WantedBy=multi-user.target
-...
+```
 
 The service can then be controlled with the systemctl command, e.g.
-...
+
+```
 sudo systemctl restart weatherctl
-...
+```
 
 Continuous build and deployment is handled through the genkins.sh bash script, this is run as a cron job every 5 minutes, in crontab use the following:
-...
+
+```
 # /etc/crontab: system-wide crontab
 # Unlike any other crontab you don't have to run the `crontab'
 # command to install the new version when you edit this file
@@ -65,4 +67,4 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
 */5 *   * * *   root    cd /sandiskusb/build/weatherctl && ./genkins.sh >> /sandiskusb/log/genkins.log
 #
-...
+```
