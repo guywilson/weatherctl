@@ -13,7 +13,7 @@
 #endif
 
 #include "postgres.h"
-#include "exception.h"
+#include "wctl_error.h"
 #include "configmgr.h"
 #include "logger.h"
 
@@ -154,9 +154,9 @@ Postgres::Postgres(const char * host, int port, const char * dbName, const char 
     dbConnection = PQconnectdb(szConnection);
 
     if (PQstatus(dbConnection) != CONNECTION_OK) {
-        log.logError("Cannot connect to database [%s]", PQerrorMessage(dbConnection));
+        log.logError("Cannot connect to database [%s]:[%s]", dbName, PQerrorMessage(dbConnection));
         PQfinish(dbConnection);
-        throw new Exception("Cannot connect to database");
+        throw wctl_error(wctl_error::buildMsg("Cannot connect to database [%s]:[%s]", dbName, PQerrorMessage(dbConnection)), __FILE__, __LINE__);
     }
 }
 
@@ -176,7 +176,7 @@ void Postgres::beginTransaction()
     if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
         log.logError("Error beginning transaction [%s]", PQerrorMessage(dbConnection));
         PQclear(queryResult);
-        throw new Exception("Error opening transaction");
+        throw wctl_error(wctl_error::buildMsg("Error opening transaction [%s]", PQerrorMessage(dbConnection)), __FILE__, __LINE__);
     }
 
     isTransactionActive = true;
@@ -199,7 +199,7 @@ void Postgres::endTransaction()
         if (PQresultStatus(queryResult) != PGRES_COMMAND_OK) {
             log.logError("Error ending transaction [%s]", PQerrorMessage(dbConnection));
             PQclear(queryResult);
-            throw new Exception("Error ending transaction");
+            throw wctl_error(wctl_error::buildMsg("Error closing transaction [%s]", PQerrorMessage(dbConnection)), __FILE__, __LINE__);
         }
 
         log.logDebug("Transaction - Close");
@@ -227,7 +227,7 @@ PGresult * Postgres::_execute(const char * sql)
         }
 
         endTransaction();
-        throw new Exception("Error issuing statement");
+        throw wctl_error(wctl_error::buildMsg("Error issuing statement [%s]: [%s]", sql, PQerrorMessage(dbConnection)), __FILE__, __LINE__);
     }
     else {
         log.logDebug("Successfully executed statement [%s]", sql);
@@ -287,9 +287,9 @@ int Postgres::INSERT(const char * sql)
     try {
         r = _execute(sql);
     }
-    catch (Exception * e) {
+    catch (wctl_error & e) {
         log.logError("Error issuing INSERT statement [%s]", sql);
-        throw new Exception("Error issuing INSERT statement");
+        throw wctl_error(wctl_error::buildMsg("Error issuing INSERT statement [%s]: [%s]", sql, e.what()), __FILE__, __LINE__);
     }
 
     numRowsAffected = atoi(PQcmdTuples(r));
@@ -302,7 +302,13 @@ int Postgres::UPDATE(const char * sql)
     PGresult *      r;
     int             numRowsAffected = 0;
 
-    r = _execute(sql);
+    try {
+        r = _execute(sql);
+    }
+    catch (wctl_error & e) {
+        log.logError("Error issuing UPDATE statement [%s]", sql);
+        throw wctl_error(wctl_error::buildMsg("Error issuing UPDATE statement [%s]: [%s]", sql, e.what()), __FILE__, __LINE__);
+    }
 
     numRowsAffected = atoi(PQcmdTuples(r));
 
@@ -314,7 +320,13 @@ int Postgres::DELETE(const char * sql)
     PGresult *      r;
     int             numRowsAffected = 0;
 
-    r = _execute(sql);
+    try {
+        r = _execute(sql);
+    }
+    catch (wctl_error & e) {
+        log.logError("Error issuing DELETE statement [%s]", sql);
+        throw wctl_error(wctl_error::buildMsg("Error issuing DELETE statement [%s]: [%s]", sql, e.what()), __FILE__, __LINE__);
+    }
 
     numRowsAffected = atoi(PQcmdTuples(r));
 

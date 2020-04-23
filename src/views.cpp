@@ -6,7 +6,7 @@
 
 #include "views.h"
 #include "webadmin.h"
-#include "exception.h"
+#include "wctl_error.h"
 #include "avrweather.h"
 #include "wctl.h"
 #include "calibration.h"
@@ -29,7 +29,7 @@ static char * getMethod(struct http_message * message)
 	pszMethod = (char *)malloc(message->method.len + 1);
 
 	if (pszMethod == NULL) {
-		throw new Exception("Failed to allocate memory for method...");
+		throw wctl_error(wctl_error::buildMsg("Failed to allocate %d bytes for method...", message->method.len + 1), __FILE__, __LINE__);
 	}
 
 	memcpy(pszMethod, message->method.p, message->method.len);
@@ -45,7 +45,7 @@ static char * getURI(struct http_message * message)
 	pszURI = (char *)malloc(message->uri.len + 1);
 
 	if (pszURI == NULL) {
-		throw new Exception("Failed to allocate memory for URI...");
+		throw wctl_error(wctl_error::buildMsg("Failed to allocate %d bytes for URI...", message->uri.len + 1), __FILE__, __LINE__);
 	}
 
 	memcpy(pszURI, message->uri.p, message->uri.len);
@@ -64,8 +64,8 @@ static int authenticate(struct mg_connection * connection, struct http_message *
 	fpDigest = fopen(cfg.getValue("admin.authfile"), "r");
 
 	if (fpDigest == NULL) {
-		log.logError("Failed to open auth file %s", cfg.getValue("admin.authfile"));
-		throw new Exception("Failed to open auth file");
+		log.logError("Failed to open auth file %s: %s", cfg.getValue("admin.authfile"), strerror(errno));
+		throw wctl_error(wctl_error::buildMsg("Failed to open auth file %s: %s", cfg.getValue("admin.authfile"), strerror(errno)), __FILE__, __LINE__);
 	}
 
 	if (!mg_http_check_digest_auth(message, "weatherctl", fpDigest)) {
@@ -133,7 +133,7 @@ void avrCmdCommandHandler(struct mg_connection * connection, int event, void * p
 				rtn = mg_get_http_var(&message->query_string, "command", szCmdValue, 32);
 
 				if (rtn < 0) {
-					throw new Exception("Failed to find form variable 'command'");
+					throw wctl_error(wctl_error::buildMsg("Failed to find form variable 'command' for URI %s", pszURI), __FILE__, __LINE__);
 				}
 
 				log.logInfo("Got command: %s", szCmdValue);
@@ -362,7 +362,7 @@ void homeViewHandler(struct mg_connection * connection, int event, void * p)
 							sprintf(szNumTasksRunBuffer, "%d", db.numTasksRun);
 						}
 					}
-					catch (Exception * e) {
+					catch (wctl_error & e) {
 						log.logInfo("Timed out waiting for AVR response...");
 						pszAVRVersion = "";
 						pszAVRBuildDate = "";

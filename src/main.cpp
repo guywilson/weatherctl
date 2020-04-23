@@ -22,7 +22,7 @@
 #include <syslog.h>
 
 #include "serial.h"
-#include "exception.h"
+#include "wctl_error.h"
 #include "queuemgr.h"
 #include "currenttime.h"
 #include "webadmin.h"
@@ -167,8 +167,8 @@ int main(int argc, char *argv[])
 	try {
 		cfg.initialise(pszConfigFileName);
 	}
-	catch (Exception * e) {
-		fprintf(stderr, "Could not read config file: %s [%s]\n", pszConfigFileName, e->getMessage().c_str());
+	catch (wctl_error & e) {
+		fprintf(stderr, "Could not read config file: %s [%s]\n", pszConfigFileName, e.what());
 		fprintf(stderr, "Aborting!\n\n");
 		fflush(stderr);
 		exit(EXIT_FAILURE);
@@ -248,9 +248,9 @@ int main(int argc, char *argv[])
 						cfg.getValueAsBoolean("serial.isemulation"));
 			}
 		}
-		catch (Exception * e) {
-			log.logFatal("Failed to open serial port %s", e->getMessage().c_str());
-			syslog(LOG_ERR, "Failed to open serial port %s", e->getMessage().c_str());
+		catch (wctl_error & e) {
+			log.logFatal("Failed to open serial port %s", e.what());
+			syslog(LOG_ERR, "Failed to open serial port %s", e.what());
 			return -1;
 		}
 
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 	try {
 		web.initListener();
 	}
-	catch (Exception * e) {
+	catch (wctl_error & e) {
 		log.logError("Failed to initialise admin console, console disabled...");
 		isAdminEnabled = false;
 	}

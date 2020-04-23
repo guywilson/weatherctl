@@ -13,7 +13,7 @@
 #include <sys/types.h>
 
 #include "serial.h"
-#include "exception.h"
+#include "wctl_error.h"
 #include "avrweather.h"
 #include "logger.h"
 #include "frame.h"
@@ -236,7 +236,7 @@ void SerialPort::_openSerialPort(const char * pszPort, int baudRate, bool isBloc
 
 	if (fd < 0) {
 		sprintf(szExceptionText, "Error opening %s: %s", pszPort, strerror(errno));
-        throw new Exception(szExceptionText);
+        throw wctl_error(szExceptionText, __FILE__, __LINE__);
     }
 
 	/*
@@ -265,7 +265,7 @@ void SerialPort::_openSerialPort(const char * pszPort, int baudRate, bool isBloc
 	 */
 	if ((tcsetattr(fd, TCSANOW, &new_settings)) != 0) {
 		close(fd);
-        throw new Exception("Error setting attributes");
+        throw wctl_error("Error setting attributes on serial port", __FILE__, __LINE__);
 	}
 
 	if (isBlocking) {
@@ -294,7 +294,7 @@ void SerialPort::openPort(const char * pszPort, int baudRate, bool isBlocking, b
 
 		if (err != 0) {
 			log.logError("ERROR! Can't create avrEmulator() thread :[%s]", strerror(err));
-			throw new Exception("Cannot create emulator thread");
+			throw wctl_error("Cannot create emulator thread", __FILE__, __LINE__);
 		}
 		else {
 			log.logInfo("Thread avrEmulator() created successfully");
@@ -319,7 +319,7 @@ int SerialPort::_send_serial(uint8_t * pBuffer, int writeLength)
 	bytesWritten = write(fd, pBuffer, writeLength);
 
 	if (bytesWritten < 0) {
-		throw new Exception("Error writing to port");
+		throw wctl_error(wctl_error::buildMsg("Error writing to serial port: %s", strerror(errno)), __FILE__, __LINE__);
 	}
 
 	return bytesWritten;
@@ -354,9 +354,7 @@ int SerialPort::_receive_serial(uint8_t * pBuffer, int requestedBytes)
 	}
 
 	if (bytesRead < 0) {
-		char szErrorString[80];
-		sprintf(szErrorString, "Error receiving on serial port [%s]", strerror(errno));
-		throw new Exception(szErrorString);
+		throw wctl_error(wctl_error::buildMsg("Error receiving on serial port [%s]", strerror(errno)), __FILE__, __LINE__);
 	}
 
 	/*

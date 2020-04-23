@@ -7,7 +7,6 @@
 #include "mongoose.h"
 #include "currenttime.h"
 #include "configmgr.h"
-#include "exception.h"
 #include "postdata.h"
 
 extern "C" {

@@ -1,7 +1,6 @@
 #include <curl/curl.h>
 
 #include "configmgr.h"
-#include "exception.h"
 #include "postdata.h"
 
 #ifndef _INCL_REST

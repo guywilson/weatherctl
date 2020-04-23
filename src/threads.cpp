@@ -10,7 +10,7 @@
 #include "queuemgr.h"
 #include "frame.h"
 #include "avrweather.h"
-#include "exception.h"
+#include "wctl_error.h"
 #include "webadmin.h"
 #include "rest.h"
 #include "backup.h"
@@ -52,7 +52,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 			log.logStatus("Started WebPostThread successfully");
 		}
 		else {
-			throw new Exception("Failed to start WebPostThread");
+			throw wctl_error("Failed to start WebPostThread", __FILE__, __LINE__);
 		}
 
 		this->pTxCmdThread = new TxCmdThread();
@@ -60,7 +60,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 			log.logStatus("Started TxCmdThread successfully");
 		}
 		else {
-			throw new Exception("Failed to start TxCmdThread");
+			throw wctl_error("Failed to start TxCmdThread", __FILE__, __LINE__);
 		}
 
 		this->pDataCleanupThread = new DataCleanupThread();
@@ -68,7 +68,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 			log.logStatus("Started DataCleanupThread successfully");
 		}
 		else {
-			throw new Exception("Failed to start DataCleanupThread");
+			throw wctl_error("Failed to start DataCleanupThread", __FILE__, __LINE__);
 		}
 
 		this->pIPAddressThread = new IPAddressThread();
@@ -76,7 +76,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 			log.logStatus("Started IPAddressThread successfully");
 		}
 		else {
-			throw new Exception("Failed to start IPAddressThread");
+			throw wctl_error("Failed to start IPAddressThread", __FILE__, __LINE__);
 		}
 	}
 
@@ -86,7 +86,7 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 			log.logStatus("Started AdminListenThread successfully");
 		}
 		else {
-			throw new Exception("Failed to start AdminListenThread");
+			throw wctl_error("Failed to start AdminListenThread", __FILE__, __LINE__);
 		}
 	}
 }
@@ -250,8 +250,8 @@ void * TxCmdThread::run()
 		try {
 			writeLen = port.send(pTxFrame->getFrame(), pTxFrame->getFrameLength());
 		}
-		catch (Exception * e) {
-			log.logError("Error writing to port: %s", e->getMessage().c_str());
+		catch (wctl_error & e) {
+			log.logError("Error writing to port: %s", e.what());
 			continue;
 		}
 
@@ -285,8 +285,8 @@ void * TxCmdThread::run()
 			bytesRead = port.receive(data, MAX_RESPONSE_MESSAGE_LENGTH);
 			log.logDebug("Read %d bytes", bytesRead);
 		}
-		catch (Exception * e) {
-			log.logError("Error reading port: %s", e->getMessage().c_str());
+		catch (wctl_error & e) {
+			log.logError("Error reading port: %s", e.what());
 			PosixThread::sleep(PosixThread::milliseconds, getTxRxDelay());
 			continue;
 		}
@@ -327,14 +327,14 @@ void * WebPostThread::run()
 	try {
 		pszAPIKey = rest.login(pPostDataLogin);
 	}
-	catch (Exception * e) {
-		log.logError("Failed to authenticate email %s", cfg.getValue("web.email"));
+	catch (wctl_error & e) {
+		log.logError("Failed to authenticate email %s: %s", cfg.getValue("web.email"), e.what());
 		return NULL;
 	}
 
 	if (pszAPIKey == NULL) {
 		log.logError("Failed to login to web server, exiting...");
-		throw new Exception("Failed to login to server - panic!");
+		throw wctl_error("Failed to login to server - panic!", __FILE__, __LINE__);
 	}
 
 	while (go) {
@@ -405,8 +405,8 @@ void * WebPostThread::run()
 						try {
 							pszAPIKey = rest.login(pPostDataLogin);
 						}
-						catch (Exception * e) {
-							log.logError("Failed to re-authenticate email %s", cfg.getValue("web.email"));
+						catch (wctl_error & e) {
+							log.logError("Failed to re-authenticate email %s: %s", cfg.getValue("web.email"), e.what());
 							doPost = false;
 						}
 					}

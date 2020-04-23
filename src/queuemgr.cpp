@@ -5,7 +5,7 @@
 #include <pthread.h>
 
 #include "avrweather.h"
-#include "exception.h"
+#include "wctl_error.h"
 #include "queuemgr.h"
 
 using namespace std;
@@ -13,11 +13,11 @@ using namespace std;
 QueueMgr::QueueMgr()
 {
 	if (pthread_mutex_init(&txLock, NULL)) {
-        throw new Exception("Failed to create TX mutex");
+        throw wctl_error("Failed to create TX mutex", __FILE__, __LINE__);
 	}
 
 	if (pthread_mutex_init(&rxLock, NULL)) {
-        throw new Exception("Failed to create RX mutex");
+        throw wctl_error("Failed to create RX mutex", __FILE__, __LINE__);
 	}
 }
 

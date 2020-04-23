@@ -8,7 +8,7 @@
 
 #include "avrweather.h"
 #include "queuemgr.h"
-#include "exception.h"
+#include "wctl_error.h"
 #include "calibration.h"
 #include "postdata.h"
 #include "currenttime.h"
@@ -76,7 +76,7 @@ RxFrame * send_receive(TxFrame * pTxFrame)
 	}
 
 	if (waitCount >= timeout) {
-		throw new Exception("Timed out waiting for send/receive");
+		throw wctl_error("Timed out waiting for send/receive", __FILE__, __LINE__);
 	}
 	
 	RxFrame * pRxFrame = mgr.popRx();

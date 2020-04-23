@@ -6,7 +6,7 @@
 #include <string.h>
 #include <curl/curl.h>
 
-#include "exception.h"
+#include "wctl_error.h"
 #include "logger.h"
 #include "configmgr.h"
 #include "postdata.h"
@@ -48,7 +48,7 @@ Rest::Rest()
 
 	if (this->pCurl == NULL) {
 		curl_easy_cleanup(pCurl);
-		throw new Exception("Error initialising curl");
+		throw wctl_error("Error initialising curl", __FILE__, __LINE__);
 	}
 
 	curl_easy_setopt(pCurl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
@@ -144,7 +144,7 @@ char * Rest::login(PostData * pPostData)
 
 	if (!isAuthenticated) {
 		log.logError("Failed to authenticate");
-		throw new Exception("Failed to authenticate");
+		throw wctl_error("Failed to authenticate with server", __FILE__, __LINE__);
 	}
 
 	log.logStatus("Successfully logged into server");
@@ -166,8 +166,8 @@ int	Rest::post(PostData * pPostData, const char * pszAPIKey)
 	pszTokenHeader = (char *)malloc(strlen(pszAPIKey) + 32);
 
 	if (pszTokenHeader == NULL) {
-		log.logError("Failed to allocate token header");
-		throw new Exception("Failed to allocate token header");
+		log.logError("Failed to allocate %d bytes for token header", strlen(pszAPIKey) + 32);
+		throw wctl_error(wctl_error::buildMsg("Failed to allocate %d bytes for token header", strlen(pszAPIKey) + 32), __FILE__, __LINE__);
 	}
 
 	pszBody = pPostData->getJSON();

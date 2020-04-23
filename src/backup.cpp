@@ -11,7 +11,7 @@
 #include <postgresql/libpq-fe.h>
 #endif
 
-#include "exception.h"
+#include "wctl_error.h"
 #include "postgres.h"
 #include "postdata.h"
 #include "backup.h"
@@ -123,8 +123,8 @@ FILE * BackupManager::openCSV(PostData * pPostData)
         fptr_csv = fopen(pszCSVFileName, "at");
 
         if (fptr_csv == NULL) {
-            log.logError("Failed to open CSV file: %s", strerror(errno));
-            throw new Exception("Error opening CSV file");
+            log.logError("Failed to open CSV file %s with error %s", pszCSVFileName, strerror(errno));
+            throw wctl_error(wctl_error::buildMsg("Error opening CSV file %s with error %s", pszCSVFileName, strerror(errno)), __FILE__, __LINE__);
         }
 
         switch (pPostData->getClassID()) {
@@ -327,9 +327,9 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                 try {
                     pg.INSERT(szInsertStr);
                 }
-                catch (Exception * e) {
+                catch (wctl_error & e) {
                     log.logError("Error inserting backup record...");
-                    throw new Exception("Error inserting backup record...");
+                    throw wctl_error(wctl_error::buildMsg("Error inserting backup record... [%s]", e.what()), __FILE__, __LINE__);
                 }
             }
             break;
@@ -350,9 +350,9 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                 try {
                     pg.INSERT(szInsertStr);
                 }
-                catch (Exception * e) {
+                catch (wctl_error & e) {
                     log.logError("Error inserting backup record...");
-                    throw new Exception("Error inserting backup record...");
+                    throw wctl_error(wctl_error::buildMsg("Error inserting backup record... [%s]", e.what()), __FILE__, __LINE__);
                 }
             }
             if (pPostDataWind->isDoSaveMax()) {
@@ -366,9 +366,9 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                 try {
                     pg.INSERT(szInsertStr);
                 }
-                catch (Exception * e) {
+                catch (wctl_error & e) {
                     log.logError("Error inserting backup record...");
-                    throw new Exception("Error inserting backup record...");
+                    throw wctl_error(wctl_error::buildMsg("Error inserting backup record... [%s]", e.what()), __FILE__, __LINE__);
                 }
             }
             break;
@@ -389,9 +389,9 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                 try {
                     pg.INSERT(szInsertStr);
                 }
-                catch (Exception * e) {
+                catch (wctl_error & e) {
                     log.logError("Error inserting backup record...");
-                    throw new Exception("Error inserting backup record...");
+                    throw wctl_error(wctl_error::buildMsg("Error inserting backup record... [%s]", e.what()), __FILE__, __LINE__);
                 }
             }
             if (pPostDataRain->isDoSaveTotal()) {
@@ -405,9 +405,9 @@ void BackupManager::writeDBRecord(const char * pszHost, const char * pszDbName, 
                 try {
                     pg.INSERT(szInsertStr);
                 }
-                catch (Exception * e) {
+                catch (wctl_error & e) {
                     log.logError("Error inserting backup record...");
-                    throw new Exception("Error inserting backup record...");
+                    throw wctl_error(wctl_error::buildMsg("Error inserting backup record... [%s]", e.what()), __FILE__, __LINE__);
                 }
             }
             break;
@@ -428,7 +428,7 @@ uint16_t BackupManager::backup(PostData * pPostData)
 
             rtn = BACKUP_COMPLETE_PRIMARY_DB;
         }
-        catch (Exception * e) {
+        catch (wctl_error & e) {
             log.logError("Failed to insert to primary database, maybe network error?");
             log.logInfo("Insert to secndary DB instance instead, you will need to reconcile later...");
 
@@ -439,7 +439,7 @@ uint16_t BackupManager::backup(PostData * pPostData)
 
                 rtn = BACKUP_COMPLETE_SECONDARY_DB;
             }
-            catch (Exception * e2) {
+            catch (wctl_error & e2) {
                 log.logError("Failed to insert to secondary database, check your configuration!");
 
                 try {
@@ -447,7 +447,7 @@ uint16_t BackupManager::backup(PostData * pPostData)
 
                     rtn = BACKUP_COMPLETE_CSV;
                 }
-                catch (Exception * e3) {
+                catch (wctl_error & e3) {
                     log.logError("Failed to write to CSV file, out of options!!");
                     log.logInfo("Data will be lost!");
 

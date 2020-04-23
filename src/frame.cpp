@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "exception.h"
+#include "wctl_error.h"
 #include "avrweather.h"
 #include "frame.h"
 #include "logger.h"
@@ -76,7 +76,7 @@ uint8_t * Frame::getFrame()
 uint8_t Frame::getFrameByteAt(int index)
 {
 	if (index < 0 || index > this->frameLength - 1) {
-		throw new Exception("Invalid index argument");
+		throw wctl_error(wctl_error::buildMsg("Invalid index argument %d, expected 0 to %d", index, frameLength - 1), __FILE__, __LINE__);
 	}
 
 	return this->buffer[index];

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <curl/curl.h>
 
-#include "exception.h"
+#include "wctl_error.h"
 #include "webadmin.h"
 #include "logger.h"
 #include "configmgr.h"
@@ -32,7 +32,7 @@ static void nullHandler(struct mg_connection * connection, int event, void * p)
 			pszMethod = (char *)malloc(message->method.len + 1);
 
 			if (pszMethod == NULL) {
-				throw new Exception("Failed to allocate memory for method...");
+				throw wctl_error(wctl_error::buildMsg("Failed to allocate %d bytes for method...", message->method.len + 1), __FILE__, __LINE__);
 			}
 
 			memcpy(pszMethod, message->method.p, message->method.len);
@@ -41,7 +41,7 @@ static void nullHandler(struct mg_connection * connection, int event, void * p)
 			pszURI = (char *)malloc(message->uri.len + 1);
 
 			if (pszURI == NULL) {
-				throw new Exception("Failed to allocate memory for URI...");
+				throw wctl_error(wctl_error::buildMsg("Failed to allocate %d bytes for URI...", message->uri.len + 1), __FILE__, __LINE__);
 			}
 
 			memcpy(pszURI, message->uri.p, message->uri.len);
@@ -107,7 +107,7 @@ void WebAdmin::initListener()
 
 	if (connection == NULL) {
 		log.logError("Failed to bind to port %s", szPort);
-		throw new Exception("Faled to bind to address");
+		throw wctl_error(wctl_error::buildMsg("Faled to bind to port %s", szPort), __FILE__, __LINE__);
 	}
 
 	log.logStatus("Bound default handler to %s...", szPort);
