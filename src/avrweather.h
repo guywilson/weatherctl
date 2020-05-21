@@ -84,7 +84,9 @@
 
 #define AVR_RESET_PIN				12
 
-#define PI								(double)(3.14159265)
+#define PI							(double)(3.14159265)
+
+#define AVR_ADC_MAX                 1023
 
 /*
 ** The diameter of the anemometer blades in metres...

@@ -114,6 +114,8 @@ void fire_forget(TxFrame * pTxFrame)
 double getActualTemperature(uint16_t sensorValue)
 {
 	double		temperature;
+	double		calibratedTemperature;
+	double		sensorRatio;
 	double		offset;
 	double		factor;
 
@@ -122,10 +124,13 @@ double getActualTemperature(uint16_t sensorValue)
 	offset = cd.getOffset(cd.thermometer);
 	factor = cd.getFactor(cd.thermometer);
 
-	temperature = 
-		((((((double)sensorValue / (double)1023) * (double)5) - (double)1.375) / (double)0.0225) + offset) * factor;
+	sensorRatio = (double)sensorValue / (double)AVR_ADC_MAX;
 
-	return temperature;
+	temperature = ((sensorRatio * (double)5) - (double)1.375) / (double)0.0225;
+
+	calibratedTemperature = (temperature + offset) * factor;
+
+	return calibratedTemperature;
 }
 
 /*
@@ -134,6 +139,8 @@ double getActualTemperature(uint16_t sensorValue)
 double getActualPressure(uint16_t sensorValue)
 {
 	double		pressure;
+	double		calibratedPressure;
+	double		sensorRatio;
 	double		offset;
 	double		factor;
 
@@ -142,10 +149,13 @@ double getActualPressure(uint16_t sensorValue)
 	offset = cd.getOffset(cd.barometer);
 	factor = cd.getFactor(cd.barometer);
 
-	pressure = 
-		((((((double)sensorValue / (double)1023) + (double)0.095) / (double)0.009) * (double)10) + offset) * factor;
+	sensorRatio = (double)sensorValue / (double)AVR_ADC_MAX;
 
-	return pressure;
+	pressure = ((sensorRatio + (double)0.095) / (double)0.009) * (double)10;
+
+	calibratedPressure = (pressure + offset) * factor;
+
+	return calibratedPressure;
 }
 
 /*
@@ -158,6 +168,8 @@ double getActualPressure(uint16_t sensorValue)
 double getActualHumidity(uint16_t sensorValue, double temperature)
 {
 	double		humidity;
+	double		calibratedHumidity;
+	double		sensorRatio;
 	double		offset;
 	double		factor;
 	double		humidityCompensated;
@@ -167,12 +179,15 @@ double getActualHumidity(uint16_t sensorValue, double temperature)
 	offset = cd.getOffset(cd.hygrometer);
 	factor = cd.getFactor(cd.hygrometer);
 
-	humidity = 
-		((((double)sensorValue / (double)1023) - (double)0.16) / (double)0.0062);
+	sensorRatio = (double)sensorValue / (double)AVR_ADC_MAX;
 
-	humidityCompensated = ((humidity / (((double)1.0546 - ((double)0.00216 * temperature)))) + offset) * factor;
+	humidity = (sensorRatio - (double)0.16) / (double)0.0062;
+	humidityCompensated = 
+		humidity / ((double)1.0546 - ((double)0.00216 * temperature));
 
-	return humidityCompensated;
+	calibratedHumidity = (humidityCompensated + offset) * factor;
+
+	return calibratedHumidity;
 }
 
 double getActualWindspeed(uint16_t sensorValue)
