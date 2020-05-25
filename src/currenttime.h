@@ -20,7 +20,8 @@ class CurrentTime
 {
 private:
 	struct tm *		localTime;
-	char			szTimeStr[20];
+	int				usec;
+	char			szTimeStr[28];
 
 public:
 	CurrentTime();
@@ -32,6 +33,7 @@ public:
 	void			updateTime();
 	void			updateTime(time_t * t);
 
+	char *			getTimeStamp(bool includeMicroseconds);
 	char *			getTimeStamp();
 
 	int				getYear();
@@ -42,6 +44,7 @@ public:
 	int				getHour();
 	int				getMinute();
 	int				getSecond();
+	int				getMicrosecond();
 };
 
 #endif

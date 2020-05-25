@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/time.h>
 
 #include "logger.h"
 #include "currenttime.h"
@@ -70,27 +71,51 @@ char * CurrentTime::getUptime(uint32_t uptimeSeconds)
 
 void CurrentTime::updateTime()
 {
+	struct timeval		tv;
 	time_t				t;
 
-	t = time(0);
+	gettimeofday(&tv, NULL);
+
+	t = tv.tv_sec;
+
+	this->usec = tv.tv_usec;
 	this->localTime = localtime(&t);
+}
+
+char * CurrentTime::getTimeStamp(bool includeMicroseconds)
+{
+	updateTime();
+
+	if (includeMicroseconds) {
+		sprintf(
+			this->szTimeStr,
+			"%d-%02d-%02d %02d:%02d:%02d.%06d",
+			getYear(),
+			getMonth(),
+			getDay(),
+			getHour(),
+			getMinute(),
+			getSecond(),
+			getMicrosecond());
+	}
+	else {
+		sprintf(
+			this->szTimeStr,
+			"%d-%02d-%02d %02d:%02d:%02d",
+			getYear(),
+			getMonth(),
+			getDay(),
+			getHour(),
+			getMinute(),
+			getSecond());
+	}
+
+	return this->szTimeStr;
 }
 
 char * CurrentTime::getTimeStamp()
 {
-	updateTime();
-
-	sprintf(
-		this->szTimeStr,
-		"%d-%02d-%02d %02d:%02d:%02d",
-		getYear(),
-		getMonth(),
-		getDay(),
-		getHour(),
-		getMinute(),
-		getSecond());
-
-	return this->szTimeStr;
+	return this->getTimeStamp(false);
 }
 
 int CurrentTime::getYear()
@@ -128,3 +153,7 @@ int CurrentTime::getSecond()
 	return localTime->tm_sec;
 }
 
+int CurrentTime::getMicrosecond()
+{
+	return this->usec;
+}

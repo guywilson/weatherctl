@@ -128,7 +128,7 @@ int Logger::logMessage(int logLevel, bool addCR, const char * fmt, va_list args)
 
         if (addCR) {
             strcpy(buffer, "[");
-            strcat(buffer, currentTime.getTimeStamp());
+            strcat(buffer, currentTime.getTimeStamp(true));
             strcat(buffer, "] ");
 
             switch (logLevel) {
