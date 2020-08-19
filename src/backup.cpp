@@ -430,22 +430,26 @@ uint16_t BackupManager::backup(PostData * pPostData)
 		log.logInfo("Attempting to backup data");
 
         try {
-            writeDBRecord(this->pszPrimaryDBHost, this->pszPrimaryDBName, pPostData);
+            if (this->primarySourceConfigured) {
+                writeDBRecord(this->pszPrimaryDBHost, this->pszPrimaryDBName, pPostData);
 
-            log.logInfo("Written backup record to primary DB %s on %s", this->pszPrimaryDBName, this->pszPrimaryDBHost);
+                log.logInfo("Written backup record to primary DB %s on %s", this->pszPrimaryDBName, this->pszPrimaryDBHost);
 
-            rtn = BACKUP_COMPLETE_PRIMARY_DB;
+                rtn = BACKUP_COMPLETE_PRIMARY_DB;
+            }
         }
         catch (wctl_error & e) {
             log.logError("Failed to insert to primary database, maybe network error?");
             log.logInfo("Insert to secndary DB instance instead, you will need to reconcile later...");
 
             try {
-                writeDBRecord(this->pszSecondaryDBHost, this->pszSecondaryDBName, pPostData);
+                if (this->secondarySourceConfigured) {
+                    writeDBRecord(this->pszSecondaryDBHost, this->pszSecondaryDBName, pPostData);
 
-                log.logInfo("Written backup record to secondary DB %s on %s", this->pszSecondaryDBName, this->pszSecondaryDBHost);
+                    log.logInfo("Written backup record to secondary DB %s on %s", this->pszSecondaryDBName, this->pszSecondaryDBHost);
 
-                rtn = BACKUP_COMPLETE_SECONDARY_DB;
+                    rtn = BACKUP_COMPLETE_SECONDARY_DB;
+                }
             }
             catch (wctl_error & e2) {
                 log.logError("Failed to insert to secondary database, check your configuration!");
