@@ -182,9 +182,13 @@ const char * ConfigManager::getValue(const char * key)
         readConfig();
     }
 
-    string & value = values[key];
-
-    return value.c_str();
+    if (values.count(key) > 0) {
+        string & value = values[key];
+        return value.c_str();
+    }
+    else {
+		return "";
+    }
 }
 
 bool ConfigManager::getValueAsBoolean(const char * key)
