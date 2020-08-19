@@ -46,6 +46,9 @@ private:
     const char *    csvHeaderRain[3] = {"TIME", "TYPE", "RAINFALL"};
     const char *    csvHeaderDefault[3] = {"TIME", "TYPE", "ERROR"};
 
+    bool            primarySourceConfigured = false;
+    bool            secondarySourceConfigured = false;
+
     FILE *          fptr_tph = NULL;
     FILE *          fptr_wind = NULL;
     FILE *          fptr_rain = NULL;

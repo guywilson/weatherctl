@@ -50,12 +50,20 @@ void BackupManager::setupPrimaryDB(const char * pszHostname, const char * pszDBN
 {
     this->pszPrimaryDBHost = strdup(pszHostname);
     this->pszPrimaryDBName = strdup(pszDBName);
+
+    if (strlen(this->pszPrimaryDBHost) > 0 && strlen(this->pszPrimaryDBName) > 0) {
+        this->primarySourceConfigured = true;
+    }
 }
 
 void BackupManager::setupSecondaryDB(const char * pszHostname, const char * pszDBName)
 {
     this->pszSecondaryDBHost = strdup(pszHostname);
     this->pszSecondaryDBName = strdup(pszDBName);
+
+    if (strlen(this->pszSecondaryDBHost) > 0 && strlen(this->pszSecondaryDBName) > 0) {
+        this->secondarySourceConfigured = true;
+    }
 }
 
 bool BackupManager::isDoSave(PostData * pPostData)
