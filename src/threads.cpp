@@ -315,6 +315,7 @@ void * WebPostThread::run()
 	bool			doPost = true;
 	char			szType[32];
 	char *			pszAPIKey;
+	bool			isBackupEnabled = false;
 
 	Rest 		rest;
 
@@ -322,7 +323,10 @@ void * WebPostThread::run()
 	Logger & log = Logger::getInstance();
 	ConfigManager & cfg = ConfigManager::getInstance();
 
-	PostDataLogin * pPostDataLogin = new PostDataLogin(cfg.getValue("web.email"), cfg.getValue("web.password"));
+	PostDataLogin * pPostDataLogin = 
+		new PostDataLogin(cfg.getValue("web.email"), cfg.getValue("web.password"));
+		
+	isBackupEnabled = cfg.getValueAsBoolean("backup.enabled");
 
 	try {
 		pszAPIKey = rest.login(pPostDataLogin);
@@ -388,8 +392,10 @@ void * WebPostThread::run()
 
 				attempts++;
 
-				BackupManager & backup = BackupManager::getInstance();
-				backup.backup(pPostData);
+				if (isBackupEnabled) {
+					BackupManager & backup = BackupManager::getInstance();
+					backup.backup(pPostData);
+				}
 
 				if (rtn == POST_CURL_ERROR) {
 					log.logError("CURL error posting %s data to %s", szType, rest.getHost());

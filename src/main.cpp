@@ -286,14 +286,24 @@ int main(int argc, char *argv[])
 		/*
 		** Initialise backup manager...
 		*/
-		BackupManager & backup = BackupManager::getInstance();
+		bool isBackupEnabled = cfg.getValueAsBoolean("backup.enabled");
+		
+		if (isBackupEnabled) {
+			BackupManager & backup = BackupManager::getInstance();
 
-		backup.setupCSV(
-				cfg.getValue("backup.tph.csv"), 
-				cfg.getValue("backup.wind.csv"), 
-				cfg.getValue("backup.rain.csv"));
-		backup.setupPrimaryDB(cfg.getValue("backup.primaryhost"), cfg.getValue("backup.primarydb"));
-		backup.setupSecondaryDB(cfg.getValue("backup.secondaryhost"), cfg.getValue("backup.secondarydb"));
+			backup.setupCSV(
+					cfg.getValue("backup.tph.csv"), 
+					cfg.getValue("backup.wind.csv"), 
+					cfg.getValue("backup.rain.csv"));
+					
+			backup.setupPrimaryDB(
+				cfg.getValue("backup.primaryhost"), 
+				cfg.getValue("backup.primarydb"));
+				
+			backup.setupSecondaryDB(
+				cfg.getValue("backup.secondaryhost"), 
+				cfg.getValue("backup.secondarydb"));
+		}
 	}
 
 	/*
