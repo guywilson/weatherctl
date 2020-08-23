@@ -134,6 +134,8 @@ char * Rest::login(PostData * pPostData)
 		return NULL;
 	}
 
+	log.logDebug("Got response from web server [%s]", response.c_str());
+	
 	Document d;
 
 	d.Parse(response.c_str());
