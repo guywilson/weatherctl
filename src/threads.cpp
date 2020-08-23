@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include <curl/curl.h>
 
+extern "C" {
+#include <strutils.h>
+}
+
 #include "configmgr.h"
 #include "logger.h"
 #include "serial.h"
@@ -17,9 +21,6 @@
 #include "postdata.h"
 #include "threads.h"
 
-extern "C" {
-#include "strutils.h"
-}
 
 using namespace std;
 

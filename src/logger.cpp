@@ -7,12 +7,13 @@
 #include <pthread.h>
 #include <ctype.h>
 
+extern "C" {
+#include <strutils.h>
+}
+
 #include "currenttime.h"
 #include "logger.h"
 
-extern "C" {
-#include "strutils.h"
-}
 
 Logger::~Logger()
 {

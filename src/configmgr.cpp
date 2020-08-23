@@ -5,15 +5,16 @@
 #include <syslog.h>
 #include <errno.h>
 
+extern "C" {
+#include <strutils.h>
+}
+
 #include <map>
 #include <vector>
 
 #include "configmgr.h"
 #include "wctl_error.h"
 
-extern "C" {
-#include "strutils.h"
-}
 
 using namespace std;
 

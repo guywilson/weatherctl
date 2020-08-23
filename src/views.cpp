@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+#include <strutils.h>
+}
+
 #include "views.h"
 #include "webadmin.h"
 #include "wctl_error.h"
@@ -16,7 +20,6 @@
 #include "html_template.h"
 
 extern "C" {
-#include "strutils.h"
 #include "version.h"
 }
 

@@ -21,6 +21,10 @@
 #include <signal.h>
 #include <syslog.h>
 
+extern "C" {
+#include <strutils.h>
+}
+
 #include "serial.h"
 #include "wctl_error.h"
 #include "queuemgr.h"
@@ -35,10 +39,8 @@
 #include "wctl.h"
 
 extern "C" {
-#include "strutils.h"
+	#include "version.h"
 }
-
-#include "version.h"
 
 using namespace std;
 
