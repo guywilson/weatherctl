@@ -35,6 +35,7 @@ void ConfigManager::readConfig()
     char *          pszUntrimmedValue;
 	char *			config = NULL;
     char *          reference = NULL;
+	char *			pszCfgItem;
     char *          pszCfgItemFile;
 	int				fileLength = 0;
 	int				bytesRead = 0;
@@ -142,15 +143,22 @@ void ConfigManager::readConfig()
                         long propFileLength = ftell(f);
                         rewind(f);
 
-                        pszValue = (char *)malloc(propFileLength + 1);
+                        pszCfgItem = (char *)malloc(propFileLength + 1);
 
-                        if (pszValue == NULL) {
+                        if (pszCfgItem == NULL) {
                             syslog(LOG_ERR, "Failed to alocate %ld bytes for config item %s", propFileLength + 1, pszKey);
                             throw wctl_error(wctl_error::buildMsg("Failed to allocate %ld bytes for config item %s", propFileLength + 1, pszKey), __FILE__, __LINE__);
                         }
 
-                        fread(pszValue, propFileLength, 1, f);
-                        pszValue[propFileLength] = 0;
+                        fread(pszCfgItem, propFileLength, 1, f);
+                        pszCfgItem[propFileLength] = 0;
+						
+						/*
+						** Trim the value read from the property file
+						*/
+						pszValue = str_trim(pszCfgItem);
+						
+						free(pszCfgItem);
 
                         fclose(f);
                     }
