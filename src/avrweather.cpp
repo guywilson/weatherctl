@@ -420,9 +420,9 @@ void processResponse(uint8_t * response, int responseLength)
 				avgCount++;
 
 				/*
-				* Save every 20 minutes...
+				* Save every 60 minutes...
 				*/
-				if (avgCount < (TPH_MSGS_PER_MINUTE * 20)) {
+				if (avgCount < (TPH_MSGS_PER_MINUTE * 60)) {
 					avgSave = false;
 				}
 				else {
@@ -454,9 +454,9 @@ void processResponse(uint8_t * response, int responseLength)
 				maxWindspeedSave = false;
 
 				/*
-				* Save every 20 minutes...
+				* Save every 60 minutes...
 				*/
-				if (avgWindspeedCount < 20) {
+				if (avgWindspeedCount < 60) {
 					avgWindspeedSave = false;
 				}
 				else {
