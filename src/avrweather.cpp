@@ -186,6 +186,10 @@ double getActualHumidity(uint16_t sensorValue, double temperature)
 		humidity / ((double)1.0546 - ((double)0.00216 * temperature));
 
 	calibratedHumidity = (humidityCompensated + offset) * factor;
+	
+	if (calibratedHumidity > 100.0) {
+		calibratedHumidity = 100.0;
+	}
 
 	return calibratedHumidity;
 }
