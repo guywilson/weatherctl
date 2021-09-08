@@ -190,7 +190,10 @@ double getActualHumidity(uint16_t sensorValue, double temperature)
 	if (calibratedHumidity > 100.0) {
 		calibratedHumidity = 100.0;
 	}
-
+	else if (calibratedHumidity < 0.0) {
+		calibratedHumidity = 0.0;
+	}
+	
 	return calibratedHumidity;
 }
 
