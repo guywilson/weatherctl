@@ -364,11 +364,6 @@ void * WebPostThread::run()
 					strcpy(szType, "cleanup");
 					break;
 
-				case CLASS_ID_IPADDRESS:
-					log.logDebug("Got IPADDRESS post data from queue!");
-					strcpy(szType, "ip address");
-					break;
-
 				case CLASS_ID_BASE:
 					log.logError("Got BASE post data from queue!");
 					break;
