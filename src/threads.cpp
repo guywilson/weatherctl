@@ -71,14 +71,6 @@ void ThreadManager::startThreads(bool isAdminOnly, bool isAdminEnabled)
 		else {
 			throw wctl_error("Failed to start DataCleanupThread", __FILE__, __LINE__);
 		}
-
-		this->pIPAddressThread = new IPAddressThread();
-		if (this->pIPAddressThread->start()) {
-			log.logStatus("Started IPAddressThread successfully");
-		}
-		else {
-			throw wctl_error("Failed to start IPAddressThread", __FILE__, __LINE__);
-		}
 	}
 
 	if (isAdminEnabled) {
@@ -493,54 +485,5 @@ void * DataCleanupThread::run()
 		PosixThread::sleep(PosixThread::hours, 24 * 7);
 	}
 	
-	return NULL;
-}
-
-void * IPAddressThread::run()
-{
-	bool		go = true;
-	char		szIPAddr[32];
-	string		response;
-	regex 		r("(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
-	smatch 		m;
-
-	Logger & log = Logger::getInstance();
-	QueueMgr & qmgr = QueueMgr::getInstance();
-
-	while (go) {
-		CURL * curl = curl_easy_init();
-
-		if (curl) {
-			curl_easy_setopt(curl, CURLOPT_URL, "https://www.ipchicken.com");
-			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-			curl_easy_setopt(curl, CURLOPT_USERAGENT, "curl/7.42.0");
-			curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
-			curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
-			
-			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlGet_CallbackFunc);
-			curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-					
-			curl_easy_perform(curl);
-			
-			curl_easy_cleanup(curl);
-			
-			curl = NULL;
-		}
-
-//		printf("%s", response.c_str());
-
-		/*
-		** Find the public ip address...
-		*/
-		if (regex_search(response, m, r)) {
-			strcpy(szIPAddr, m.str(0).c_str());
-			log.logStatus("Found IP address: %s", szIPAddr);
-		}
-
-		qmgr.pushWebPost(new PostDataIPAddress(szIPAddr));
-
-		PosixThread::sleep(PosixThread::hours, 1);
-	}
-
 	return NULL;
 }

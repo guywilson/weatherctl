@@ -40,14 +40,6 @@ public:
     void * run();
 };
 
-class IPAddressThread : public PosixThread
-{
-public:
-    IPAddressThread() : PosixThread(true) {}
-
-    void * run();
-};
-
 class ThreadManager
 {
 public:
@@ -63,7 +55,6 @@ private:
     WebPostThread *         pWebPostThread = NULL;
     AdminListenThread *     pAdminListenThread = NULL;
     DataCleanupThread *     pDataCleanupThread = NULL;
-    IPAddressThread *       pIPAddressThread = NULL;
 
 public:
     void                    startThreads(bool isAdminOnly, bool isAdminEnabled);
